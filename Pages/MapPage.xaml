@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="VinhKhanhTour.Pages.MapPage"
+             Title="Bản Đồ Phố Vĩnh Khánh">
+
+    <Grid x:Name="MapContainer">
+        <!-- Map Control will be loaded dynamically on supported platforms -->
+        
+        <!-- Debug Overlay Layer -->
+        <Frame BackgroundColor="#80000000" CornerRadius="8" Padding="10" 
+               VerticalOptions="Start" HorizontalOptions="Center" Margin="10">
+            <Label x:Name="DebugLabel" TextColor="White" 
+                   Text="Đang chờ GPS..." FontSize="14" HorizontalTextAlignment="Center" />
+        </Frame>
+    </Grid>
+
+</ContentPage>

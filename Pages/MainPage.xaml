@@ -1,0 +1,48 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:VinhKhanhTour.Models"
+             x:Class="VinhKhanhTour.Pages.MainPage"
+             Title="Khám phá Ẩm thực">
+
+    <RefreshView Command="{Binding RefreshCommand}" IsRefreshing="{Binding IsRefreshing}">
+        <ScrollView>
+            <VerticalStackLayout Spacing="15" Padding="20">
+                
+                <Label Text="Chào mừng bạn đến Vĩnh Khánh Tour!"
+                       FontSize="24"
+                       FontAttributes="Bold"
+                       HorizontalOptions="Center" />
+
+                <Label Text="Danh sách các điểm đến tuyệt vời:"
+                       FontSize="16"
+                       TextColor="Gray"
+                       Margin="0,0,0,10" />
+
+                <CollectionView ItemsSource="{Binding Pois}">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:Poi">
+                            <Frame Margin="0,5,0,5" Padding="15" CornerRadius="10" HasShadow="True">
+                                <VerticalStackLayout Spacing="5">
+                                    <Label Text="{Binding Name}" FontSize="18" FontAttributes="Bold" />
+                                    <Label Text="{Binding Description}" FontSize="14" TextColor="Gray" MaxLines="2" LineBreakMode="TailTruncation" />
+                                    
+                                    <HorizontalStackLayout Spacing="10" Margin="0,10,0,0">
+                                        <Image Source="{StaticResource IconProjects}" WidthRequest="16" HeightRequest="16" VerticalOptions="Center"/>
+                                        <Label Text="{Binding Radius, StringFormat='Bán kính kích hoạt: {0}m'}" FontSize="12" FontFamily="OpenSansSemibold" VerticalOptions="Center"/>
+                                    </HorizontalStackLayout>
+                                </VerticalStackLayout>
+                            </Frame>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+                <Button Text="Xem Bản Đồ Toàn Cảnh"
+                        Command="{Binding NavigateToMapCommand}"
+                        Margin="0,20,0,0"
+                        CornerRadius="20" />
+                        
+            </VerticalStackLayout>
+        </ScrollView>
+    </RefreshView>
+</ContentPage>

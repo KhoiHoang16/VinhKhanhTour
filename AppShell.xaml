@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    x:Class="VinhKhanhTour.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:sf="clr-namespace:Syncfusion.Maui.Toolkit.SegmentedControl;assembly=Syncfusion.Maui.Toolkit"
+    xmlns:pages="clr-namespace:VinhKhanhTour.Pages"
+    Shell.FlyoutBehavior="Flyout"
+    Title="VinhKhanhTour">
+
+    <ShellContent
+        Title="Chuyến đi khám phá"
+        Icon="{StaticResource IconDashboard}"
+        ContentTemplate="{DataTemplate pages:MainPage}"
+        Route="main" />
+
+    <ShellContent
+        Title="Bản đồ Tour"
+        Icon="{StaticResource IconProjects}"
+        ContentTemplate="{DataTemplate pages:MapPage}"
+        Route="map" />
+
+    <Shell.FlyoutFooter>
+        <Grid Padding="15">
+            <!-- Tạm thời gỡ bỏ Syncfusion SegmentedControl vì nó gây lỗi Fatal UI Loop khi Slide cái Menu trên API 36 -->
+            <Label Text="Gỡ bỏ nút Theme ở đây do lỗi Syncfusion." HorizontalOptions="Center" TextColor="Gray"/>
+        </Grid>
+    </Shell.FlyoutFooter>
+
+</Shell>

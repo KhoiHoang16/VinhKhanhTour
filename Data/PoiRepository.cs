@@ -1,0 +1,109 @@
+using Microsoft.Data.Sqlite;
+using SQLite;
+using System.Diagnostics;
+using VinhKhanhTour.Models;
+
+namespace VinhKhanhTour.Data
+{
+    public class PoiRepository
+    {
+        private SQLiteAsyncConnection? _connection;
+        private readonly Services.IErrorHandler _errorHandler;
+        private readonly SemaphoreSlim _initLock = new SemaphoreSlim(1, 1);
+        private bool _hasInitialized = false;
+
+        public PoiRepository(Services.IErrorHandler errorHandler)
+        {
+            _errorHandler = errorHandler;
+        }
+
+        private async Task InitAsync()
+        {
+            if (_hasInitialized && _connection is not null) return;
+
+            await _initLock.WaitAsync();
+            try
+            {
+                if (_hasInitialized && _connection is not null) return;
+
+                // Remove existing DB file to ensure we start fresh during development
+                var dbPath = Constants.DatabasePath.Replace("Data Source=", "");
+                if (File.Exists(dbPath))
+                {
+                    File.Delete(dbPath);
+                }
+
+                _connection = new SQLiteAsyncConnection(dbPath);
+                var result = await _connection.CreateTableAsync<Poi>();
+
+                if (result == CreateTableResult.Created)
+                {
+                    // Seed data if this is the first time creating the table
+                    var sampleData = Poi.GetSampleData();
+                    await _connection.InsertAllAsync(sampleData);
+                }
+
+                _hasInitialized = true;
+            }
+            finally
+            {
+                _initLock.Release();
+            }
+        }
+
+        public async Task<List<Poi>> GetAllPoisAsync()
+        {
+            try
+            {
+                await InitAsync();
+                return await _connection!.Table<Poi>().ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _errorHandler.HandleError(ex);
+                Debug.WriteLine($"Failed to retrieve POIs: {ex.Message}");
+            }
+
+            return new List<Poi>();
+        }
+
+        public async Task<int> SavePoiAsync(Poi poi)
+        {
+            try
+            {
+                await InitAsync();
+                if (poi.Id != 0)
+                {
+                    return await _connection!.UpdateAsync(poi);
+                }
+                else
+                {
+                    return await _connection!.InsertAsync(poi);
+                }
+            }
+            catch (Exception ex)
+            {
+                _errorHandler.HandleError(ex);
+                Debug.WriteLine($"Failed to save POI: {ex.Message}");
+            }
+
+            return 0;
+        }
+
+        public async Task<int> DeletePoiAsync(Poi poi)
+        {
+            try
+            {
+                await InitAsync();
+                return await _connection!.DeleteAsync(poi);
+            }
+            catch (Exception ex)
+            {
+                _errorHandler.HandleError(ex);
+                Debug.WriteLine($"Failed to delete POI: {ex.Message}");
+            }
+
+            return 0;
+        }
+    }
+}
