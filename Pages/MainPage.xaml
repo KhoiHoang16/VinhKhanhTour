@@ -1,47 +1,181 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:models="clr-namespace:VinhKhanhTour.Models"
+             xmlns:pageModels="clr-namespace:VinhKhanhTour.PageModels"
              x:Class="VinhKhanhTour.Pages.MainPage"
-             Title="Khám phá Ẩm thực">
+             Title="Khám phá Ẩm thực"
+             BackgroundColor="{AppThemeBinding Light={StaticResource LightBackground}, Dark={StaticResource DarkBackground}}">
 
     <RefreshView Command="{Binding RefreshCommand}" IsRefreshing="{Binding IsRefreshing}">
         <ScrollView>
-            <VerticalStackLayout Spacing="15" Padding="20">
+            <VerticalStackLayout Spacing="0">
                 
-                <Label Text="Chào mừng bạn đến Vĩnh Khánh Tour!"
-                       FontSize="24"
-                       FontAttributes="Bold"
-                       HorizontalOptions="Center" />
+                <!-- 🍊 Hero Banner with warm gradient -->
+                <Grid HeightRequest="280">
+                    <Image Source="https://images.unsplash.com/photo-1555126634-ba943e9cd117?w=800&amp;auto=format&amp;fit=crop&amp;q=80" 
+                           Aspect="AspectFill" />
+                    <BoxView>
+                        <BoxView.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                <GradientStop Color="#20000000" Offset="0.0" />
+                                <GradientStop Color="#90000000" Offset="0.6" />
+                                <GradientStop Color="#DD000000" Offset="1.0" />
+                            </LinearGradientBrush>
+                        </BoxView.Background>
+                    </BoxView>
+                    
+                    <VerticalStackLayout VerticalOptions="End" Padding="24,24,24,28">
+                        <Label Text="🦀" FontSize="36" Margin="0,0,0,4" />
+                        <Label Text="Vĩnh Khánh" FontSize="40" FontAttributes="Bold" TextColor="White" />
+                        <Label Text="Thiên đường Ốc Sài Gòn — Quận 4" FontSize="16" TextColor="#E0E0E0" Margin="0,4,0,0" />
+                    </VerticalStackLayout>
+                </Grid>
 
-                <Label Text="Danh sách các điểm đến tuyệt vời:"
-                       FontSize="16"
-                       TextColor="Gray"
-                       Margin="0,0,0,10" />
+                <VerticalStackLayout Padding="20,20,20,20" Spacing="16">
+                    
+                    <!-- 🔍 Search Bar -->
+                    <Border StrokeShape="RoundRectangle 24" 
+                            Padding="4,0" 
+                            StrokeThickness="1" 
+                            Stroke="{AppThemeBinding Light=#E8D5C8, Dark=#444444}"
+                            BackgroundColor="{AppThemeBinding Light=White, Dark=#1E1E1E}">
+                        <Border.Shadow>
+                            <Shadow Brush="Black" Opacity="0.06" Offset="0,2" Radius="8" />
+                        </Border.Shadow>
+                        <SearchBar x:Name="PoiSearchBar" 
+                               Placeholder="Tìm quán ốc, lẩu, sushi..." 
+                               FontSize="14"
+                               TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
+                               BackgroundColor="Transparent"
+                               CancelButtonColor="{StaticResource Primary}"
+                               SearchCommand="{Binding SearchCommand}"
+                               SearchCommandParameter="{Binding Source={x:Reference PoiSearchBar}, Path=Text}"/>
+                    </Border>
 
-                <CollectionView ItemsSource="{Binding Pois}">
-                    <CollectionView.ItemTemplate>
-                        <DataTemplate x:DataType="models:Poi">
-                            <Frame Margin="0,5,0,5" Padding="15" CornerRadius="10" HasShadow="True">
-                                <VerticalStackLayout Spacing="5">
-                                    <Label Text="{Binding Name}" FontSize="18" FontAttributes="Bold" />
-                                    <Label Text="{Binding Description}" FontSize="14" TextColor="Gray" MaxLines="2" LineBreakMode="TailTruncation" />
-                                    
-                                    <HorizontalStackLayout Spacing="10" Margin="0,10,0,0">
-                                        <Image Source="{StaticResource IconProjects}" WidthRequest="16" HeightRequest="16" VerticalOptions="Center"/>
-                                        <Label Text="{Binding Radius, StringFormat='Bán kính kích hoạt: {0}m'}" FontSize="12" FontFamily="OpenSansSemibold" VerticalOptions="Center"/>
-                                    </HorizontalStackLayout>
-                                </VerticalStackLayout>
-                            </Frame>
-                        </DataTemplate>
-                    </CollectionView.ItemTemplate>
-                </CollectionView>
+                    <!-- 🏷️ Filter Chips -->
+                    <ScrollView Orientation="Horizontal" HorizontalScrollBarVisibility="Never">
+                        <HorizontalStackLayout Spacing="10">
+                            <Button Text="🔥 Tất cả" 
+                                    Style="{StaticResource FilterButtonStyle}" 
+                                    Command="{Binding FilterCommand}" CommandParameter="Tất cả"/>
+                            <Button Text="🐚 Ốc &amp; Hải sản" 
+                                    Style="{StaticResource FilterButtonStyleSecondary}" 
+                                    Command="{Binding FilterCommand}" CommandParameter="Ốc &amp; Hải sản"/>
+                            <Button Text="🍖 Đồ nướng" 
+                                    Style="{StaticResource FilterButtonStyleSecondary}" 
+                                    Command="{Binding FilterCommand}" CommandParameter="Đồ nướng"/>
+                            <Button Text="🍜 Món nước" 
+                                    Style="{StaticResource FilterButtonStyleSecondary}" 
+                                    Command="{Binding FilterCommand}" CommandParameter="Món nước"/>
+                            <Button Text="🍣 Sushi" 
+                                    Style="{StaticResource FilterButtonStyleSecondary}" 
+                                    Command="{Binding FilterCommand}" CommandParameter="Sushi"/>
+                        </HorizontalStackLayout>
+                    </ScrollView>
 
-                <Button Text="Xem Bản Đồ Toàn Cảnh"
-                        Command="{Binding NavigateToMapCommand}"
-                        Margin="0,20,0,0"
-                        CornerRadius="20" />
-                        
+                    <!-- 🚀 Start Tour CTA Button -->
+                    <Border StrokeShape="RoundRectangle 28" StrokeThickness="0" Padding="0" HeightRequest="56">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                <GradientStop Color="#FF6B35" Offset="0.0" />
+                                <GradientStop Color="#FF8F5E" Offset="1.0" />
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Border.Shadow>
+                            <Shadow Brush="#FF6B35" Opacity="0.3" Offset="0,6" Radius="16" />
+                        </Border.Shadow>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding StartTourCommand}" />
+                        </Border.GestureRecognizers>
+                        <HorizontalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="10">
+                            <Label Text="🗺️" FontSize="22" VerticalOptions="Center" />
+                            <Label Text="Bắt Đầu Tour Ngay" FontSize="18" FontAttributes="Bold" TextColor="White" VerticalOptions="Center" />
+                            <Label Text="→" FontSize="22" TextColor="White" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                    </Border>
+
+                    <!-- 📍 Section Header -->
+                    <HorizontalStackLayout Spacing="8" Margin="0,8,0,0">
+                        <Label Text="📍" FontSize="22" VerticalOptions="Center" />
+                        <Label Text="Địa điểm nổi bật" FontSize="22" FontAttributes="Bold" VerticalOptions="Center" />
+                    </HorizontalStackLayout>
+
+                    <!-- 🃏 POI Cards -->
+                    <CollectionView x:Name="PoiCollectionView" ItemsSource="{Binding Pois}" SelectionMode="Single" SelectionChanged="OnPoiSelectionChanged">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="models:Poi">
+                                <Border StrokeShape="RoundRectangle 16" 
+                                        StrokeThickness="0"
+                                        BackgroundColor="{AppThemeBinding Light=White, Dark=#1E1E1E}"
+                                        Margin="0,0,0,16" 
+                                        Padding="0">
+                                    <Border.Shadow>
+                                        <Shadow Brush="Black" Opacity="0.1" Offset="0,4" Radius="12" />
+                                    </Border.Shadow>
+                                    <Grid RowDefinitions="200, Auto">
+                                        
+                                        <!-- Image -->
+                                        <Image Grid.Row="0"
+                                               Source="{Binding ImageUrl}" 
+                                               Aspect="AspectFill" 
+                                               HeightRequest="200"/>
+                                               
+                                        <!-- Gradient Overlay -->
+                                        <BoxView Grid.Row="0"
+                                                 VerticalOptions="End"
+                                                 HeightRequest="100">
+                                            <BoxView.Background>
+                                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                                    <GradientStop Color="Transparent" Offset="0.0" />
+                                                    <GradientStop Color="#CC000000" Offset="1.0" />
+                                                </LinearGradientBrush>
+                                            </BoxView.Background>
+                                        </BoxView>
+                                        
+                                        <Label Grid.Row="0" 
+                                               Text="{Binding Name}" 
+                                               FontSize="20" 
+                                               FontAttributes="Bold" 
+                                               TextColor="White"
+                                               VerticalOptions="End"
+                                               Margin="16,16" />
+
+                                        <!-- Details -->
+                                        <VerticalStackLayout Grid.Row="1" Padding="16" Spacing="10">
+                                            <Label Text="{Binding Description}" 
+                                                   FontSize="14" 
+                                                   MaxLines="2" 
+                                                   LineBreakMode="TailTruncation" 
+                                                   Opacity="0.8" />
+                                            
+                                            <HorizontalStackLayout Spacing="12">
+                                                <Border StrokeShape="RoundRectangle 10" 
+                                                        BackgroundColor="{AppThemeBinding Light=#FFF0E6, Dark=#2A1F16}" 
+                                                        StrokeThickness="0" 
+                                                        Padding="8,4">
+                                                    <Label Text="{Binding Radius, StringFormat='📏 {0}m'}" 
+                                                           FontSize="12" 
+                                                           TextColor="{StaticResource Primary}" />
+                                                </Border>
+                                                <Border StrokeShape="RoundRectangle 10" 
+                                                        BackgroundColor="{AppThemeBinding Light=#E8F8F0, Dark=#162A1F}" 
+                                                        StrokeThickness="0" 
+                                                        Padding="8,4">
+                                                    <Label Text="🐚 Ốc" 
+                                                           FontSize="12" 
+                                                           TextColor="{StaticResource AccentGreen}" />
+                                                </Border>
+                                            </HorizontalStackLayout>
+                                        </VerticalStackLayout>
+                                        
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                            
+                </VerticalStackLayout>
             </VerticalStackLayout>
         </ScrollView>
     </RefreshView>

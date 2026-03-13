@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <?xaml-comp compile="true" ?>
 <ResourceDictionary 
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
@@ -258,10 +258,15 @@
     </Style>
 
     <Style TargetType="Border" x:Key="CardStyle">
-        <Setter Property="StrokeShape" Value="RoundRectangle 20"/>
-        <Setter Property="Background" Value="{AppThemeBinding Light={StaticResource LightSecondaryBackground},Dark={StaticResource DarkSecondaryBackground}}"/>
+        <Setter Property="StrokeShape" Value="RoundRectangle 16"/>
+        <Setter Property="Background" Value="{AppThemeBinding Light={StaticResource White},Dark={StaticResource DarkSecondaryBackground}}"/>
         <Setter Property="StrokeThickness" Value="0"/>
         <Setter Property="Padding" Value="{OnIdiom 15, Desktop=20}"/>
+        <Setter Property="Shadow">
+            <Setter.Value>
+                <Shadow Brush="{AppThemeBinding Light=#40000000, Dark=#20000000}" Offset="0,4" Radius="12" Opacity="0.15" />
+            </Setter.Value>
+        </Setter>
     </Style>
 
     <sf:LabelStyle x:Key="lightThemeLabelStyle" TextColor="{StaticResource DarkOnLightBackground}" FontSize="{OnIdiom 18, Desktop=24}"/> 
@@ -280,6 +285,27 @@
         <Setter Property="VerticalOptions" Value="CenterAndExpand" />
     </Style>
   
+    <Style x:Key="FilterButtonStyle" TargetType="Button">
+        <Setter Property="BackgroundColor" Value="{StaticResource Primary}" />
+        <Setter Property="TextColor" Value="White" />
+        <Setter Property="FontAttributes" Value="Bold" />
+        <Setter Property="CornerRadius" Value="20" />
+        <Setter Property="Padding" Value="20,0" />
+        <Setter Property="HeightRequest" Value="38" />
+        <Setter Property="FontSize" Value="14" />
+    </Style>
+
+    <Style x:Key="FilterButtonStyleSecondary" TargetType="Button">
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light=#FFF5EE, Dark=#2A2A2A}" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" />
+        <Setter Property="BorderColor" Value="{AppThemeBinding Light=#E8D5C8, Dark=#444444}" />
+        <Setter Property="BorderWidth" Value="1" />
+        <Setter Property="CornerRadius" Value="20" />
+        <Setter Property="Padding" Value="20,0" />
+        <Setter Property="HeightRequest" Value="38" />
+        <Setter Property="FontSize" Value="14" />
+    </Style>
+
     <Style TargetType="pullToRefresh:SfPullToRefresh">
         <Setter Property="TransitionMode" Value="SlideOnTop"/>
         <Setter Property="PullingThreshold" Value="100"/>

@@ -2,17 +2,102 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="VinhKhanhTour.Pages.MapPage"
-             Title="Bản Đồ Phố Vĩnh Khánh">
+             Title="Bản Đồ Phố Vĩnh Khánh"
+             Shell.NavBarIsVisible="False">
 
     <Grid x:Name="MapContainer">
         <!-- Map Control will be loaded dynamically on supported platforms -->
-        
-        <!-- Debug Overlay Layer -->
-        <Frame BackgroundColor="#80000000" CornerRadius="8" Padding="10" 
-               VerticalOptions="Start" HorizontalOptions="Center" Margin="10">
-            <Label x:Name="DebugLabel" TextColor="White" 
-                   Text="Đang chờ GPS..." FontSize="14" HorizontalTextAlignment="Center" />
-        </Frame>
-    </Grid>
 
+        <!-- Top Overlay: GPS Status -->
+        <Border Margin="15,45,15,0" 
+                Padding="15,10"
+                HorizontalOptions="Center" 
+                VerticalOptions="Start"
+                BackgroundColor="{AppThemeBinding Light=White, Dark=#1E1E1E}"
+                StrokeShape="RoundRectangle 24"
+                StrokeThickness="0">
+            <Border.Shadow>
+                <Shadow Brush="Black" Opacity="0.15" Offset="0,4" Radius="12" />
+            </Border.Shadow>
+            <HorizontalStackLayout Spacing="10">
+                <Border StrokeShape="RoundRectangle 5" 
+                        WidthRequest="10" HeightRequest="10" 
+                        BackgroundColor="#27AE60" 
+                        StrokeThickness="0"
+                        VerticalOptions="Center" />
+                <Label x:Name="DebugLabel" 
+                       Text="Đang tìm kiếm vệ tinh GPS..." 
+                       FontSize="13" 
+                       FontAttributes="Bold" 
+                       VerticalOptions="Center" />
+            </HorizontalStackLayout>
+        </Border>
+
+        <!-- Floating Action Buttons -->
+        <VerticalStackLayout VerticalOptions="Start" HorizontalOptions="End" Margin="0,50,16,0" Spacing="10">
+            <Button x:Name="MyLocationButton" Text="📍" FontSize="20"
+                    BackgroundColor="{AppThemeBinding Light=White, Dark=#2A2A2A}" 
+                    TextColor="{StaticResource Primary}" 
+                    WidthRequest="48" HeightRequest="48" CornerRadius="24" Padding="0" 
+                    Clicked="OnMyLocationClicked">
+                <Button.Shadow>
+                    <Shadow Brush="Black" Offset="0,3" Radius="8" Opacity="0.15"/>
+                </Button.Shadow>
+            </Button>
+            <Button x:Name="ZoomInButton" Text="＋" FontSize="20" 
+                    BackgroundColor="{AppThemeBinding Light=White, Dark=#2A2A2A}" 
+                    TextColor="{StaticResource Primary}" 
+                    WidthRequest="48" HeightRequest="48" CornerRadius="24" Padding="0" 
+                    Clicked="OnZoomInClicked">
+                <Button.Shadow>
+                    <Shadow Brush="Black" Offset="0,3" Radius="8" Opacity="0.15"/>
+                </Button.Shadow>
+            </Button>
+            <Button x:Name="ZoomOutButton" Text="－" FontSize="20" 
+                    BackgroundColor="{AppThemeBinding Light=White, Dark=#2A2A2A}" 
+                    TextColor="{StaticResource Primary}" 
+                    WidthRequest="48" HeightRequest="48" CornerRadius="24" Padding="0" 
+                    Clicked="OnZoomOutClicked">
+                <Button.Shadow>
+                    <Shadow Brush="Black" Offset="0,3" Radius="8" Opacity="0.15"/>
+                </Button.Shadow>
+            </Button>
+        </VerticalStackLayout>
+
+        <!-- Bottom Map Overlay (Now Playing) -->
+        <Border VerticalOptions="End" Margin="12,0,12,24" Padding="0"
+                StrokeShape="RoundRectangle 20" 
+                BackgroundColor="{AppThemeBinding Light=White, Dark=#1E1E1E}"
+                StrokeThickness="0">
+            <Border.Shadow>
+                <Shadow Brush="Black" Offset="0,8" Radius="24" Opacity="0.2"/>
+            </Border.Shadow>
+
+            <Grid RowDefinitions="Auto, Auto" ColumnDefinitions="*, Auto" Padding="20,16">
+                <!-- POI Info & Distance -->
+                <VerticalStackLayout Grid.Column="0" Spacing="4">
+                    <Label Text="BẠN ĐANG Ở GẦN" FontSize="10" FontAttributes="Bold" TextColor="{StaticResource Primary}" CharacterSpacing="1" />
+                    <Label x:Name="PoiNameLabel" Text="Chọn một điểm trên map" FontSize="18" FontAttributes="Bold" MaxLines="1"/>
+                    <Label x:Name="DistanceLabel" Text="Khoảng cách: -- m" FontSize="13" Opacity="0.6"/>
+                </VerticalStackLayout>
+
+                <!-- Audio Controls -->
+                <HorizontalStackLayout Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" 
+                                       HorizontalOptions="Center" Spacing="24" Margin="0,14,0,0">
+                    <Button Text="⏮" FontSize="22" BackgroundColor="Transparent" TextColor="{StaticResource Primary}" 
+                            WidthRequest="48" HeightRequest="48"/>
+                    <Button Text="▶" x:Name="PlayPauseButton" FontSize="28" 
+                            BackgroundColor="{StaticResource Primary}" TextColor="White" 
+                            WidthRequest="56" HeightRequest="56" CornerRadius="28" Padding="0" 
+                            Clicked="OnPlayPauseClicked">
+                        <Button.Shadow>
+                            <Shadow Brush="{StaticResource Primary}" Offset="0,4" Radius="12" Opacity="0.3"/>
+                        </Button.Shadow>
+                    </Button>
+                    <Button Text="⏭" FontSize="22" BackgroundColor="Transparent" TextColor="{StaticResource Primary}" 
+                            WidthRequest="48" HeightRequest="48"/>
+                </HorizontalStackLayout>
+            </Grid>
+        </Border>
+    </Grid>
 </ContentPage>

@@ -9,10 +9,14 @@ namespace VinhKhanhTour.PageModels
     {
         private readonly PoiRepository _poiRepository;
         private readonly Services.IErrorHandler _errorHandler;
+        private List<Poi> _allPois = [];
         private bool _isDataLoaded = false;
 
         [ObservableProperty]
         private List<Poi> _pois = [];
+
+        [ObservableProperty]
+        private string _searchText = string.Empty;
 
         [ObservableProperty]
         private bool _isBusy;
@@ -31,7 +35,8 @@ namespace VinhKhanhTour.PageModels
             try
             {
                 IsBusy = true;
-                Pois = await _poiRepository.GetAllPoisAsync();
+                _allPois = await _poiRepository.GetAllPoisAsync();
+                ApplyFilters();
             }
             catch (Exception ex)
             {
@@ -41,6 +46,48 @@ namespace VinhKhanhTour.PageModels
             {
                 IsBusy = false;
             }
+        }
+
+        [RelayCommand]
+        private void Search(string query)
+        {
+            SearchText = query;
+            ApplyFilters();
+        }
+
+        [RelayCommand]
+        private void Filter(string category)
+        {
+            // Placeholder logic for category filtering
+            // For now, let's just use it to show we can filter
+            ApplyFilters(category);
+        }
+
+        private void ApplyFilters(string category = "Tất cả")
+        {
+            var filtered = _allPois.AsEnumerable();
+
+            if (!string.IsNullOrWhiteSpace(SearchText))
+            {
+                filtered = filtered.Where(p => p.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase) || 
+                                               p.Description.Contains(SearchText, StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (category != "Tất cả")
+            {
+                // In a real app, POI would have a Category property. 
+                // For this demo, we'll simulate it by checking keywords in description.
+                if (category == "Ốc & Hải sản")
+                    filtered = filtered.Where(p => p.Name.Contains("Ốc") || p.Description.Contains("Ốc") || p.Description.Contains("Hải sản"));
+                else if (category == "Đồ nướng")
+                    filtered = filtered.Where(p => p.Description.Contains("nướng"));
+                else if (category == "Món nước")
+                    filtered = filtered.Where(p => p.Description.Contains("bún") || p.Description.Contains("lẩu"));
+                else if (category == "Sushi")
+                    filtered = filtered.Where(p => p.Name.Contains("Sushi"));
+            }
+
+            Pois = filtered.ToList();
         }
 
         [RelayCommand]
@@ -68,9 +115,18 @@ namespace VinhKhanhTour.PageModels
         }
 
         [RelayCommand]
-        private async Task NavigateToMapAsync()
+        private async Task StartTourAsync()
         {
-            await Shell.Current.GoToAsync("map");
+            await Shell.Current.GoToAsync("//map");
+        }
+
+        [RelayCommand]
+        private async Task GoToPoiAsync(Poi poi)
+        {
+            if (poi != null)
+            {
+                await Shell.Current.GoToAsync($"//map?poiId={poi.Id}");
+            }
         }
     }
 }

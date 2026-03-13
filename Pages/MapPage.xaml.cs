@@ -7,13 +7,35 @@ using System.Diagnostics;
 
 namespace VinhKhanhTour.Pages
 {
+    [QueryProperty(nameof(SelectedPoiId), "poiId")]
     public partial class MapPage : ContentPage
     {
         private readonly NarrationEngine _narrationEngine;
         private bool _isTrackingLocation = false;
 
+        private int _selectedPoiId = 0;
+        public int SelectedPoiId
+        {
+            get => _selectedPoiId;
+            set
+            {
+                _selectedPoiId = value;
+                if (_isMapLoaded)
+                {
+                    MainThread.BeginInvokeOnMainThread(() =>
+                    {
+                        UpdateMapCirclesState();
+                        CenterOnSelectedPoi();
+                    });
+                }
+            }
+        }
+
+        private int _playingPoiId = 0; // Thêm ID quán đang phát thuyết minh
+
 #if ANDROID || IOS || MACCATALYST
         private Microsoft.Maui.Controls.Maps.Map VinhKhanhMap;
+        private Dictionary<int, Microsoft.Maui.Controls.Maps.Circle> _poiCircles = new();
 #endif
 
         private bool _isMapLoaded = false;
@@ -76,6 +98,15 @@ namespace VinhKhanhTour.Pages
                     _locationTimer.Interval = TimeSpan.FromSeconds(5); // Quét mỗi 5 giây
                     _locationTimer.Tick += async (s, e) => await CheckLocation();
                     _locationTimer.Start();
+
+#if ANDROID
+                    // Start Background Service
+                    if (Platform.CurrentActivity is MainActivity mainActivity)
+                    {
+                        mainActivity.StartLocationService();
+                        VinhKhanhTour.Platforms.Android.BackgroundLocationTracker.LocationChanged += OnBackgroundLocationChanged;
+                    }
+#endif
                 }
                 else
                 {
@@ -88,10 +119,26 @@ namespace VinhKhanhTour.Pages
             }
         }
 
+        private void OnBackgroundLocationChanged(object? sender, Location location)
+        {
+            MainThread.BeginInvokeOnMainThread(() => 
+            {
+                Geolocation_LocationChanged(this, new GeolocationLocationChangedEventArgs(location));
+            });
+        }
+
         private void StopLocationTracking()
         {
             if (!_isTrackingLocation) return;
             _isTrackingLocation = false;
+
+#if ANDROID
+            if (Platform.CurrentActivity is MainActivity mainActivity)
+            {
+                mainActivity.StopLocationService();
+                VinhKhanhTour.Platforms.Android.BackgroundLocationTracker.LocationChanged -= OnBackgroundLocationChanged;
+            }
+#endif
             
             if (_locationTimer != null)
             {
@@ -127,10 +174,62 @@ namespace VinhKhanhTour.Pages
             }
         }
 
+        private Location? _currentUserLocation;
+
+        private void OnMyLocationClicked(object sender, EventArgs e)
+        {
+#if ANDROID || IOS || MACCATALYST
+            if (_currentUserLocation != null && VinhKhanhMap != null)
+            {
+                VinhKhanhMap.MoveToRegion(MapSpan.FromCenterAndRadius(_currentUserLocation, Distance.FromKilometers(0.5)));
+            }
+#endif
+        }
+
+        private void OnZoomInClicked(object sender, EventArgs e)
+        {
+#if ANDROID || IOS || MACCATALYST
+            if (VinhKhanhMap != null)
+            {
+                var currentSpan = VinhKhanhMap.VisibleRegion;
+                if (currentSpan != null)
+                {
+                    VinhKhanhMap.MoveToRegion(MapSpan.FromCenterAndRadius(currentSpan.Center, Distance.FromKilometers(currentSpan.Radius.Kilometers / 2)));
+                }
+            }
+#endif
+        }
+
+        private void OnZoomOutClicked(object sender, EventArgs e)
+        {
+#if ANDROID || IOS || MACCATALYST
+            if (VinhKhanhMap != null)
+            {
+                var currentSpan = VinhKhanhMap.VisibleRegion;
+                if (currentSpan != null)
+                {
+                    VinhKhanhMap.MoveToRegion(MapSpan.FromCenterAndRadius(currentSpan.Center, Distance.FromKilometers(currentSpan.Radius.Kilometers * 2)));
+                }
+            }
+#endif
+        }
+
+        private bool _isPlaying = false;
+        private void OnPlayPauseClicked(object sender, EventArgs e)
+        {
+            _isPlaying = !_isPlaying;
+            PlayPauseButton.Text = _isPlaying ? "⏸" : "▶";
+            
+            if (!_isPlaying)
+            {
+                _narrationEngine.CancelCurrentNarration();
+            }
+        }
+
         private async void Geolocation_LocationChanged(object sender, GeolocationLocationChangedEventArgs e)
         {
-            var userLocation = e.Location;
-            var pois = Poi.GetSampleData(); // Giả lập quét danh sách 5 quán ốc
+            _currentUserLocation = e.Location;
+            var pois = Poi.GetSampleData(); 
 
             // Tìm quán ốc gần nhất trong bán kính kích hoạt
             Poi? nearestTriggeredPoi = null;
@@ -140,9 +239,8 @@ namespace VinhKhanhTour.Pages
 
             foreach (var poi in pois)
             {
-                // Engine tính khoảng cách (Geofence Engine)
                 double distanceToPoi = LocationHelper.CalculateDistanceInMeters(
-                    userLocation.Latitude, userLocation.Longitude,
+                    _currentUserLocation.Latitude, _currentUserLocation.Longitude,
                     poi.Latitude, poi.Longitude);
 
                 if (distanceToPoi < nearestDistance)
@@ -153,8 +251,6 @@ namespace VinhKhanhTour.Pages
 
                 if (distanceToPoi <= poi.Radius)
                 {
-                    // Đạt yêu cầu đồ án: So sánh Priority và Cự ly
-                    // Nếu gần hơn, hoặc cùng khoảng cách nhưng ưu tiên cao hơn
                     if (distanceToPoi < minDistance || 
                         (distanceToPoi == minDistance && (nearestTriggeredPoi == null || poi.Priority > nearestTriggeredPoi.Priority)))
                     {
@@ -164,30 +260,46 @@ namespace VinhKhanhTour.Pages
                 }
             }
 
-            // Cập nhật giao diện Debug để User nhìn thấy
-            if (DebugLabel != null)
+            // Cập nhật giao diện chuyên nghiệp
+            MainThread.BeginInvokeOnMainThread(() => 
             {
-                MainThread.BeginInvokeOnMainThread(() => 
+                DebugLabel.Text = $"GPS: {_currentUserLocation.Latitude:F5}, {_currentUserLocation.Longitude:F5}";
+                DistanceLabel.Text = $"Cách quán gần nhất: {nearestDistance:F0}m";
+                
+                if (nearestTriggeredPoi != null)
                 {
-                    DebugLabel.Text = $"Vị trí của bạn: {userLocation.Latitude:F5}, {userLocation.Longitude:F5}\n" +
-                                      $"Gần nhất: {closestPoiName} ({nearestDistance:F0}m)";
-                });
-            }
+                    PoiNameLabel.Text = nearestTriggeredPoi.Name;
+                }
+                else
+                {
+                    PoiNameLabel.Text = closestPoiName;
+                }
+            });
 
             if (nearestTriggeredPoi != null)
             {
                 Debug.WriteLine($"[Geofence] Đã rơi vào bán kính quán: {nearestTriggeredPoi.Name} ({minDistance}m)");
                 
-                if (DebugLabel != null)
-                {
-                    MainThread.BeginInvokeOnMainThread(() => 
-                    {
-                        DebugLabel.Text += $"\n🎤 Đang phát âm thanh: {nearestTriggeredPoi.Name}!";
-                    });
-                }
-
                 // Gọi Động cơ Thuyết minh (Narration Engine)
-                await _narrationEngine.PlayPoiNarrationAsync(nearestTriggeredPoi);
+                if (_isPlaying)
+                {
+                    _playingPoiId = nearestTriggeredPoi.Id;
+                    MainThread.BeginInvokeOnMainThread(() => UpdateMapCirclesState());
+                    await _narrationEngine.PlayPoiNarrationAsync(nearestTriggeredPoi);
+                }
+                else
+                {
+                    _playingPoiId = 0;
+                    MainThread.BeginInvokeOnMainThread(() => UpdateMapCirclesState());
+                }
+            }
+            else
+            {
+                if (_playingPoiId != 0)
+                {
+                    _playingPoiId = 0;
+                    MainThread.BeginInvokeOnMainThread(() => UpdateMapCirclesState());
+                }
             }
         }
 
@@ -217,25 +329,21 @@ namespace VinhKhanhTour.Pages
 
                 // Add to Map's Pins collection
                 VinhKhanhMap.Pins.Add(pin);
+
+                var circle = new Microsoft.Maui.Controls.Maps.Circle
+                {
+                    Center = new Location(poi.Latitude, poi.Longitude),
+                    Radius = Distance.FromMeters(poi.Radius),
+                    StrokeColor = Color.FromArgb("#808080"), // Xám mặc định
+                    StrokeWidth = 2,
+                    FillColor = Color.FromRgba(128, 128, 128, 50)
+                };
+                VinhKhanhMap.MapElements.Add(circle);
+                _poiCircles[poi.Id] = circle;
             }
 
-            // 3. Center the map at Vinh Khanh street (e.g., using the first POI as center)
-            if (poiList.Any())
-            {
-                var centerLocation = new Location(poiList[0].Latitude, poiList[0].Longitude);
-                var mapSpan = MapSpan.FromCenterAndRadius(centerLocation, Distance.FromKilometers(1));
-                
-                // Since we are already on the MainThread inside OnAppearing's delay, 
-                // we can move directly without another dispatcher.
-                try 
-                {
-                    VinhKhanhMap.MoveToRegion(mapSpan);
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"Lỗi zoom bản đồ: {ex.Message}");
-                }
-            }
+            UpdateMapCirclesState();
+            CenterOnSelectedPoi();
 #else
             MapContainer.Children.Add(new Label 
             {
@@ -245,6 +353,71 @@ namespace VinhKhanhTour.Pages
                 HorizontalTextAlignment = TextAlignment.Center,
                 Margin = new Thickness(20)
             });
+#endif
+        }
+
+        private void UpdateMapCirclesState()
+        {
+#if ANDROID || IOS || MACCATALYST
+            foreach (var kvp in _poiCircles)
+            {
+                int poiId = kvp.Key;
+                var circle = kvp.Value;
+
+                if (poiId == _playingPoiId)
+                {
+                    // Đang phát (Màu Vàng)
+                    circle.StrokeColor = Color.FromArgb("#FFD700");
+                    circle.FillColor = Color.FromRgba(255, 215, 0, 80);
+                }
+                else if (poiId == _selectedPoiId)
+                {
+                    // Được chọn từ list (Màu Xanh Cyan/Lục)
+                    circle.StrokeColor = Color.FromArgb("#00CED1");
+                    circle.FillColor = Color.FromRgba(0, 206, 209, 80);
+                }
+                else
+                {
+                    // Chưa đụng tới (Xám)
+                    circle.StrokeColor = Color.FromArgb("#A9A9A9");
+                    circle.FillColor = Color.FromRgba(169, 169, 169, 40);
+                }
+            }
+#endif
+        }
+
+        private void CenterOnSelectedPoi()
+        {
+#if ANDROID || IOS || MACCATALYST
+            if (VinhKhanhMap == null) return;
+            var poiList = Poi.GetSampleData();
+            Poi? targetPoi = null;
+            
+            if (_selectedPoiId > 0)
+            {
+                targetPoi = poiList.FirstOrDefault(p => p.Id == _selectedPoiId);
+            }
+            
+            if (targetPoi == null && poiList.Any())
+            {
+                targetPoi = poiList[0];
+            }
+            
+            if (targetPoi != null)
+            {
+                var centerLocation = new Location(targetPoi.Latitude, targetPoi.Longitude);
+                var radius = _selectedPoiId > 0 ? Distance.FromKilometers(0.2) : Distance.FromKilometers(1);
+                var mapSpan = MapSpan.FromCenterAndRadius(centerLocation, radius);
+                
+                try 
+                {
+                    VinhKhanhMap.MoveToRegion(mapSpan);
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Lỗi zoom bản đồ: {ex.Message}");
+                }
+            }
 #endif
         }
     }
