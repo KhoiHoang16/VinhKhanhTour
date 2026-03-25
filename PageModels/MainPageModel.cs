@@ -19,6 +19,25 @@ namespace VinhKhanhTour.PageModels
         [ObservableProperty]
         private string _searchText = string.Empty;
 
+        private CancellationTokenSource? _searchCts;
+        partial void OnSearchTextChanged(string value)
+        {
+            _searchCts?.Cancel();
+            _searchCts = new CancellationTokenSource();
+            
+            var token = _searchCts.Token;
+            Task.Delay(300, token).ContinueWith(t => 
+            {
+                if (!t.IsCanceled)
+                {
+                    MainThread.BeginInvokeOnMainThread(() => ApplyFilters());
+                }
+            }, TaskScheduler.Default);
+        }
+
+        [ObservableProperty]
+        private string _selectedCategory = "All";
+
         [ObservableProperty]
         private bool _isBusy;
 
@@ -85,42 +104,50 @@ namespace VinhKhanhTour.PageModels
         [RelayCommand]
         private void Filter(string category)
         {
-            // Placeholder logic for category filtering
-            // For now, let's just use it to show we can filter
-            ApplyFilters(category);
+            SelectedCategory = category;
+            ApplyFilters();
         }
 
-        private void ApplyFilters(string category = "Tất cả")
+        private void ApplyFilters()
         {
             var filtered = _allPois.AsEnumerable();
 
             if (!string.IsNullOrWhiteSpace(SearchText))
             {
-                filtered = filtered.Where(p => p.DisplayName.Contains(SearchText, StringComparison.OrdinalIgnoreCase) || 
-                                               p.DisplayDescription.Contains(SearchText, StringComparison.OrdinalIgnoreCase));
+                filtered = filtered.Where(p => p.DisplayName.Contains(SearchText, StringComparison.InvariantCultureIgnoreCase) || 
+                                               p.DisplayDescription.Contains(SearchText, StringComparison.InvariantCultureIgnoreCase));
             }
 
-            if (category != "Tất cả" && category != "All")
+            if (SelectedCategory != "All")
             {
                 // In a real app, POI would have a Category property. 
                 // For this demo, we'll simulate it by checking keywords in description.
-                if (category == "Ốc & Hải sản" || category == "Snails & Seafood")
-                    filtered = filtered.Where(p => p.DisplayName.Contains("Ốc", StringComparison.OrdinalIgnoreCase) || 
-                                                   p.DisplayDescription.Contains("Ốc", StringComparison.OrdinalIgnoreCase) || 
-                                                   p.DisplayDescription.Contains("Hải sản", StringComparison.OrdinalIgnoreCase) ||
-                                                   p.DisplayName.Contains("Snail", StringComparison.OrdinalIgnoreCase) ||
-                                                   p.DisplayDescription.Contains("Seafood", StringComparison.OrdinalIgnoreCase));
-                else if (category == "Đồ nướng" || category == "BBQ")
-                    filtered = filtered.Where(p => p.DisplayDescription.Contains("nướng", StringComparison.OrdinalIgnoreCase) || 
-                                                   p.DisplayDescription.Contains("grilled", StringComparison.OrdinalIgnoreCase) ||
-                                                   p.DisplayDescription.Contains("BBQ", StringComparison.OrdinalIgnoreCase));
-                else if (category == "Món nước" || category == "Noodle/Broth")
-                    filtered = filtered.Where(p => p.DisplayDescription.Contains("bún", StringComparison.OrdinalIgnoreCase) || 
-                                                   p.DisplayDescription.Contains("lẩu", StringComparison.OrdinalIgnoreCase) ||
-                                                   p.DisplayDescription.Contains("noodle", StringComparison.OrdinalIgnoreCase) ||
-                                                   p.DisplayDescription.Contains("hotpot", StringComparison.OrdinalIgnoreCase));
-                else if (category == "Sushi")
-                    filtered = filtered.Where(p => p.DisplayName.Contains("Sushi", StringComparison.OrdinalIgnoreCase));
+                if (SelectedCategory == "Seafood")
+                    filtered = filtered.Where(p => p.DisplayName.Contains("Ốc", StringComparison.InvariantCultureIgnoreCase) || 
+                                                   p.DisplayName.Contains("ốc", StringComparison.InvariantCultureIgnoreCase) || 
+                                                   p.DisplayDescription.Contains("Ốc", StringComparison.InvariantCultureIgnoreCase) || 
+                                                   p.DisplayDescription.Contains("ốc", StringComparison.InvariantCultureIgnoreCase) || 
+                                                   p.DisplayDescription.Contains("Hải sản", StringComparison.InvariantCultureIgnoreCase) ||
+                                                   p.DisplayDescription.Contains("hải sản", StringComparison.InvariantCultureIgnoreCase) ||
+                                                   p.DisplayName.Contains("Snail", StringComparison.InvariantCultureIgnoreCase) ||
+                                                   p.DisplayDescription.Contains("Seafood", StringComparison.InvariantCultureIgnoreCase));
+                else if (SelectedCategory == "BBQ")
+                    filtered = filtered.Where(p => p.DisplayDescription.Contains("nướng", StringComparison.InvariantCultureIgnoreCase) || 
+                                                   p.DisplayName.Contains("nướng", StringComparison.InvariantCultureIgnoreCase) || 
+                                                   p.DisplayDescription.Contains("grilled", StringComparison.InvariantCultureIgnoreCase) ||
+                                                   p.DisplayDescription.Contains("BBQ", StringComparison.InvariantCultureIgnoreCase));
+                else if (SelectedCategory == "Noodle")
+                    filtered = filtered.Where(p => p.DisplayName.Contains("bún", StringComparison.InvariantCultureIgnoreCase) || 
+                                                   p.DisplayDescription.Contains("bún", StringComparison.InvariantCultureIgnoreCase) || 
+                                                   p.DisplayName.Contains("lẩu", StringComparison.InvariantCultureIgnoreCase) || 
+                                                   p.DisplayDescription.Contains("lẩu", StringComparison.InvariantCultureIgnoreCase) ||
+                                                   p.DisplayName.Contains("nước", StringComparison.InvariantCultureIgnoreCase) || 
+                                                   p.DisplayDescription.Contains("nước", StringComparison.InvariantCultureIgnoreCase) || 
+                                                   p.DisplayDescription.Contains("noodle", StringComparison.InvariantCultureIgnoreCase) ||
+                                                   p.DisplayDescription.Contains("hotpot", StringComparison.InvariantCultureIgnoreCase));
+                else if (SelectedCategory == "Sushi")
+                    filtered = filtered.Where(p => p.DisplayName.Contains("Sushi", StringComparison.InvariantCultureIgnoreCase) ||
+                                                   p.DisplayDescription.Contains("Sushi", StringComparison.InvariantCultureIgnoreCase));
             }
 
             Pois = filtered.ToList();

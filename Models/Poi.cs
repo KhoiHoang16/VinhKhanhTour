@@ -43,6 +43,55 @@ namespace VinhKhanhTour.Models
         [Ignore]
         public string ListDisplayRadiusText => $"📏 {Radius}m";
 
+        public string PrimaryCategory { get; set; } = string.Empty;
+
+        [Ignore]
+        public string DynamicPrimaryCategory
+        {
+            get 
+            {
+                if (!string.IsNullOrEmpty(PrimaryCategory)) return PrimaryCategory;
+                
+                string content = (Name + " " + Description).ToLowerInvariant();
+                if (content.Contains("sushi")) return "Sushi";
+                if (content.Contains("bún") || content.Contains("lẩu") || content.Contains("noodle") || content.Contains("hotpot")) return "Noodle";
+                if (content.Contains("nướng") || content.Contains("bbq")) return "BBQ";
+                return "Seafood";
+            }
+        }
+
+        [Ignore]
+        public string DisplayCategory 
+        {
+            get
+            {
+                string key = DynamicPrimaryCategory switch
+                {
+                    "BBQ" => "🍖 Đồ nướng",
+                    "Noodle" => "🍜 Món nước",
+                    "Sushi" => "🍣 Sushi",
+                    _ => "🐚 Ốc & Hải sản"
+                };
+                return Services.LocalizationResourceManager.Instance[key]?.ToString() ?? key;
+            }
+        }
+        
+        [Ignore]
+        public string ShortDisplayCategory 
+        {
+            get
+            {
+                string key = DynamicPrimaryCategory switch
+                {
+                    "BBQ" => "🍖 Đồ nướng",
+                    "Noodle" => "🍜 Món nước",
+                    "Sushi" => "🍣 Sushi",
+                    _ => "🐚 Ốc"
+                };
+                return Services.LocalizationResourceManager.Instance[key]?.ToString() ?? key;
+            }
+        }
+
         [Ignore]
         public string DisplayName => Services.LocalizationResourceManager.Instance.CurrentLanguageCode switch
         {
@@ -368,6 +417,42 @@ namespace VinhKhanhTour.Models
                     TtsScriptEs = "Bienvenido a Oanh Snail: el jefe de la calle Vinh Khanh. ¡No olvides probar los famosos caracoles dulces asados ​​con sal y ají!", TtsScriptFr = "Bienvenue à Escargot Oanh, le chef de la rue Vinh Khanh. N'oubliez pas d'essayer les célèbres escargots doux rôtis au sel et au chili !", TtsScriptDe = "Willkommen bei der Oanh-Schnecke – dem Chefkoch der Vinh-Khanh-Straße. Vergessen Sie nicht, die berühmten, mit Chili-Salz gerösteten süßen Schnecken zu probieren!", TtsScriptZh = "欢迎来到莺蜗牛-永庆街老板。不要忘了尝试著名的辣椒盐烤蜗牛！", TtsScriptJa = "ヴィンカン通りのボスであるオアンカタツムリへようこそ。 有名なチリ・ソルトローストカタツムリを試すのを忘れないでください！", TtsScriptKo = "빈칸 거리의 보스인 오안 달팽이에 오신 것을 환영합니다. 유명한 칠리 소금 구이 달팽이를 잊지 마세요!", TtsScriptRu = "Добро пожаловать в компанию Улитка Оань - босса улицы Винь Кхань. Не забудьте попробовать знаменитых улиток, запеченных с чили и солью!", TtsScriptIt = "Benvenuti a Oanh Snail, il capo della via Vinh Khanh. Non dimenticate di provare le famose lumache dolci arrosto con sale e peperoncino!", TtsScriptPt = "Bem-vindo ao Oanh Snail - o chefe da rua Vinh Khanh. Não se esqueça de experimentar os famosos caracóis doces assados ​​​​com sal e pimenta!", TtsScriptHi = "مرحبًا بك في حلزون أوانه - زعيم شارع فينه خان. لا تنس تجربة حلزون حلو محمص بالملح والفلفل الحار الشهير!",
                     Priority = 3,
                     ImageUrl = "oc_oanh_vinh_khanh_1773306578974.png"
+                },
+                new Poi
+                {
+                    Id = 14,
+                    Name = "Bún Nước Cô Có - 39 Vĩnh Khánh",
+                    NameEn = "Co Co Noodle - 39 Vinh Khanh",
+                    NameEs = "Co Co Noodle - 39 Vinh Khanh", NameFr = "Nouilles Co Co - 39 Vinh Khanh", NameDe = "Co Co Nudel - 39 Vinh Khanh", NameZh = "Co Co 汤粉 - 39 永庆", NameJa = "Co Co ヌードル - 39 ヴィンカン", NameKo = "Co Co 누들 - 39 빈칸", NameRu = "Лапша Co Co - 39 Винь Кхань", NameIt = "Spaghetti Co Co - 39 Vinh Khanh", NamePt = "Macarrão Co Co - 39 Vinh Khanh", NameHi = "نودلز كو كو - 39 فينه خان",
+                    Description = "Bún nước lèo đậm đà đặc sản Sài Gòn ngọt thanh, topping hải sản siêu ngon.",
+                    DescriptionEn = "Special Saigon sweet broth noodles, super delicious seafood toppings.",
+                    DescriptionEs = "Fideos especiales en caldo dulce de Saigón, ingredientes súper deliciosos con mariscos.", DescriptionFr = "Nouilles spéciales au bouillon sucré de Saigon, garnitures de fruits de mer super délicieuses.", DescriptionDe = "Spezielle Saigon-Süßbrühe-Nudeln, super leckere Meeresfrüchte-Toppings.", DescriptionZh = "西贡特色甜汤粉，非常美味的海鲜浇头。", DescriptionJa = "特製のサイゴン甘酒ヌードル、とても美味しいシーフードのトッピング。", DescriptionKo = "특별한 사이공 단 국물 누들, 아주 맛있는 해산물 토핑.", DescriptionRu = "Специальная сайгонская лапша на сладком бульоне, очень вкусные топпинги из морепродуктов.", DescriptionIt = "Speciali spaghetti al brodo dolce di Saigon, condimenti per frutti di mare deliziosi.", DescriptionPt = "Macarrão especial com caldo doce de Saigon, coberturas de frutos do mar super deliciosas.", DescriptionHi = "سايغون الحلو الخاص مرق المعكرونة ، طبقة المأكولات البحرية اللذيذة.",
+                    Latitude = 10.76210,
+                    Longitude = 106.70280,
+                    Radius = 30,
+                    TtsScript = "Hãy thử qua Bún Nước Cô Có nhé. Nước lèo đậm đà, ăn một lần là nhớ mãi.",
+                    TtsScriptEn = "Try Co Co Noodle. The broth is rich, once you eat it you will remember it forever.",
+                    TtsScriptEs = "Prueba Co Co Noodle. El caldo es rico, una vez que lo comas lo recordarás para siempre.", TtsScriptFr = "Essayez les nouilles Co Co. Le bouillon est riche, une fois que vous l'aurez mangé, vous vous en souviendrez pour toujours.", TtsScriptDe = "Probieren Sie Co Co Noodle. Die Brühe ist reichhaltig, wenn Sie sie einmal gegessen haben, werden Sie sich ewig daran erinnern.", TtsScriptZh = "试试 Co Co 汤粉。 肉汤浓郁，吃过一次就会永远记住。", TtsScriptJa = "Co Coヌードルをお試しください。 スープが濃厚で、一度食べたら忘れられない味です。", TtsScriptKo = "Co Co 누들을 먹어보세요. 국물이 진해서 한 번 먹으면 영원히 기억될 것입니다.", TtsScriptRu = "Попробуйте лапшу Co Co. Бульон наваристый, один раз попробуешь - запомнишь навсегда.", TtsScriptIt = "Prova Co Co Noodle. Il brodo è ricco, una volta mangiato lo ricorderai per sempre.", TtsScriptPt = "Experimente o Co Co Noodle. O caldo é rico, depois de comê-lo você vai se lembrar dele para sempre.", TtsScriptHi = "Co Co Noodle جرب. المرق غني ، بمجرد أن تأكله سوف تتذكره إلى الأبد.",
+                    Priority = 1,
+                    ImageUrl = "lau_bo_vinh_khanh_1773306661104.png"
+                },
+                new Poi
+                {
+                    Id = 15,
+                    Name = "Lẩu Bò Khu Ba - 180 Vĩnh Khánh",
+                    NameEn = "Zone 3 Beef Hotpot - 180 Vinh Khanh",
+                    NameEs = "Zone 3 Beef Hotpot - 180 Vinh Khanh", NameFr = "Fondue de boeuf Zone 3 - 180 Vinh Khanh", NameDe = "Rindfleisch Hotpot Zone 3 - 180 Vinh Khanh", NameZh = "三区牛肉火锅 - 180 永庆", NameJa = "ゾーン3ビーフホットポット - 180 ヴィンカン", NameKo = "구역 3 소고기 전골 - 180 빈칸", NameRu = "Говяжий Хот-пот Зона 3 - 180 Винь Кхань", NameIt = "Hotpot di manzo Zona 3 - 180 Vinh Khanh", NamePt = "Hotpot de carne Zona 3 - 180 Vinh Khanh", NameHi = "طاجن لحم البقر المنطقة 3 - 180 فينه خان",
+                    Description = "Quán lẩu bò, bò nướng trứ danh bình dân đông đúc. Thịt bò tươi ngon mềm mại.",
+                    DescriptionEn = "Famous affordable beef hotpot and grilled beef stall. Fresh and tender beef.",
+                    DescriptionEs = "Famoso puesto asequible de estofado de ternera y ternera a la parrilla. Carne fresca y tierna.", DescriptionFr = "Célèbre stand abordable de fondue de bœuf et de bœuf grillé. Bœuf frais et tendre.", DescriptionDe = "Berühmter erschwinglicher Rindfleisch-Hotpot und gegrillter Rindfleisch-Stand. Frisches und zartes Rindfleisch.", DescriptionZh = "著名的价格实惠的牛肉火锅和烤牛肉摊。牛肉新鲜嫩滑。", DescriptionJa = "有名な手頃な価格のビーフホットポットと焼き肉屋台。 新鮮で柔らかい牛肉。", DescriptionKo = "유명하고 저렴한 소고기 전골 및 구운 소고기 노점. 신선하고 부드러운 소고기.", DescriptionRu = "Знаменитый недорогой горячий котелок с говядиной и киоск с говядиной на гриле. Свежая и нежная говядина.", DescriptionIt = "Famosa bancarella di manzo caldo e manzo alla griglia a prezzi accessibili. Manzo fresco e tenero.", DescriptionPt = "Famosa e acessível churrasqueira e fondue de carne. Carne fresca e macia.", DescriptionHi = "وعاء ساخن من اللحم البقري الشهير وبأسعار معقولة وكشك لحم بقري مشوي. لحم بقر طازج وطري.",
+                    Latitude = 10.76061,
+                    Longitude = 106.70425,
+                    Radius = 30,
+                    TtsScript = "Hãy ghé thử Lẩu Bò Khu Ba cực kỳ đông đúc ở số 180 Vĩnh Khánh. Thịt sườn bò nướng tuyệt cú mèo.",
+                    TtsScriptEn = "Try the incredibly crowded Zone 3 Beef Hotpot at 180 Vinh Khanh. The grilled beef ribs are fantastic.",
+                    TtsScriptEs = "Pruebe el estofado de ternera de la Zona 3 increíblemente concurrido en 180 Vinh Khanh. Las costillas de ternera asadas son fantásticas.", TtsScriptFr = "Essayez la fondue au boeuf de la zone 3 incroyablement bondée au 180 Vinh Khanh. Les côtes de bœuf grillées sont fantastiques.", TtsScriptDe = "Probieren Sie den unglaublich überfüllten Zone 3 Beef Hotpot bei 180 Vinh Khanh. Die gegrillten Rinderrippen sind fantastisch.", TtsScriptZh = "在180永庆尝试拥挤的三区牛肉火锅。 烤牛排棒极了。", TtsScriptJa = "180ヴィンカンにある信じられないほど混雑しているゾーン3ビーフホットポットをお試しください。 焼き牛カルビは素晴らしいです。", TtsScriptKo = "180 빈칸에서 엄청나게 붐비는 구역 3 소고기 전골을 사용해보십시오. 구운 소갈비는 환상적입니다.", TtsScriptRu = "Попробуйте невероятно многолюдный Хот-пот из говядины Зоны 3, на улице 180 Винь Кхань. Говяжьи ребрышки на гриле просто фантастические.", TtsScriptIt = "Prova l'incredibilmente affollato Hotpot di manzo della Zona 3 in 180 Vinh Khanh. Le costolette di manzo alla griglia sono fantastiche.", TtsScriptPt = "Experimente o Hotpot de carne incrivelmente lotado da Zona 3 em 180 Vinh Khanh. As costelas de vaca grelhadas são fantásticas.", TtsScriptHi = "180 فينه خان في طاجن لحم البقر في المنطقة 3 المزدحمة بشكل لا يصدق جرب. ضلوع اللحم البقري المشوي رائعة.",
+                    Priority = 2,
+                    ImageUrl = "lau_bo_vinh_khanh_1773306661104.png"
                 }
             };
         }

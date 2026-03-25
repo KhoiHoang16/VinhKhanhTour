@@ -48,6 +48,7 @@
                         <SearchBar x:Name="PoiSearchBar" 
                                Placeholder="{local:Translate 'Tìm quán ốc, lẩu, sushi...'}" 
                                FontSize="14"
+                               Text="{Binding SearchText, Mode=TwoWay}"
                                TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
                                BackgroundColor="Transparent"
                                CancelButtonColor="{StaticResource Primary}"
@@ -59,20 +60,80 @@
                     <ScrollView Orientation="Horizontal" HorizontalScrollBarVisibility="Never">
                         <HorizontalStackLayout Spacing="10">
                             <Button Text="{local:Translate '🔥 Tất cả'}" 
-                                    Style="{StaticResource FilterButtonStyle}" 
-                                    Command="{Binding FilterCommand}" CommandParameter="{local:Translate 'Tất cả'}"/>
+                                    Command="{Binding FilterCommand}" CommandParameter="All">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource FilterButtonStyleSecondary}">
+                                        <Style.Triggers>
+                                            <DataTrigger TargetType="Button" Binding="{Binding SelectedCategory}" Value="All">
+                                                <Setter Property="BackgroundColor" Value="{StaticResource Primary}" />
+                                                <Setter Property="TextColor" Value="White" />
+                                                <Setter Property="FontAttributes" Value="Bold" />
+                                                <Setter Property="BorderWidth" Value="0" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
                             <Button Text="{local:Translate '🐚 Ốc &amp; Hải sản'}" 
-                                    Style="{StaticResource FilterButtonStyleSecondary}" 
-                                    Command="{Binding FilterCommand}" CommandParameter="{local:Translate 'Ốc &amp; Hải sản'}"/>
+                                    Command="{Binding FilterCommand}" CommandParameter="Seafood">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource FilterButtonStyleSecondary}">
+                                        <Style.Triggers>
+                                            <DataTrigger TargetType="Button" Binding="{Binding SelectedCategory}" Value="Seafood">
+                                                <Setter Property="BackgroundColor" Value="{StaticResource Primary}" />
+                                                <Setter Property="TextColor" Value="White" />
+                                                <Setter Property="FontAttributes" Value="Bold" />
+                                                <Setter Property="BorderWidth" Value="0" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
                             <Button Text="{local:Translate '🍖 Đồ nướng'}" 
-                                    Style="{StaticResource FilterButtonStyleSecondary}" 
-                                    Command="{Binding FilterCommand}" CommandParameter="{local:Translate 'Đồ nướng'}"/>
+                                    Command="{Binding FilterCommand}" CommandParameter="BBQ">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource FilterButtonStyleSecondary}">
+                                        <Style.Triggers>
+                                            <DataTrigger TargetType="Button" Binding="{Binding SelectedCategory}" Value="BBQ">
+                                                <Setter Property="BackgroundColor" Value="{StaticResource Primary}" />
+                                                <Setter Property="TextColor" Value="White" />
+                                                <Setter Property="FontAttributes" Value="Bold" />
+                                                <Setter Property="BorderWidth" Value="0" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
                             <Button Text="{local:Translate '🍜 Món nước'}" 
-                                    Style="{StaticResource FilterButtonStyleSecondary}" 
-                                    Command="{Binding FilterCommand}" CommandParameter="{local:Translate 'Món nước'}"/>
+                                    Command="{Binding FilterCommand}" CommandParameter="Noodle">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource FilterButtonStyleSecondary}">
+                                        <Style.Triggers>
+                                            <DataTrigger TargetType="Button" Binding="{Binding SelectedCategory}" Value="Noodle">
+                                                <Setter Property="BackgroundColor" Value="{StaticResource Primary}" />
+                                                <Setter Property="TextColor" Value="White" />
+                                                <Setter Property="FontAttributes" Value="Bold" />
+                                                <Setter Property="BorderWidth" Value="0" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
                             <Button Text="{local:Translate '🍣 Sushi'}" 
-                                    Style="{StaticResource FilterButtonStyleSecondary}" 
-                                    Command="{Binding FilterCommand}" CommandParameter="{local:Translate 'Sushi'}"/>
+                                    Command="{Binding FilterCommand}" CommandParameter="Sushi">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource FilterButtonStyleSecondary}">
+                                        <Style.Triggers>
+                                            <DataTrigger TargetType="Button" Binding="{Binding SelectedCategory}" Value="Sushi">
+                                                <Setter Property="BackgroundColor" Value="{StaticResource Primary}" />
+                                                <Setter Property="TextColor" Value="White" />
+                                                <Setter Property="FontAttributes" Value="Bold" />
+                                                <Setter Property="BorderWidth" Value="0" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
                         </HorizontalStackLayout>
                     </ScrollView>
 
@@ -108,13 +169,11 @@
                         <CollectionView.ItemTemplate>
                             <DataTemplate x:DataType="models:Poi">
                                 <Border StrokeShape="RoundRectangle 16" 
-                                        StrokeThickness="0"
+                                        StrokeThickness="1"
+                                        Stroke="{AppThemeBinding Light=#E0E0E0, Dark=#333333}"
                                         BackgroundColor="{AppThemeBinding Light=White, Dark=#1E1E1E}"
                                         Margin="0,0,0,16" 
                                         Padding="0">
-                                    <Border.Shadow>
-                                        <Shadow Brush="Black" Opacity="0.1" Offset="0,4" Radius="12" />
-                                    </Border.Shadow>
                                     <Grid RowDefinitions="Auto, Auto">
                                         
                                         <!-- Image -->
@@ -149,9 +208,10 @@
                                                    FontSize="14" 
                                                    MaxLines="2" 
                                                    LineBreakMode="TailTruncation" 
-                                                   Opacity="0.8" />
+                                                   Opacity="0.8" 
+                                                   HeightRequest="42" />
                                             
-                                            <FlexLayout Wrap="Wrap" Direction="Row">
+                                            <FlexLayout Wrap="Wrap" Direction="Row" HeightRequest="28">
                                                 <Border StrokeShape="RoundRectangle 10" 
                                                         BackgroundColor="{AppThemeBinding Light=#FFF0E6, Dark=#2A1F16}" 
                                                         StrokeThickness="0" 
@@ -164,7 +224,7 @@
                                                         BackgroundColor="{AppThemeBinding Light=#E8F8F0, Dark=#162A1F}" 
                                                         StrokeThickness="0" 
                                                         Padding="8,4" Margin="0,0,12,0">
-                                                    <Label Text="{local:Translate '🐚 Ốc'}" 
+                                                    <Label Text="{Binding ShortDisplayCategory}" 
                                                            FontSize="12" 
                                                            TextColor="{StaticResource AccentGreen}" />
                                                 </Border>
@@ -268,7 +328,7 @@
                                         BackgroundColor="{AppThemeBinding Light=#E8F8F0, Dark=#162A1F}" 
                                         StrokeThickness="0" 
                                         Padding="12,6" Margin="0,0,12,8">
-                                    <Label Text="{local:Translate '🐚 Ốc &amp; Hải sản'}" 
+                                    <Label Text="{Binding SelectedPoi.DisplayCategory}" 
                                            FontSize="14" 
                                            TextColor="{StaticResource AccentGreen}" />
                                 </Border>
