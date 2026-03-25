@@ -51,7 +51,6 @@
                             <x:String>Русский</x:String>
                             <x:String>Italiano</x:String>
                             <x:String>Português</x:String>
-                            <x:String>हिन्दी</x:String>
                         </Picker.Items>
                     </Picker>
                 </Grid>

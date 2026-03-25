@@ -99,7 +99,7 @@ namespace VinhKhanhTour.Services
                     l.Name != null && l.Name.Contains(searchName, StringComparison.OrdinalIgnoreCase)
                 );
 
-                // 4. Fallback đặc biệt cho Hindi và các ngôn ngữ khi Google trả về ID đặc biệt
+                // 4. Fallback đặc biệt cho các ngôn ngữ khi Google trả về ID đặc biệt
                 selectedLocale ??= localesList.FirstOrDefault(l =>
                     l.Id != null && l.Id.Contains(twoLetter, StringComparison.OrdinalIgnoreCase)
                 );

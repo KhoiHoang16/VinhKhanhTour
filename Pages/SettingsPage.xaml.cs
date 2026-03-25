@@ -25,7 +25,6 @@ public partial class SettingsPage : ContentPage
             "ru" => 8,
             "it" => 9,
             "pt" => 10,
-            "hi" => 11,
             _ => 0
         };
 
@@ -49,7 +48,6 @@ public partial class SettingsPage : ContentPage
             8 => "ru",
             9 => "it",
             10 => "pt",
-            11 => "hi",
             _ => "vi"
         };
 
@@ -65,7 +63,6 @@ public partial class SettingsPage : ContentPage
             "ru" => "ru-RU",
             "it" => "it-IT",
             "pt" => "pt-PT",
-            "hi" => "hi-IN",
             _ => "vi-VN"
         };
         
