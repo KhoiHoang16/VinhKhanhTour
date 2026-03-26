@@ -210,15 +210,3 @@ body {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
 }
-
-/* Navigation fixes */
-.navbar, .sidebar, #blazor-error-ui {
-    display: none !important;
-}
-
-.page {
-    flex-direction: column !important;
-}
-main {
-    flex: 1;
-}
