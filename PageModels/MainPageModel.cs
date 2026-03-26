@@ -8,7 +8,7 @@ namespace VinhKhanhTour.PageModels
     public partial class MainPageModel : ObservableObject
     {
         private readonly PoiRepository _poiRepository;
-        private readonly Services.IErrorHandler _errorHandler;
+        private readonly IErrorHandler _errorHandler;
         private readonly Services.NarrationEngine _narrationEngine;
         private List<Poi> _allPois = [];
         private bool _isDataLoaded = false;
@@ -44,7 +44,7 @@ namespace VinhKhanhTour.PageModels
         [ObservableProperty]
         private bool _isRefreshing;
 
-        public MainPageModel(PoiRepository poiRepository, Services.IErrorHandler errorHandler, Services.NarrationEngine narrationEngine)
+        public MainPageModel(PoiRepository poiRepository, IErrorHandler errorHandler, Services.NarrationEngine narrationEngine)
         {
             _poiRepository = poiRepository;
             _errorHandler = errorHandler;

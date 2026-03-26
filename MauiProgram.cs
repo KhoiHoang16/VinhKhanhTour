@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Maui;
+using CommunityToolkit.Maui;
 using Microsoft.Extensions.Logging;
 using Syncfusion.Maui.Toolkit.Hosting;
 using Microsoft.Maui.Controls.Hosting;
@@ -43,7 +43,12 @@ namespace VinhKhanhTour
             builder.Services.AddSingleton<VinhKhanhTour.Services.NarrationEngine>();
             builder.Services.AddTransient<VinhKhanhTour.Pages.MapPage>();
 
-            return builder.Build();
+            VinhKhanhTour.Shared.Models.Poi.LocalizationService = new VinhKhanhTour.Services.AppLocalizationService();
+		VinhKhanhTour.Shared.Data.Constants.DatabasePath = Path.Combine(FileSystem.AppDataDirectory, VinhKhanhTour.Shared.Data.Constants.DatabaseFilename);
+
+		return builder.Build();
         }
     }
 }
+
+

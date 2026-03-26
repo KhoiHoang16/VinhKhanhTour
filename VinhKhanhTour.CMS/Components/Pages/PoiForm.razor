@@ -1,0 +1,122 @@
+@page "/poi/new"
+@page "/poi/edit/{Id:int}"
+@using VinhKhanhTour.Shared.Models
+@using VinhKhanhTour.CMS.Services
+@inject PoiService PoiService
+@inject NavigationManager NavManager
+
+<PageTitle>@(IsEdit ? "Edit Location" : "Add New Location")</PageTitle>
+
+<div class="dashboard-container page-transition">
+    <div class="header-section">
+        <h1 class="header-title">@(IsEdit ? "Edit Location" : "Add New Location")</h1>
+        <button class="btn" style="background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2);" @onclick='() => NavManager.NavigateTo("/")'>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 0.5rem;"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            Back to Dashboard
+        </button>
+    </div>
+
+    @if (isLoading)
+    {
+        <div style="text-align: center; padding: 3rem; color: var(--text-secondary);">
+            <div style="animation: spin 1s linear infinite; display: inline-block; margin-bottom: 1rem;">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
+            </div>
+            <p>Loading location data...</p>
+        </div>
+    }
+    else
+    {
+        <div class="form-container">
+            <EditForm Model="@poi" OnValidSubmit="SavePoi">
+                <DataAnnotationsValidator />
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label class="form-label">Location Name</label>
+                        <InputText @bind-Value="poi.Name" class="form-control" placeholder="Enter location name" required />
+                    </div>
+
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label class="form-label">Description</label>
+                        <InputTextArea @bind-Value="poi.Description" class="form-control" rows="4" placeholder="Enter vivid description of the location..." />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Latitude</label>
+                        <InputNumber @bind-Value="poi.Latitude" class="form-control" step="0.000001" />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Longitude</label>
+                        <InputNumber @bind-Value="poi.Longitude" class="form-control" step="0.000001" />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Radius (meters)</label>
+                        <InputNumber @bind-Value="poi.Radius" class="form-control" />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Priority Level</label>
+                        <InputNumber @bind-Value="poi.Priority" class="form-control" />
+                    </div>
+                </div>
+
+                <div style="margin-top: 2rem; display: flex; justify-content: flex-end; gap: 1rem;">
+                    <button type="button" class="btn" style="background: rgba(255,255,255,0.1); color: white;" @onclick='() => NavManager.NavigateTo("/")'>Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 0.5rem;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                        @(IsEdit ? "Save Changes" : "Create Location")
+                    </button>
+                </div>
+            </EditForm>
+        </div>
+    }
+</div>
+
+<style>
+    @@keyframes spin { 100% { transform: rotate(360deg); } }
+</style>
+
+@code {
+    [Parameter]
+    public int? Id { get; set; }
+
+    private bool IsEdit => Id.HasValue;
+    private Poi poi = new Poi();
+    private bool isLoading = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (IsEdit && Id.HasValue)
+        {
+            isLoading = true;
+            try
+            {
+                var existingPoi = await PoiService.GetPoiAsync(Id.Value);
+                if (existingPoi != null)
+                {
+                    poi = existingPoi;
+                }
+            }
+            finally
+            {
+                isLoading = false;
+            }
+        }
+    }
+
+    private async Task SavePoi()
+    {
+        if (IsEdit)
+        {
+            await PoiService.UpdatePoiAsync(poi);
+        }
+        else
+        {
+            await PoiService.CreatePoiAsync(poi);
+        }
+        NavManager.NavigateTo("/");
+    }
+}

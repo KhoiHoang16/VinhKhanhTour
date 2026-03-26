@@ -1,18 +1,19 @@
 using Microsoft.Data.Sqlite;
 using SQLite;
 using System.Diagnostics;
-using VinhKhanhTour.Models;
+using VinhKhanhTour.Shared.Models;
+using VinhKhanhTour.Shared.Services;
 
-namespace VinhKhanhTour.Data
+namespace VinhKhanhTour.Shared.Data
 {
     public class PoiRepository
     {
         private SQLiteAsyncConnection? _connection;
-        private readonly Services.IErrorHandler _errorHandler;
+        private readonly IErrorHandler _errorHandler;
         private readonly SemaphoreSlim _initLock = new SemaphoreSlim(1, 1);
         private bool _hasInitialized = false;
 
-        public PoiRepository(Services.IErrorHandler errorHandler)
+        public PoiRepository(IErrorHandler errorHandler)
         {
             _errorHandler = errorHandler;
         }

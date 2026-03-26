@@ -1,4 +1,4 @@
-namespace VinhKhanhTour.Services
+namespace VinhKhanhTour.Shared.Services
 {
     /// <summary>
     /// Error Handler Service.

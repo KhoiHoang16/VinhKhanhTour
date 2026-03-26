@@ -1,3 +1,4 @@
+using VinhKhanhTour.Shared.Services;
 namespace VinhKhanhTour.Services
 {
     /// <summary>

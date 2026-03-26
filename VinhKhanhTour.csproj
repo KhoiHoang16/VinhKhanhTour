@@ -87,4 +87,25 @@
 	  <PackageReference Include="Xamarin.AndroidX.SavedState" Version="1.4.0.2" />
 	</ItemGroup>
 	
+
+  <ItemGroup>
+    <Compile Remove="VinhKhanhTour.Api\**" />
+    <Compile Remove="VinhKhanhTour.CMS\**" />
+    <Compile Remove="VinhKhanhTour.Shared\**" />
+    <Compile Remove="FixPoi\**" />
+    <None Remove="VinhKhanhTour.Api\**" />
+    <None Remove="VinhKhanhTour.CMS\**" />
+    <None Remove="VinhKhanhTour.Shared\**" />
+    <None Remove="FixPoi\**" />
+    <Content Remove="VinhKhanhTour.Api\**" />
+    <Content Remove="VinhKhanhTour.CMS\**" />
+    <Content Remove="VinhKhanhTour.Shared\**" />
+    <Content Remove="FixPoi\**" />
+  </ItemGroup>
+	
+
+  <ItemGroup>
+    <ProjectReference Include="VinhKhanhTour.Shared\VinhKhanhTour.Shared.csproj" />
+  </ItemGroup>
 </Project>
+

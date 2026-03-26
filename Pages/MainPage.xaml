@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:models="clr-namespace:VinhKhanhTour.Models"
+             xmlns:models="clr-namespace:VinhKhanhTour.Shared.Models;assembly=VinhKhanhTour.Shared"
              xmlns:pageModels="clr-namespace:VinhKhanhTour.PageModels"
              xmlns:local="clr-namespace:VinhKhanhTour.MarkupExtensions"
              x:Class="VinhKhanhTour.Pages.MainPage"
