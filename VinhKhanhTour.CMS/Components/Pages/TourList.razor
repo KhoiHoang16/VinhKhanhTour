@@ -1,0 +1,69 @@
+@page "/tours"
+@using VinhKhanhTour.Shared.Models
+@using VinhKhanhTour.CMS.Services
+@inject TourService TourService
+@inject NavigationManager NavManager
+
+<PageTitle>Tour Management</PageTitle>
+
+<div class="dashboard-container page-transition">
+    <div class="header-section">
+        <h1 class="header-title">Tour Management</h1>
+        <button class="btn btn-primary" @onclick='() => NavManager.NavigateTo("/tours/new")'>
+            Add New Tour
+        </button>
+    </div>
+
+    @if (tours == null)
+    {
+        <p>Loading...</p>
+    }
+    else if (!tours.Any())
+    {
+        <div class="form-container" style="text-align: center; padding: 4rem 2rem;">
+            <h2>No Tours Found</h2>
+            <button class="btn btn-primary" @onclick='() => NavManager.NavigateTo("/tours/new")'>Create Tour</button>
+        </div>
+    }
+    else
+    {
+        <div class="poi-grid">
+            @foreach (var tour in tours)
+            {
+                <div class="poi-card" @key="tour.Id">
+                    <h3 class="poi-title">@tour.Name</h3>
+                    <p class="poi-description">@tour.Description</p>
+                    <div class="poi-actions">
+                        <button class="btn" style="background: rgba(255,255,255,0.1); color: white;" @onclick="() => EditTour(tour.Id)">Edit</button>
+                        <button class="btn btn-danger" @onclick="() => DeleteTour(tour.Id)">Delete</button>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private List<Tour>? tours;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTours();
+    }
+
+    private async Task LoadTours()
+    {
+        tours = await TourService.GetToursAsync();
+    }
+
+    private void EditTour(int id)
+    {
+        NavManager.NavigateTo($"/tours/edit/{id}");
+    }
+
+    private async Task DeleteTour(int id)
+    {
+        await TourService.DeleteTourAsync(id);
+        await LoadTours();
+    }
+}

@@ -1,0 +1,59 @@
+@page "/tours/new"
+@page "/tours/edit/{Id:int}"
+@using VinhKhanhTour.Shared.Models
+@using VinhKhanhTour.CMS.Services
+@inject TourService TourService
+@inject NavigationManager NavManager
+
+<PageTitle>@(IsEdit ? "Edit Tour" : "Add New Tour")</PageTitle>
+
+<div class="dashboard-container page-transition">
+    <div class="header-section">
+        <h1 class="header-title">@(IsEdit ? "Edit Tour" : "Add New Tour")</h1>
+        <button class="btn" style="background: rgba(255,255,255,0.1); color: white;" @onclick='() => NavManager.NavigateTo("/tours")'>Back</button>
+    </div>
+
+    <div class="form-container">
+        <EditForm Model="@tour" OnValidSubmit="SaveTour">
+            <DataAnnotationsValidator />
+            
+            <div class="form-group">
+                <label class="form-label">Tour Name</label>
+                <InputText @bind-Value="tour.Name" class="form-control" required />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Description</label>
+                <InputTextArea @bind-Value="tour.Description" class="form-control" rows="3" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Image URL</label>
+                <InputText @bind-Value="tour.ImageUrl" class="form-control" />
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="margin-top: 1rem;">Save</button>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public int? Id { get; set; }
+
+    private bool IsEdit => Id.HasValue;
+    private Tour tour = new Tour();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (IsEdit && Id.HasValue)
+        {
+            var existing = await TourService.GetTourAsync(Id.Value);
+            if (existing != null) tour = existing;
+        }
+    }
+
+    private async Task SaveTour()
+    {
+        await TourService.SaveTourAsync(tour);
+        NavManager.NavigateTo("/tours");
+    }
+}

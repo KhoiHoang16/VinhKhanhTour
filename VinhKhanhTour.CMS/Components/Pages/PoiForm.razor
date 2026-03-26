@@ -32,14 +32,46 @@
                 <DataAnnotationsValidator />
                 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                    <!-- Vietnamese Section -->
                     <div class="form-group" style="grid-column: 1 / -1;">
-                        <label class="form-label">Location Name</label>
-                        <InputText @bind-Value="poi.Name" class="form-control" placeholder="Enter location name" required />
+                        <h3 style="margin-top: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem; color: var(--primary);">Vietnamese (Default)</h3>
+                    </div>
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label class="form-label">Location Name (VI)</label>
+                        <InputText @bind-Value="poi.Name" class="form-control" placeholder="Tên địa điểm" required />
                     </div>
 
                     <div class="form-group" style="grid-column: 1 / -1;">
-                        <label class="form-label">Description</label>
-                        <InputTextArea @bind-Value="poi.Description" class="form-control" rows="4" placeholder="Enter vivid description of the location..." />
+                        <label class="form-label">Description (VI)</label>
+                        <InputTextArea @bind-Value="poi.Description" class="form-control" rows="3" placeholder="Mô tả..." />
+                    </div>
+
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label class="form-label">Audio URL (VI)</label>
+                        <InputText @bind-Value="poi.AudioUrlVi" class="form-control" placeholder="https://... (Link file .mp3)" />
+                    </div>
+
+                    <!-- English Section -->
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <h3 style="margin-top: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem; color: var(--primary);">English Translation</h3>
+                    </div>
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label class="form-label">Location Name (EN)</label>
+                        <InputText @bind-Value="poi.NameEn" class="form-control" placeholder="Location Name" />
+                    </div>
+
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label class="form-label">Description (EN)</label>
+                        <InputTextArea @bind-Value="poi.DescriptionEn" class="form-control" rows="3" placeholder="Description..." />
+                    </div>
+
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label class="form-label">Audio URL (EN)</label>
+                        <InputText @bind-Value="poi.AudioUrlEn" class="form-control" placeholder="https://... (Audio link for English)" />
+                    </div>
+
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <h3 style="margin-top: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem; color: var(--primary);">Location Data</h3>
                     </div>
 
                     <div class="form-group">

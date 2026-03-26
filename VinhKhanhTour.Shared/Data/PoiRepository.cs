@@ -36,6 +36,10 @@ namespace VinhKhanhTour.Shared.Data
 
                 _connection = new SQLiteAsyncConnection(dbPath);
                 var result = await _connection.CreateTableAsync<Poi>();
+                await _connection.CreateTableAsync<Tour>();
+                await _connection.CreateTableAsync<TourStop>();
+                await _connection.CreateTableAsync<UsageHistory>();
+                await _connection.CreateTableAsync<UserRoute>();
 
                 if (result == CreateTableResult.Created)
                 {
@@ -104,6 +108,56 @@ namespace VinhKhanhTour.Shared.Data
                 Debug.WriteLine($"Failed to delete POI: {ex.Message}");
             }
 
+            return 0;
+        }
+
+        // --- TOUR CRUD METHODS ---
+        public async Task<List<Tour>> GetAllToursAsync()
+        {
+            try
+            {
+                await InitAsync();
+                return await _connection!.Table<Tour>().ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _errorHandler.HandleError(ex);
+            }
+            return new List<Tour>();
+        }
+
+        public async Task<int> SaveTourAsync(Tour tour)
+        {
+            try
+            {
+                await InitAsync();
+                if (tour.Id != 0)
+                {
+                    return await _connection!.UpdateAsync(tour);
+                }
+                else
+                {
+                    return await _connection!.InsertAsync(tour);
+                }
+            }
+            catch (Exception ex)
+            {
+                _errorHandler.HandleError(ex);
+            }
+            return 0;
+        }
+
+        public async Task<int> DeleteTourAsync(Tour tour)
+        {
+            try
+            {
+                await InitAsync();
+                return await _connection!.DeleteAsync(tour);
+            }
+            catch (Exception ex)
+            {
+                _errorHandler.HandleError(ex);
+            }
             return 0;
         }
     }

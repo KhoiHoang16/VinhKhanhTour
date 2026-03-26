@@ -18,6 +18,7 @@ Constants.DatabasePath = Path.Combine(dbFolder, Constants.DatabaseFilename);
 builder.Services.AddSingleton<IErrorHandler, CmsErrorHandler>();
 builder.Services.AddSingleton<PoiRepository>();
 builder.Services.AddScoped<PoiService>();
+builder.Services.AddScoped<TourService>();
 
 VinhKhanhTour.Shared.Models.Poi.LocalizationService = new VinhKhanhTour.CMS.Services.CmsLocalizationService();
 

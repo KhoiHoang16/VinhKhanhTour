@@ -1,4 +1,4 @@
-﻿using SQLite;
+using SQLite;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 using VinhKhanhTour.Shared.Services;
@@ -178,6 +178,8 @@ namespace VinhKhanhTour.Shared.Models
         };
 
         public string ImageUrl { get; set; } = string.Empty;
+        public string AudioUrlVi { get; set; } = string.Empty;
+        public string AudioUrlEn { get; set; } = string.Empty;
 
         // Added Radius property used by geofence checks
         public double Radius { get; set; } = 30;
