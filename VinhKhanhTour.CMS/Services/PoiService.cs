@@ -1,20 +1,20 @@
-using System.Net.Http.Json;
+using VinhKhanhTour.Shared.Data;
 using VinhKhanhTour.Shared.Models;
 
 namespace VinhKhanhTour.CMS.Services
 {
     public class PoiService
     {
-        private readonly HttpClient _http;
+        private readonly PoiRepository _repo;
 
-        public PoiService(HttpClient http)
+        public PoiService(PoiRepository repo)
         {
-            _http = http;
+            _repo = repo;
         }
 
         public async Task<List<Poi>> GetPoisAsync()
         {
-            return await _http.GetFromJsonAsync<List<Poi>>("api/poi") ?? new List<Poi>();
+            return await _repo.GetAllPoisAsync();
         }
 
         public async Task<Poi?> GetPoiAsync(int id)
@@ -25,17 +25,22 @@ namespace VinhKhanhTour.CMS.Services
 
         public async Task CreatePoiAsync(Poi poi)
         {
-            await _http.PostAsJsonAsync("api/poi", poi);
+            await _repo.SavePoiAsync(poi);
         }
 
         public async Task UpdatePoiAsync(Poi poi)
         {
-            await _http.PutAsJsonAsync($"api/poi/{poi.Id}", poi);
+            await _repo.SavePoiAsync(poi);
         }
 
         public async Task DeletePoiAsync(int id)
         {
-            await _http.DeleteAsync($"api/poi/{id}");
+            var pois = await GetPoisAsync();
+            var poi = pois.FirstOrDefault(p => p.Id == id);
+            if (poi != null)
+            {
+                await _repo.DeletePoiAsync(poi);
+            }
         }
     }
 }
