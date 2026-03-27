@@ -10,6 +10,7 @@ namespace VinhKhanhTour.PageModels
         private readonly PoiRepository _poiRepository;
         private readonly IErrorHandler _errorHandler;
         private readonly Services.NarrationEngine _narrationEngine;
+        private readonly Services.ApiService _apiService;
         private List<Poi> _allPois = [];
         private bool _isDataLoaded = false;
 
@@ -44,11 +45,12 @@ namespace VinhKhanhTour.PageModels
         [ObservableProperty]
         private bool _isRefreshing;
 
-        public MainPageModel(PoiRepository poiRepository, IErrorHandler errorHandler, Services.NarrationEngine narrationEngine)
+        public MainPageModel(PoiRepository poiRepository, IErrorHandler errorHandler, Services.NarrationEngine narrationEngine, Services.ApiService apiService)
         {
             _poiRepository = poiRepository;
             _errorHandler = errorHandler;
             _narrationEngine = narrationEngine;
+            _apiService = apiService;
 
             Services.LocalizationResourceManager.Instance.PropertyChanged += (s, e) => 
             {
@@ -81,15 +83,35 @@ namespace VinhKhanhTour.PageModels
             try
             {
                 IsBusy = true;
+
+                // 1. Load local data FIRST so UI renders immediately
                 _allPois = await _poiRepository.GetAllPoisAsync();
                 ApplyFilters();
+                IsBusy = false;
+
+                // 2. Sync from CMS server in the background (silent, won't crash if offline)
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await _apiService.SyncDatabaseAsync();
+                        // After sync, reload from local DB to pick up any changes
+                        var updatedPois = await _poiRepository.GetAllPoisAsync();
+                        MainThread.BeginInvokeOnMainThread(() =>
+                        {
+                            _allPois = updatedPois;
+                            ApplyFilters();
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[Background Sync] {ex.Message}");
+                    }
+                });
             }
             catch (Exception ex)
             {
                 _errorHandler.HandleError(ex);
-            }
-            finally
-            {
                 IsBusy = false;
             }
         }
@@ -176,18 +198,25 @@ namespace VinhKhanhTour.PageModels
                 _isDataLoaded = true;
             }
 
-            // Bắt đầu hoặc tiếp tục theo dõi vị trí khi trang hiển thị
+            // Start location tracking in background — don't block UI
+            _ = StartLocationTrackingAsync();
+        }
+
+        private async Task StartLocationTrackingAsync()
+        {
             try
             {
                 if (!Geolocation.Default.IsListeningForeground)
                 {
                     var request = new GeolocationListeningRequest(GeolocationAccuracy.Medium, TimeSpan.FromSeconds(5));
-                    await Geolocation.Default.StartListeningForegroundAsync(request);
+                    // Add timeout to prevent ANR on emulators without GPS
+                    using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+                    await Geolocation.Default.StartListeningForegroundAsync(request).WaitAsync(cts.Token);
                 }
             }
             catch (Exception ex)
             {
-                _errorHandler.HandleError(ex);
+                System.Diagnostics.Debug.WriteLine($"[Geolocation] Could not start listening: {ex.Message}");
             }
         }
 

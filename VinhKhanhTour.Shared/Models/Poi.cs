@@ -43,17 +43,17 @@ namespace VinhKhanhTour.Shared.Models
 
         [Ignore]
         public string DisplayDistanceText => DistanceToUser.HasValue 
-            ? $"ðŸ“ {GetLocalizedString("Cách bạn")}: {DistanceToUser.Value:F0}m" 
-            : $"ðŸ“ {GetLocalizedString("Äang Ä‘á»‹nh vá»‹...")}";
+            ? $"📍 {GetLocalizedString("Cách bạn")}: {DistanceToUser.Value:F0}m" 
+            : $"📍 {GetLocalizedString("Đang định vị...")}";
 
         [Ignore]
-        public string ListDisplayDistanceText => DistanceToUser.HasValue ? $"ðŸ“ {DistanceToUser.Value:F0}m" : "ðŸ“ ---";
+        public string ListDisplayDistanceText => DistanceToUser.HasValue ? $"📍 {DistanceToUser.Value:F0}m" : "📍 ---";
 
         [Ignore]
-        public string DisplayRadiusText => $"ðŸ“ {GetLocalizedString("Bán kính")}: {Radius}m";
+        public string DisplayRadiusText => $"📍 {GetLocalizedString("Bán kính")}: {Radius}m";
 
         [Ignore]
-        public string ListDisplayRadiusText => $"ðŸ“ {Radius}m";
+        public string ListDisplayRadiusText => $"📍 {Radius}m";
 
         public string PrimaryCategory { get; set; } = string.Empty;
 
@@ -79,10 +79,10 @@ namespace VinhKhanhTour.Shared.Models
             {
                 string key = DynamicPrimaryCategory switch
                 {
-                    "BBQ" => "ðŸ– Äá»“ nướng",
-                    "Noodle" => "ðŸœ MÃ³n nÆ°á»›c",
-                    "Sushi" => "ðŸ£ Sushi",
-                    _ => "ðŸš á»c & Háº£i sáº£n"
+                    "BBQ" => "🍖 Đồ nướng",
+                    "Noodle" => "🍜 Món nước",
+                    "Sushi" => "🍣 Sushi",
+                    _ => "🐚 Ốc & Hải sản"
                 };
                 return GetLocalizedString(key);
             }
@@ -95,10 +95,10 @@ namespace VinhKhanhTour.Shared.Models
             {
                 string key = DynamicPrimaryCategory switch
                 {
-                    "BBQ" => "ðŸ– Äá»“ nướng",
-                    "Noodle" => "ðŸœ MÃ³n nÆ°á»›c",
-                    "Sushi" => "ðŸ£ Sushi",
-                    _ => "ðŸš á»c"
+                    "BBQ" => "🍖 Đồ nướng",
+                    "Noodle" => "🍜 Món nước",
+                    "Sushi" => "🍣 Sushi",
+                    _ => "🐚 Ốc"
                 };
                 return GetLocalizedString(key);
             }

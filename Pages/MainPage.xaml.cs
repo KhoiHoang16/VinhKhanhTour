@@ -15,12 +15,13 @@ namespace VinhKhanhTour.Pages
             BindingContext = model;
         }
 
-        protected override async void OnAppearing()
+        protected override void OnAppearing()
         {
             base.OnAppearing();
             if (BindingContext is MainPageModel model)
             {
-                await model.AppearingCommand.ExecuteAsync(null);
+                // Fire-and-forget to prevent blocking the UI thread (ANR)
+                _ = model.AppearingCommand.ExecuteAsync(null);
             }
         }
 

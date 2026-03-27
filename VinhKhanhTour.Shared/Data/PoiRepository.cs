@@ -27,14 +27,23 @@ namespace VinhKhanhTour.Shared.Data
             {
                 if (_hasInitialized && _connection is not null) return;
 
-                // Remove existing DB file to ensure we start fresh during development
                 var dbPath = Constants.DatabasePath.Replace("Data Source=", "");
-                if (File.Exists(dbPath))
-                {
-                    File.Delete(dbPath);
-                }
 
                 _connection = new SQLiteAsyncConnection(dbPath);
+
+                // One-time fix (v2): drop Poi table to clear encoding-corrupted data
+                var flagFile = dbPath + ".encoding_fix_v2";
+                if (!File.Exists(flagFile))
+                {
+                    try
+                    {
+                        await _connection.DropTableAsync<Poi>();
+                        File.WriteAllText(flagFile, "done");
+                        Debug.WriteLine("[DB Migration] Dropped Poi table to fix encoding issues.");
+                    }
+                    catch { /* Table might not exist yet, that's fine */ }
+                }
+                
                 var result = await _connection.CreateTableAsync<Poi>();
                 await _connection.CreateTableAsync<Tour>();
                 await _connection.CreateTableAsync<TourStop>();
@@ -43,7 +52,7 @@ namespace VinhKhanhTour.Shared.Data
 
                 if (result == CreateTableResult.Created)
                 {
-                    // Seed data if this is the first time creating the table
+                    // Seed sample data for fresh table
                     var sampleData = Poi.GetSampleData();
                     await _connection.InsertAllAsync(sampleData);
                 }
@@ -111,6 +120,48 @@ namespace VinhKhanhTour.Shared.Data
             return 0;
         }
 
+        public async Task<Poi?> GetPoiAsync(int id)
+        {
+            try
+            {
+                await InitAsync();
+                return await _connection!.Table<Poi>().Where(p => p.Id == id).FirstOrDefaultAsync();
+            }
+            catch (Exception ex)
+            {
+                _errorHandler.HandleError(ex);
+            }
+            return null;
+        }
+
+        public async Task<int> AddPoiAsync(Poi poi)
+        {
+            try
+            {
+                await InitAsync();
+                return await _connection!.InsertAsync(poi);
+            }
+            catch (Exception ex)
+            {
+                _errorHandler.HandleError(ex);
+            }
+            return 0;
+        }
+
+        public async Task<int> UpdatePoiAsync(Poi poi)
+        {
+            try
+            {
+                await InitAsync();
+                return await _connection!.UpdateAsync(poi);
+            }
+            catch (Exception ex)
+            {
+                _errorHandler.HandleError(ex);
+            }
+            return 0;
+        }
+
         // --- TOUR CRUD METHODS ---
         public async Task<List<Tour>> GetAllToursAsync()
         {
@@ -153,6 +204,35 @@ namespace VinhKhanhTour.Shared.Data
             {
                 await InitAsync();
                 return await _connection!.DeleteAsync(tour);
+            }
+            catch (Exception ex)
+            {
+                _errorHandler.HandleError(ex);
+            }
+            return 0;
+        }
+
+        // --- ANALYTICS / HISTORY METHODS ---
+        public async Task<List<UsageHistory>> GetUsageHistoryAsync()
+        {
+            try
+            {
+                await InitAsync();
+                return await _connection!.Table<UsageHistory>().OrderByDescending(h => h.Timestamp).ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _errorHandler.HandleError(ex);
+            }
+            return new List<UsageHistory>();
+        }
+
+        public async Task<int> RecordUsageAsync(UsageHistory history)
+        {
+            try
+            {
+                await InitAsync();
+                return await _connection!.InsertAsync(history);
             }
             catch (Exception ex)
             {

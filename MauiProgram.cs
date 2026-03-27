@@ -35,6 +35,7 @@ namespace VinhKhanhTour
 #endif
 
             builder.Services.AddSingleton<PoiRepository>();
+            builder.Services.AddSingleton<VinhKhanhTour.Services.ApiService>();
             builder.Services.AddSingleton<IErrorHandler, ModalErrorHandler>();
             builder.Services.AddSingleton<MainPageModel>();
             builder.Services.AddSingleton<MainPage>();

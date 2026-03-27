@@ -1,0 +1,157 @@
+@page "/analytics"
+@using VinhKhanhTour.Shared.Models
+@using VinhKhanhTour.CMS.Services
+@inject AnalyticsService AnalyticsService
+@inject PoiService PoiService
+
+<PageTitle>Data Analytics</PageTitle>
+
+<div class="dashboard-container page-transition">
+    <div class="header-section">
+        <h1 class="header-title">Lịch sử & Phân tích Dữ liệu</h1>
+        <button class="btn btn-primary" @onclick="GenerateMock">Tạo Dữ Liệu Ảo (Mock)</button>
+    </div>
+
+    @if (isLoading)
+    {
+        <p style="color: var(--text-secondary); text-align: center; margin-top: 3rem;">Loading analytics data...</p>
+    }
+    else
+    {
+        <!-- Summary Cards -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+            <div class="poi-card" style="text-align: center;">
+                <h3 style="margin: 0; color: var(--text-secondary); font-size: 1rem; font-weight: 500;">Tổng Số Lượt Nghe</h3>
+                <p style="font-size: 3rem; font-weight: bold; margin: 0.5rem 0; color: white;">@history.Count</p>
+            </div>
+            <div class="poi-card" style="text-align: center;">
+                <h3 style="margin: 0; color: var(--text-secondary); font-size: 1rem; font-weight: 500;">Tổng Thời Gian Nghe</h3>
+                <p style="font-size: 3rem; font-weight: bold; margin: 0.5rem 0; color: var(--primary-color);">
+                    @(Math.Round(history.Sum(h => h.ListenDurationSeconds) / 60.0, 1)) <span style="font-size: 1rem">Phút</span>
+                </p>
+            </div>
+            <div class="poi-card" style="text-align: center;">
+                <h3 style="margin: 0; color: var(--text-secondary); font-size: 1rem; font-weight: 500;">Quét QR Code</h3>
+                <p style="font-size: 3rem; font-weight: bold; margin: 0.5rem 0; color: var(--success);">@history.Count(h => h.IsQrTriggered)</p>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr; gap: 1.5rem;">
+            <!-- Top Locations Chart -->
+            <div class="poi-card">
+                <h3 style="margin-top: 0; margin-bottom: 1.5rem; font-weight: 600;">Top Địa Điểm Được Nghe Nhiều Nhất</h3>
+                <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+                    @if (topPois.Count == 0)
+                    {
+                        <p style="color: var(--text-secondary);">Chưa có dữ liệu. Vui lòng bấm tạo Mock Data.</p>
+                    }
+                    @foreach (var rank in topPois)
+                    {
+                        <div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.4rem; font-size: 0.95rem;">
+                                <span>@rank.Name</span>
+                                <span style="color: var(--text-secondary);">@rank.Count lượt kết nối</span>
+                            </div>
+                            <div style="background: rgba(255,255,255,0.1); border-radius: 6px; height: 14px; width: 100%; overflow: hidden;">
+                                <div style="background: linear-gradient(90deg, #6366f1, #a855f7); height: 100%; width: @Math.Floor(rank.Percent)%; border-radius: 6px;"></div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Detail Usage History -->
+            <div class="poi-card" style="overflow-x: auto;">
+                <h3 style="margin-top: 0; margin-bottom: 1.5rem; font-weight: 600;">10 Hoạt động Gần nhất</h3>
+                <table style="width: 100%; border-collapse: collapse; text-align: left; min-width: 600px;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.2); font-size: 0.9rem; color: #cbd5e1;">
+                            <th style="padding: 1rem 0;">Thời Gian</th>
+                            <th style="padding: 1rem 0;">Địa điểm</th>
+                            <th style="padding: 1rem 0;">Nguồn Phát</th>
+                            <th style="padding: 1rem 0; text-align: right;">Thời lượng</th>
+                            <th style="padding: 1rem 0; text-align: right;">Thiết bị</th>
+                        </tr>
+                    </thead>
+                    <tbody style="font-size: 0.95rem;">
+                        @if (history.Count == 0)
+                        {
+                            <tr><td colspan="5" style="padding: 2rem 0; text-align: center; color: var(--text-secondary);">Trống</td></tr>
+                        }
+                        @foreach (var h in history.Take(10))
+                        {
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                <td style="padding: 1rem 0;">@h.Timestamp.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                <td style="padding: 1rem 0; color: white;">@(poiDict.ContainsKey(h.PoiId) ? poiDict[h.PoiId] : $"POI #{h.PoiId}")</td>
+                                <td style="padding: 1rem 0;">
+                                    <span style="padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.8rem; font-weight: 600; 
+                                                 background: @(h.IsQrTriggered ? "rgba(16, 185, 129, 0.2)" : "rgba(99, 102, 241, 0.2)");
+                                                 color: @(h.IsQrTriggered ? "var(--success)" : "#a5b4fc")">
+                                        @(h.IsQrTriggered ? "Quét QR Code" : "Tự động GPS")
+                                    </span>
+                                </td>
+                                <td style="padding: 1rem 0; text-align: right;">@h.ListenDurationSeconds giây</td>
+                                <td style="padding: 1rem 0; font-family: monospace; color: var(--text-secondary); text-align: right;">@h.DeviceId</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private bool isLoading = true;
+    private List<UsageHistory> history = new();
+    private Dictionary<int, string> poiDict = new();
+    private List<RankData> topPois = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        history = await AnalyticsService.GetUsageHistoryAsync();
+        
+        var pois = await PoiService.GetPoisAsync();
+        poiDict = pois.ToDictionary(p => p.Id, p => p.Name);
+
+        if (history.Any())
+        {
+            var maxCount = history.GroupBy(h => h.PoiId).Max(g => g.Count());
+            topPois = history.GroupBy(h => h.PoiId)
+                             .Select(g => new RankData 
+                             { 
+                                 Name = poiDict.ContainsKey(g.Key) ? poiDict[g.Key] : $"POI #{g.Key}", 
+                                 Count = g.Count(),
+                                 Percent = (double)g.Count() * 100 / Math.Max(1, maxCount)
+                             })
+                             .OrderByDescending(r => r.Count)
+                             .Take(5)
+                             .ToList();
+        }
+        else
+        {
+            topPois = new List<RankData>();
+        }
+
+        isLoading = false;
+    }
+
+    private async Task GenerateMock()
+    {
+        await AnalyticsService.GenerateMockDataAsync();
+        await LoadData();
+    }
+
+    public class RankData
+    {
+        public string Name { get; set; } = string.Empty;
+        public int Count { get; set; }
+        public double Percent { get; set; }
+    }
+}

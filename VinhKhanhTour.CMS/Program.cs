@@ -19,6 +19,7 @@ builder.Services.AddSingleton<IErrorHandler, CmsErrorHandler>();
 builder.Services.AddSingleton<PoiRepository>();
 builder.Services.AddScoped<PoiService>();
 builder.Services.AddScoped<TourService>();
+builder.Services.AddScoped<AnalyticsService>();
 
 VinhKhanhTour.Shared.Models.Poi.LocalizationService = new VinhKhanhTour.CMS.Services.CmsLocalizationService();
 
