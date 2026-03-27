@@ -237,6 +237,21 @@ namespace VinhKhanhTour.Shared.Models
                     TtsScriptEn = "Try the incredibly crowded Zone 3 Beef Hotpot at 180 Vinh Khanh. The grilled beef ribs are fantastic.",
                     Priority = 2,
                     ImageUrl = "lau_bo_vinh_khanh_1773306661104.png"
+                },
+                new Poi
+                {
+                    Id = 4,
+                    Name = "Quán Ốc Thảo - 383 Vĩnh Khánh",
+                    NameEn = "Thao Snail - 383 Vinh Khanh",
+                    Description = "Một trong những quán ăn đông khách nhất phố. Giá cả phải chăng, ốc tươi ngon.",
+                    DescriptionEn = "One of the busiest restaurants on the street. Affordable prices, fresh and delicious snails.",
+                    Latitude = 10.76185,
+                    Longitude = 106.70335,
+                    Radius = 30,
+                    TtsScript = "Quán Ốc Thảo nằm ở số 383 Vĩnh Khánh, nổi tiếng với ốc hương nướng mỡ hành.",
+                    TtsScriptEn = "Thao Snail at 383 Vinh Khanh is famous for grilled whelks with scallion oil.",
+                    Priority = 4,
+                    ImageUrl = "oc_oanh_vinh_khanh_1773306578974.png"
                 }
             };
         }
