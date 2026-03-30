@@ -1,0 +1,211 @@
+@page "/history"
+@using VinhKhanhTour.Shared.Models
+@using VinhKhanhTour.CMS.Services
+@inject AnalyticsService AnalyticsService
+@inject PoiService PoiService
+
+<PageTitle>Lịch sử Sử dụng - VinhKhanh Tour</PageTitle>
+
+<div class="dashboard-container page-transition">
+    <div class="header-section">
+        <h1 class="header-title">📜 Lịch sử Sử dụng</h1>
+        <button class="btn btn-primary" @onclick="GenerateMock">
+            🎲 Tạo Dữ Liệu Mẫu
+        </button>
+    </div>
+
+    @if (isLoading)
+    {
+        <div style="text-align: center; padding: 3rem; color: var(--text-secondary);">
+            <div class="loading-spinner">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
+            </div>
+            <p class="loading-pulse">Đang tải lịch sử...</p>
+        </div>
+    }
+    else
+    {
+        <!-- Stats -->
+        <div class="stat-grid">
+            <div class="stat-card">
+                <h3 class="stat-label">Tổng lượt nghe</h3>
+                <p class="stat-value">@allHistory.Count</p>
+            </div>
+            <div class="stat-card">
+                <h3 class="stat-label">Qua QR Code</h3>
+                <p class="stat-value" style="-webkit-text-fill-color: var(--success); color: var(--success);">@allHistory.Count(h => h.IsQrTriggered)</p>
+            </div>
+            <div class="stat-card">
+                <h3 class="stat-label">Qua GPS</h3>
+                <p class="stat-value" style="-webkit-text-fill-color: var(--info); color: var(--info);">@allHistory.Count(h => !h.IsQrTriggered)</p>
+            </div>
+            <div class="stat-card">
+                <h3 class="stat-label">Thiết bị</h3>
+                <p class="stat-value" style="-webkit-text-fill-color: var(--warning); color: var(--warning);">@allHistory.Select(h => h.DeviceId).Distinct().Count()</p>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filter-bar">
+            <select @bind="filterSource">
+                <option value="all">Tất cả nguồn</option>
+                <option value="qr">📱 QR Code</option>
+                <option value="gps">📍 GPS</option>
+            </select>
+            <select @bind="filterPoi">
+                <option value="0">Tất cả Địa điểm</option>
+                @foreach (var kv in poiDict)
+                {
+                    <option value="@kv.Key">@kv.Value</option>
+                }
+            </select>
+            <button class="btn btn-secondary" style="padding: 0.55rem 1rem;" @onclick="ApplyFilters">🔍 Lọc</button>
+            <button class="btn btn-secondary" style="padding: 0.55rem 1rem;" @onclick="ClearFilters">↩️ Bỏ lọc</button>
+            <span style="color: var(--text-secondary); font-size: 0.85rem; margin-left: auto;">
+                Hiển thị: <strong style="color: var(--primary-color);">@filteredHistory.Count</strong> / @allHistory.Count bản ghi
+            </span>
+        </div>
+
+        <!-- History Table -->
+        <div class="poi-card" style="overflow-x: auto;">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Thời gian</th>
+                        <th>Địa điểm</th>
+                        <th>Nguồn phát</th>
+                        <th style="text-align: right;">Thời lượng</th>
+                        <th style="text-align: right;">Vị trí</th>
+                        <th style="text-align: right;">Thiết bị</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!filteredHistory.Any())
+                    {
+                        <tr>
+                            <td colspan="7" style="padding: 3rem 0; text-align: center; color: var(--text-secondary);">
+                                Không có dữ liệu phù hợp.
+                            </td>
+                        </tr>
+                    }
+                    @{ int index = (currentPage - 1) * pageSize; }
+                    @foreach (var h in GetPagedHistory())
+                    {
+                        index++;
+                        <tr @key="h.Id">
+                            <td style="color: var(--text-secondary); font-size: 0.8rem;">@index</td>
+                            <td>@h.Timestamp.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                            <td style="font-weight: 600; color: var(--text-primary);">
+                                @(poiDict.ContainsKey(h.PoiId) ? poiDict[h.PoiId] : $"POI #{h.PoiId}")
+                            </td>
+                            <td>
+                                <span class="badge @(h.IsQrTriggered ? "badge-success" : "badge-info")">
+                                    @(h.IsQrTriggered ? "📱 QR Code" : "📍 GPS")
+                                </span>
+                            </td>
+                            <td style="text-align: right;">
+                                @if (h.ListenDurationSeconds >= 60)
+                                {
+                                    <span>@(h.ListenDurationSeconds / 60)p @(h.ListenDurationSeconds % 60)s</span>
+                                }
+                                else
+                                {
+                                    <span>@h.ListenDurationSeconds giây</span>
+                                }
+                            </td>
+                            <td style="text-align: right; font-size: 0.8rem; color: var(--text-secondary); font-family: monospace;">
+                                @h.UserLatitude.ToString("F4"), @h.UserLongitude.ToString("F4")
+                            </td>
+                            <td style="text-align: right; font-family: monospace; color: var(--text-secondary); font-size: 0.82rem;">
+                                @h.DeviceId
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            <!-- Pagination -->
+            @if (totalPages > 1)
+            {
+                <div style="display: flex; justify-content: center; align-items: center; gap: 0.5rem; margin-top: 1.5rem; flex-wrap: wrap;">
+                    <button class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;" disabled="@(currentPage <= 1)" @onclick="() => GoToPage(currentPage - 1)">← Trước</button>
+                    @for (int i = 1; i <= totalPages; i++)
+                    {
+                        var pg = i;
+                        <button class="btn @(pg == currentPage ? "btn-primary" : "btn-secondary")" style="padding: 0.4rem 0.7rem; font-size: 0.85rem; min-width: 2.2rem;" @onclick="() => GoToPage(pg)">@pg</button>
+                    }
+                    <button class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;" disabled="@(currentPage >= totalPages)" @onclick="() => GoToPage(currentPage + 1)">Sau →</button>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private bool isLoading = true;
+    private List<UsageHistory> allHistory = new();
+    private List<UsageHistory> filteredHistory = new();
+    private Dictionary<int, string> poiDict = new();
+
+    private string filterSource = "all";
+    private int filterPoi = 0;
+    private int currentPage = 1;
+    private int pageSize = 15;
+    private int totalPages => (int)Math.Ceiling((double)filteredHistory.Count / pageSize);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        allHistory = await AnalyticsService.GetUsageHistoryAsync();
+        var pois = await PoiService.GetPoisAsync();
+        poiDict = pois.ToDictionary(p => p.Id, p => p.Name);
+        filteredHistory = allHistory;
+        isLoading = false;
+    }
+
+    private void ApplyFilters()
+    {
+        filteredHistory = allHistory;
+
+        if (filterSource == "qr")
+            filteredHistory = filteredHistory.Where(h => h.IsQrTriggered).ToList();
+        else if (filterSource == "gps")
+            filteredHistory = filteredHistory.Where(h => !h.IsQrTriggered).ToList();
+
+        if (filterPoi > 0)
+            filteredHistory = filteredHistory.Where(h => h.PoiId == filterPoi).ToList();
+
+        currentPage = 1;
+    }
+
+    private void ClearFilters()
+    {
+        filterSource = "all";
+        filterPoi = 0;
+        filteredHistory = allHistory;
+        currentPage = 1;
+    }
+
+    private List<UsageHistory> GetPagedHistory()
+    {
+        return filteredHistory.Skip((currentPage - 1) * pageSize).Take(pageSize).ToList();
+    }
+
+    private void GoToPage(int page)
+    {
+        if (page >= 1 && page <= totalPages)
+            currentPage = page;
+    }
+
+    private async Task GenerateMock()
+    {
+        await AnalyticsService.GenerateMockDataAsync();
+        await LoadData();
+    }
+}

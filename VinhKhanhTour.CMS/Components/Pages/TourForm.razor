@@ -5,12 +5,15 @@
 @inject TourService TourService
 @inject NavigationManager NavManager
 
-<PageTitle>@(IsEdit ? "Edit Tour" : "Add New Tour")</PageTitle>
+<PageTitle>@(IsEdit ? "Sửa Tour" : "Thêm Tour Mới") - VinhKhanh Tour</PageTitle>
 
 <div class="dashboard-container page-transition">
     <div class="header-section">
-        <h1 class="header-title">@(IsEdit ? "Edit Tour" : "Add New Tour")</h1>
-        <button class="btn" style="background: rgba(255,255,255,0.1); color: white;" @onclick='() => NavManager.NavigateTo("/tours")'>Back</button>
+        <h1 class="header-title">@(IsEdit ? "✏️ Sửa Tour" : "➕ Thêm Tour Mới")</h1>
+        <button class="btn btn-secondary" @onclick='() => NavManager.NavigateTo("/tours")'>
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            Quay lại
+        </button>
     </div>
 
     <div class="form-container">
@@ -18,19 +21,25 @@
             <DataAnnotationsValidator />
             
             <div class="form-group">
-                <label class="form-label">Tour Name</label>
-                <InputText @bind-Value="tour.Name" class="form-control" required />
+                <label class="form-label">Tên Tour</label>
+                <InputText @bind-Value="tour.Name" class="form-control" placeholder="Nhập tên tour du lịch..." required />
             </div>
             <div class="form-group">
-                <label class="form-label">Description</label>
-                <InputTextArea @bind-Value="tour.Description" class="form-control" rows="3" />
+                <label class="form-label">Mô tả</label>
+                <InputTextArea @bind-Value="tour.Description" class="form-control" rows="4" placeholder="Mô tả chi tiết về tour này..." />
             </div>
             <div class="form-group">
-                <label class="form-label">Image URL</label>
-                <InputText @bind-Value="tour.ImageUrl" class="form-control" />
+                <label class="form-label">Link Hình ảnh</label>
+                <InputText @bind-Value="tour.ImageUrl" class="form-control" placeholder="https://... hoặc tên file ảnh" />
             </div>
 
-            <button type="submit" class="btn btn-primary" style="margin-top: 1rem;">Save</button>
+            <div style="margin-top: 2rem; display: flex; justify-content: flex-end; gap: 1rem;">
+                <button type="button" class="btn btn-secondary" @onclick='() => NavManager.NavigateTo("/tours")'>Hủy</button>
+                <button type="submit" class="btn btn-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                    @(IsEdit ? "Lưu thay đổi" : "Tạo Tour")
+                </button>
+            </div>
         </EditForm>
     </div>
 </div>

@@ -1,0 +1,233 @@
+@page "/translations"
+@using VinhKhanhTour.Shared.Models
+@using VinhKhanhTour.CMS.Services
+@inject PoiService PoiService
+
+<PageTitle>Quản lý Bản dịch - VinhKhanh Tour</PageTitle>
+
+<div class="dashboard-container page-transition">
+    <div class="header-section">
+        <h1 class="header-title">🌐 Quản lý Bản dịch</h1>
+    </div>
+
+    @if (pois == null)
+    {
+        <div style="text-align: center; padding: 3rem; color: var(--text-secondary);">
+            <div class="loading-spinner">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
+            </div>
+            <p class="loading-pulse">Đang tải dữ liệu bản dịch...</p>
+        </div>
+    }
+    else
+    {
+        <!-- Stats -->
+        <div class="stat-grid">
+            <div class="stat-card">
+                <h3 class="stat-label">Tổng Địa điểm</h3>
+                <p class="stat-value">@pois.Count</p>
+            </div>
+            <div class="stat-card">
+                <h3 class="stat-label">Đã dịch EN</h3>
+                <p class="stat-value" style="-webkit-text-fill-color: var(--success); color: var(--success);">@pois.Count(p => !string.IsNullOrWhiteSpace(p.NameEn))</p>
+            </div>
+            <div class="stat-card">
+                <h3 class="stat-label">Đã dịch FR</h3>
+                <p class="stat-value" style="-webkit-text-fill-color: var(--info); color: var(--info);">@pois.Count(p => !string.IsNullOrWhiteSpace(p.NameFr))</p>
+            </div>
+            <div class="stat-card">
+                <h3 class="stat-label">Chưa dịch EN</h3>
+                <p class="stat-value" style="-webkit-text-fill-color: var(--danger); color: var(--danger);">@pois.Count(p => string.IsNullOrWhiteSpace(p.NameEn))</p>
+            </div>
+        </div>
+
+        @if (successMessage != null)
+        {
+            <div style="background: rgba(34, 197, 94, 0.15); border: 1px solid var(--success); border-radius: 0.75rem; padding: 0.75rem 1.25rem; margin-bottom: 1.5rem; color: var(--success); font-weight: 600;">
+                ✅ @successMessage
+            </div>
+        }
+
+        <!-- Translation Overview Table -->
+        <div class="poi-card" style="overflow-x: auto; margin-bottom: 1.5rem;">
+            <h3 style="margin-top: 0; margin-bottom: 1.5rem; font-weight: 700; font-size: 1.1rem;">Tổng quan Trạng thái Bản dịch</h3>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Địa điểm (VI)</th>
+                        <th style="text-align: center;">🇬🇧 EN</th>
+                        <th style="text-align: center;">🇫🇷 FR</th>
+                        <th style="text-align: center;">🇩🇪 DE</th>
+                        <th style="text-align: center;">🇨🇳 ZH</th>
+                        <th style="text-align: center;">🇯🇵 JA</th>
+                        <th style="text-align: center;">🇰🇷 KO</th>
+                        <th style="text-align: center;">🇪🇸 ES</th>
+                        <th style="text-align: center;">🇷🇺 RU</th>
+                        <th style="text-align: right;">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var poi in pois)
+                    {
+                        <tr @key="poi.Id">
+                            <td style="font-weight: 600; color: var(--text-primary); white-space: nowrap;">@poi.Name</td>
+                            <td style="text-align: center;">@StatusBadge(!string.IsNullOrWhiteSpace(poi.NameEn))</td>
+                            <td style="text-align: center;">@StatusBadge(!string.IsNullOrWhiteSpace(poi.NameFr))</td>
+                            <td style="text-align: center;">@StatusBadge(!string.IsNullOrWhiteSpace(poi.NameDe))</td>
+                            <td style="text-align: center;">@StatusBadge(!string.IsNullOrWhiteSpace(poi.NameZh))</td>
+                            <td style="text-align: center;">@StatusBadge(!string.IsNullOrWhiteSpace(poi.NameJa))</td>
+                            <td style="text-align: center;">@StatusBadge(!string.IsNullOrWhiteSpace(poi.NameKo))</td>
+                            <td style="text-align: center;">@StatusBadge(!string.IsNullOrWhiteSpace(poi.NameEs))</td>
+                            <td style="text-align: center;">@StatusBadge(!string.IsNullOrWhiteSpace(poi.NameRu))</td>
+                            <td style="text-align: right;">
+                                <button class="btn btn-secondary" style="padding: 0.3rem 0.7rem; font-size: 0.8rem;" @onclick="() => ToggleEdit(poi)">
+                                    @(editingId == poi.Id ? "📁 Đóng" : "✏️ Sửa bản dịch")
+                                </button>
+                            </td>
+                        </tr>
+
+                        @if (editingId == poi.Id)
+                        {
+                            <tr>
+                                <td colspan="10" style="padding: 1.5rem; background: rgba(249, 115, 22, 0.05); border-radius: 0;">
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                        <h4 style="grid-column: 1 / -1; margin: 0; color: var(--primary-color); font-weight: 700;">
+                                            Chỉnh sửa bản dịch: @poi.Name
+                                        </h4>
+
+                                        <div class="form-group" style="margin-bottom: 0.75rem;">
+                                            <label class="form-label">🇬🇧 Tên (EN)</label>
+                                            <input type="text" class="form-control" @bind="poi.NameEn" placeholder="English name" />
+                                        </div>
+                                        <div class="form-group" style="margin-bottom: 0.75rem;">
+                                            <label class="form-label">🇬🇧 Mô tả (EN)</label>
+                                            <input type="text" class="form-control" @bind="poi.DescriptionEn" placeholder="English description" />
+                                        </div>
+
+                                        <div class="form-group" style="margin-bottom: 0.75rem;">
+                                            <label class="form-label">🇫🇷 Tên (FR)</label>
+                                            <input type="text" class="form-control" @bind="poi.NameFr" placeholder="Nom en français" />
+                                        </div>
+                                        <div class="form-group" style="margin-bottom: 0.75rem;">
+                                            <label class="form-label">🇫🇷 Mô tả (FR)</label>
+                                            <input type="text" class="form-control" @bind="poi.DescriptionFr" placeholder="Description en français" />
+                                        </div>
+
+                                        <div class="form-group" style="margin-bottom: 0.75rem;">
+                                            <label class="form-label">🇩🇪 Tên (DE)</label>
+                                            <input type="text" class="form-control" @bind="poi.NameDe" placeholder="Deutscher Name" />
+                                        </div>
+                                        <div class="form-group" style="margin-bottom: 0.75rem;">
+                                            <label class="form-label">🇩🇪 Mô tả (DE)</label>
+                                            <input type="text" class="form-control" @bind="poi.DescriptionDe" placeholder="Beschreibung auf Deutsch" />
+                                        </div>
+
+                                        <div class="form-group" style="margin-bottom: 0.75rem;">
+                                            <label class="form-label">🇨🇳 Tên (ZH)</label>
+                                            <input type="text" class="form-control" @bind="poi.NameZh" placeholder="中文名称" />
+                                        </div>
+                                        <div class="form-group" style="margin-bottom: 0.75rem;">
+                                            <label class="form-label">🇨🇳 Mô tả (ZH)</label>
+                                            <input type="text" class="form-control" @bind="poi.DescriptionZh" placeholder="中文描述" />
+                                        </div>
+
+                                        <div class="form-group" style="margin-bottom: 0.75rem;">
+                                            <label class="form-label">🇯🇵 Tên (JA)</label>
+                                            <input type="text" class="form-control" @bind="poi.NameJa" placeholder="日本語名" />
+                                        </div>
+                                        <div class="form-group" style="margin-bottom: 0.75rem;">
+                                            <label class="form-label">🇯🇵 Mô tả (JA)</label>
+                                            <input type="text" class="form-control" @bind="poi.DescriptionJa" placeholder="日本語の説明" />
+                                        </div>
+
+                                        <div class="form-group" style="margin-bottom: 0.75rem;">
+                                            <label class="form-label">🇰🇷 Tên (KO)</label>
+                                            <input type="text" class="form-control" @bind="poi.NameKo" placeholder="한국어 이름" />
+                                        </div>
+                                        <div class="form-group" style="margin-bottom: 0.75rem;">
+                                            <label class="form-label">🇰🇷 Mô tả (KO)</label>
+                                            <input type="text" class="form-control" @bind="poi.DescriptionKo" placeholder="한국어 설명" />
+                                        </div>
+
+                                        <div class="form-group" style="margin-bottom: 0.75rem;">
+                                            <label class="form-label">🇪🇸 Tên (ES)</label>
+                                            <input type="text" class="form-control" @bind="poi.NameEs" placeholder="Nombre en español" />
+                                        </div>
+                                        <div class="form-group" style="margin-bottom: 0.75rem;">
+                                            <label class="form-label">🇪🇸 Mô tả (ES)</label>
+                                            <input type="text" class="form-control" @bind="poi.DescriptionEs" placeholder="Descripción en español" />
+                                        </div>
+
+                                        <div class="form-group" style="margin-bottom: 0.75rem;">
+                                            <label class="form-label">🇷🇺 Tên (RU)</label>
+                                            <input type="text" class="form-control" @bind="poi.NameRu" placeholder="Название на русском" />
+                                        </div>
+                                        <div class="form-group" style="margin-bottom: 0.75rem;">
+                                            <label class="form-label">🇷🇺 Mô tả (RU)</label>
+                                            <input type="text" class="form-control" @bind="poi.DescriptionRu" placeholder="Описание на русском" />
+                                        </div>
+
+                                        <div style="grid-column: 1 / -1; display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 0.5rem;">
+                                            <button class="btn btn-secondary" @onclick="() => CancelEdit()">Hủy</button>
+                                            <button class="btn btn-primary" @onclick="() => SaveTranslation(poi)">💾 Lưu bản dịch</button>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@code {
+    private List<Poi>? pois;
+    private int? editingId;
+    private string? successMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        pois = await PoiService.GetPoisAsync();
+    }
+
+    private RenderFragment StatusBadge(bool hasTranslation) => builder =>
+    {
+        builder.OpenElement(0, "span");
+        builder.AddAttribute(1, "class", hasTranslation ? "badge badge-success" : "badge badge-danger");
+        builder.AddContent(2, hasTranslation ? "✅" : "❌");
+        builder.CloseElement();
+    };
+
+    private void ToggleEdit(Poi poi)
+    {
+        if (editingId == poi.Id)
+        {
+            editingId = null;
+        }
+        else
+        {
+            editingId = poi.Id;
+            successMessage = null;
+        }
+    }
+
+    private void CancelEdit()
+    {
+        editingId = null;
+    }
+
+    private async Task SaveTranslation(Poi poi)
+    {
+        await PoiService.UpdatePoiAsync(poi);
+        successMessage = $"Đã cập nhật bản dịch cho \"{poi.Name}\"";
+        editingId = null;
+        await LoadData();
+    }
+}

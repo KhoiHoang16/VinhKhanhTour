@@ -4,99 +4,187 @@
 @inject AnalyticsService AnalyticsService
 @inject PoiService PoiService
 
-<PageTitle>Data Analytics</PageTitle>
+<PageTitle>Phân tích Dữ liệu - VinhKhanh Tour</PageTitle>
 
 <div class="dashboard-container page-transition">
     <div class="header-section">
-        <h1 class="header-title">Lịch sử & Phân tích Dữ liệu</h1>
-        <button class="btn btn-primary" @onclick="GenerateMock">Tạo Dữ Liệu Ảo (Mock)</button>
+        <h1 class="header-title">📊 Phân tích Dữ liệu</h1>
+        <button class="btn btn-primary" @onclick="GenerateMock">🎲 Tạo Dữ Liệu Mẫu</button>
     </div>
 
     @if (isLoading)
     {
-        <p style="color: var(--text-secondary); text-align: center; margin-top: 3rem;">Loading analytics data...</p>
+        <div style="text-align: center; padding: 3rem; color: var(--text-secondary);">
+            <div class="loading-spinner">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
+            </div>
+            <p class="loading-pulse">Đang phân tích dữ liệu...</p>
+        </div>
     }
     else
     {
         <!-- Summary Cards -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
-            <div class="poi-card" style="text-align: center;">
-                <h3 style="margin: 0; color: var(--text-secondary); font-size: 1rem; font-weight: 500;">Tổng Số Lượt Nghe</h3>
-                <p style="font-size: 3rem; font-weight: bold; margin: 0.5rem 0; color: white;">@history.Count</p>
+        <div class="stat-grid">
+            <div class="stat-card">
+                <h3 class="stat-label">Tổng Lượt Nghe</h3>
+                <p class="stat-value">@history.Count</p>
             </div>
-            <div class="poi-card" style="text-align: center;">
-                <h3 style="margin: 0; color: var(--text-secondary); font-size: 1rem; font-weight: 500;">Tổng Thời Gian Nghe</h3>
-                <p style="font-size: 3rem; font-weight: bold; margin: 0.5rem 0; color: var(--primary-color);">
-                    @(Math.Round(history.Sum(h => h.ListenDurationSeconds) / 60.0, 1)) <span style="font-size: 1rem">Phút</span>
-                </p>
+            <div class="stat-card">
+                <h3 class="stat-label">Tổng Thời Gian</h3>
+                <p class="stat-value" style="-webkit-text-fill-color: var(--primary-color); color: var(--primary-color);">@(Math.Round(history.Sum(h => h.ListenDurationSeconds) / 60.0, 1))</p>
+                <span class="stat-unit" style="color: var(--text-secondary);">Phút</span>
             </div>
-            <div class="poi-card" style="text-align: center;">
-                <h3 style="margin: 0; color: var(--text-secondary); font-size: 1rem; font-weight: 500;">Quét QR Code</h3>
-                <p style="font-size: 3rem; font-weight: bold; margin: 0.5rem 0; color: var(--success);">@history.Count(h => h.IsQrTriggered)</p>
+            <div class="stat-card">
+                <h3 class="stat-label">TB Nghe/POI</h3>
+                <p class="stat-value" style="-webkit-text-fill-color: var(--warning); color: var(--warning);">@avgListenTimeText</p>
+                <span class="stat-unit" style="color: var(--text-secondary);">Giây</span>
+            </div>
+            <div class="stat-card">
+                <h3 class="stat-label">Quét QR Code</h3>
+                <p class="stat-value" style="-webkit-text-fill-color: var(--success); color: var(--success);">@history.Count(h => h.IsQrTriggered)</p>
+            </div>
+            <div class="stat-card">
+                <h3 class="stat-label">Thiết bị</h3>
+                <p class="stat-value" style="-webkit-text-fill-color: var(--info); color: var(--info);">@history.Select(h => h.DeviceId).Distinct().Count()</p>
             </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr; gap: 1.5rem;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
             <!-- Top Locations Chart -->
             <div class="poi-card">
-                <h3 style="margin-top: 0; margin-bottom: 1.5rem; font-weight: 600;">Top Địa Điểm Được Nghe Nhiều Nhất</h3>
+                <h3 style="margin-top: 0; margin-bottom: 1.5rem; font-weight: 700; font-size: 1.05rem;">🏆 Top Địa Điểm Được Nghe Nhiều Nhất</h3>
                 <div style="display: flex; flex-direction: column; gap: 1.25rem;">
                     @if (topPois.Count == 0)
                     {
-                        <p style="color: var(--text-secondary);">Chưa có dữ liệu. Vui lòng bấm tạo Mock Data.</p>
+                        <p style="color: var(--text-secondary);">Chưa có dữ liệu. Bấm "Tạo Dữ Liệu Mẫu".</p>
                     }
                     @foreach (var rank in topPois)
                     {
                         <div>
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.4rem; font-size: 0.95rem;">
-                                <span>@rank.Name</span>
-                                <span style="color: var(--text-secondary);">@rank.Count lượt kết nối</span>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.4rem; font-size: 0.92rem;">
+                                <span style="font-weight: 600;">@rank.Name</span>
+                                <span style="color: var(--text-secondary);">@rank.Count lượt</span>
                             </div>
-                            <div style="background: rgba(255,255,255,0.1); border-radius: 6px; height: 14px; width: 100%; overflow: hidden;">
-                                <div style="background: linear-gradient(90deg, #6366f1, #a855f7); height: 100%; width: @Math.Floor(rank.Percent)%; border-radius: 6px;"></div>
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill" style="width: @Math.Floor(rank.Percent)%;"></div>
                             </div>
                         </div>
                     }
                 </div>
             </div>
 
-            <!-- Detail Usage History -->
-            <div class="poi-card" style="overflow-x: auto;">
-                <h3 style="margin-top: 0; margin-bottom: 1.5rem; font-weight: 600;">10 Hoạt động Gần nhất</h3>
-                <table style="width: 100%; border-collapse: collapse; text-align: left; min-width: 600px;">
-                    <thead>
-                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.2); font-size: 0.9rem; color: #cbd5e1;">
-                            <th style="padding: 1rem 0;">Thời Gian</th>
-                            <th style="padding: 1rem 0;">Địa điểm</th>
-                            <th style="padding: 1rem 0;">Nguồn Phát</th>
-                            <th style="padding: 1rem 0; text-align: right;">Thời lượng</th>
-                            <th style="padding: 1rem 0; text-align: right;">Thiết bị</th>
-                        </tr>
-                    </thead>
-                    <tbody style="font-size: 0.95rem;">
-                        @if (history.Count == 0)
-                        {
-                            <tr><td colspan="5" style="padding: 2rem 0; text-align: center; color: var(--text-secondary);">Trống</td></tr>
-                        }
-                        @foreach (var h in history.Take(10))
-                        {
-                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
-                                <td style="padding: 1rem 0;">@h.Timestamp.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
-                                <td style="padding: 1rem 0; color: white;">@(poiDict.ContainsKey(h.PoiId) ? poiDict[h.PoiId] : $"POI #{h.PoiId}")</td>
-                                <td style="padding: 1rem 0;">
-                                    <span style="padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.8rem; font-weight: 600; 
-                                                 background: @(h.IsQrTriggered ? "rgba(16, 185, 129, 0.2)" : "rgba(99, 102, 241, 0.2)");
-                                                 color: @(h.IsQrTriggered ? "var(--success)" : "#a5b4fc")">
-                                        @(h.IsQrTriggered ? "Quét QR Code" : "Tự động GPS")
-                                    </span>
-                                </td>
-                                <td style="padding: 1rem 0; text-align: right;">@h.ListenDurationSeconds giây</td>
-                                <td style="padding: 1rem 0; font-family: monospace; color: var(--text-secondary); text-align: right;">@h.DeviceId</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+            <!-- Average Listen Time per POI -->
+            <div class="poi-card">
+                <h3 style="margin-top: 0; margin-bottom: 1.5rem; font-weight: 700; font-size: 1.05rem;">⏱️ Thời Gian TB Nghe Mỗi Địa Điểm</h3>
+                <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+                    @if (avgTimePois.Count == 0)
+                    {
+                        <p style="color: var(--text-secondary);">Chưa có dữ liệu.</p>
+                    }
+                    @foreach (var item in avgTimePois)
+                    {
+                        <div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.4rem; font-size: 0.92rem;">
+                                <span style="font-weight: 600;">@item.Name</span>
+                                <span style="color: var(--warning);">@item.AvgSeconds.ToString("F0") giây</span>
+                            </div>
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill" style="width: @Math.Floor(item.Percent)%; background: linear-gradient(90deg, #FBBF24, #F97316);"></div>
+                            </div>
+                        </div>
+                    }
+                </div>
             </div>
+        </div>
+
+        <!-- QR vs GPS Comparison -->
+        <div class="poi-card" style="margin-bottom: 1.5rem;">
+            <h3 style="margin-top: 0; margin-bottom: 1.5rem; font-weight: 700; font-size: 1.05rem;">📱 So sánh QR Code vs GPS</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                <div style="text-align: center;">
+                    <div style="font-size: 2.5rem; font-weight: 800; color: var(--success);">@qrCount</div>
+                    <div style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.5rem;">Quét QR Code</div>
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill" style="width: @qrPercent%; background: linear-gradient(90deg, #22C55E, #4ADE80);"></div>
+                    </div>
+                    <div style="color: var(--text-secondary); font-size: 0.8rem; margin-top: 0.3rem;">@qrPercent.ToString("F1")%</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 2.5rem; font-weight: 800; color: var(--info);">@gpsCount</div>
+                    <div style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.5rem;">Tự động GPS</div>
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill" style="width: @gpsPercent%; background: linear-gradient(90deg, #38BDF8, #818CF8);"></div>
+                    </div>
+                    <div style="color: var(--text-secondary); font-size: 0.8rem; margin-top: 0.3rem;">@gpsPercent.ToString("F1")%</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Heatmap -->
+        <div class="poi-card" style="margin-bottom: 1.5rem;">
+            <h3 style="margin-top: 0; margin-bottom: 1rem; font-weight: 700; font-size: 1.05rem;">🗺️ Heatmap Vị Trí Người Dùng</h3>
+            <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1rem;">Phân bố vị trí người dùng khi nghe nội dung (khu vực Vĩnh Khánh)</p>
+            @if (history.Count == 0)
+            {
+                <p style="color: var(--text-secondary); text-align: center; padding: 2rem;">Chưa có dữ liệu vị trí.</p>
+            }
+            else
+            {
+                <div class="heatmap-grid">
+                    @foreach (var cell in heatmapCells)
+                    {
+                        <div class="heatmap-cell" style="background: @GetHeatColor(cell);" title="@cell lượt truy cập"></div>
+                    }
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-top: 0.75rem; font-size: 0.75rem; color: var(--text-secondary);">
+                    <span>Ít truy cập</span>
+                    <div style="display: flex; gap: 3px; align-items: center;">
+                        <div style="width: 14px; height: 10px; border-radius: 2px; background: rgba(249,115,22,0.05);"></div>
+                        <div style="width: 14px; height: 10px; border-radius: 2px; background: rgba(249,115,22,0.2);"></div>
+                        <div style="width: 14px; height: 10px; border-radius: 2px; background: rgba(249,115,22,0.4);"></div>
+                        <div style="width: 14px; height: 10px; border-radius: 2px; background: rgba(249,115,22,0.65);"></div>
+                        <div style="width: 14px; height: 10px; border-radius: 2px; background: rgba(249,115,22,0.9);"></div>
+                    </div>
+                    <span>Nhiều truy cập</span>
+                </div>
+            }
+        </div>
+
+        <!-- Recent Activity Preview -->
+        <div class="poi-card" style="overflow-x: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h3 style="margin: 0; font-weight: 700; font-size: 1.05rem;">🕐 5 Hoạt Động Gần Nhất</h3>
+                <a href="/history" style="color: var(--primary-color); text-decoration: none; font-size: 0.88rem; font-weight: 600;">Xem tất cả →</a>
+            </div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Thời gian</th>
+                        <th>Địa điểm</th>
+                        <th>Nguồn</th>
+                        <th style="text-align: right;">Thời lượng</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (history.Count == 0)
+                    {
+                        <tr><td colspan="4" style="padding: 2rem 0; text-align: center; color: var(--text-secondary);">Trống</td></tr>
+                    }
+                    @foreach (var h in history.Take(5))
+                    {
+                        <tr>
+                            <td>@h.Timestamp.ToLocalTime().ToString("dd/MM HH:mm")</td>
+                            <td style="font-weight: 600; color: var(--text-primary);">@(poiDict.ContainsKey(h.PoiId) ? poiDict[h.PoiId] : $"POI #{h.PoiId}")</td>
+                            <td>
+                                <span class="badge @(h.IsQrTriggered ? "badge-success" : "badge-info")">
+                                    @(h.IsQrTriggered ? "📱 QR" : "📍 GPS")
+                                </span>
+                            </td>
+                            <td style="text-align: right;">@h.ListenDurationSeconds giây</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
         </div>
     }
 </div>
@@ -106,6 +194,13 @@
     private List<UsageHistory> history = new();
     private Dictionary<int, string> poiDict = new();
     private List<RankData> topPois = new();
+    private List<AvgTimeData> avgTimePois = new();
+    private int[] heatmapCells = new int[200]; // 20x10 grid
+    private string avgListenTimeText = "0";
+    private int qrCount = 0;
+    private int gpsCount = 0;
+    private double qrPercent = 0;
+    private double gpsPercent = 0;
 
     protected override async Task OnInitializedAsync()
     {
@@ -122,6 +217,7 @@
 
         if (history.Any())
         {
+            // Top POIs
             var maxCount = history.GroupBy(h => h.PoiId).Max(g => g.Count());
             topPois = history.GroupBy(h => h.PoiId)
                              .Select(g => new RankData 
@@ -133,13 +229,72 @@
                              .OrderByDescending(r => r.Count)
                              .Take(5)
                              .ToList();
+
+            // Average listen time per POI
+            var maxAvg = history.GroupBy(h => h.PoiId).Max(g => g.Average(h => h.ListenDurationSeconds));
+            avgTimePois = history.GroupBy(h => h.PoiId)
+                                 .Select(g => new AvgTimeData
+                                 {
+                                     Name = poiDict.ContainsKey(g.Key) ? poiDict[g.Key] : $"POI #{g.Key}",
+                                     AvgSeconds = g.Average(h => h.ListenDurationSeconds),
+                                     Percent = g.Average(h => h.ListenDurationSeconds) * 100 / Math.Max(1, maxAvg)
+                                 })
+                                 .OrderByDescending(a => a.AvgSeconds)
+                                 .Take(5)
+                                 .ToList();
+
+            // Overall average
+            avgListenTimeText = history.Average(h => h.ListenDurationSeconds).ToString("F0");
+
+            // QR vs GPS
+            qrCount = history.Count(h => h.IsQrTriggered);
+            gpsCount = history.Count(h => !h.IsQrTriggered);
+            var total = Math.Max(1, history.Count);
+            qrPercent = (double)qrCount * 100 / total;
+            gpsPercent = (double)gpsCount * 100 / total;
+
+            // Heatmap - map lat/lng to grid cells
+            BuildHeatmap();
         }
         else
         {
             topPois = new List<RankData>();
+            avgTimePois = new List<AvgTimeData>();
+            heatmapCells = new int[200];
         }
 
         isLoading = false;
+    }
+
+    private void BuildHeatmap()
+    {
+        heatmapCells = new int[200];
+        if (!history.Any()) return;
+
+        double minLat = history.Min(h => h.UserLatitude);
+        double maxLat = history.Max(h => h.UserLatitude);
+        double minLng = history.Min(h => h.UserLongitude);
+        double maxLng = history.Max(h => h.UserLongitude);
+
+        double latRange = Math.Max(maxLat - minLat, 0.001);
+        double lngRange = Math.Max(maxLng - minLng, 0.001);
+
+        foreach (var h in history)
+        {
+            int col = Math.Clamp((int)((h.UserLongitude - minLng) / lngRange * 19), 0, 19);
+            int row = Math.Clamp((int)((h.UserLatitude - minLat) / latRange * 9), 0, 9);
+            heatmapCells[row * 20 + col]++;
+        }
+    }
+
+    private string GetHeatColor(int value)
+    {
+        if (value == 0) return "rgba(249, 115, 22, 0.03)";
+        int maxVal = heatmapCells.Max();
+        if (maxVal == 0) return "rgba(249, 115, 22, 0.03)";
+        double ratio = (double)value / maxVal;
+        double alpha = 0.08 + ratio * 0.85;
+        return $"rgba(249, 115, 22, {alpha.ToString("F2")})";
     }
 
     private async Task GenerateMock()
@@ -152,6 +307,13 @@
     {
         public string Name { get; set; } = string.Empty;
         public int Count { get; set; }
+        public double Percent { get; set; }
+    }
+
+    public class AvgTimeData
+    {
+        public string Name { get; set; } = string.Empty;
+        public double AvgSeconds { get; set; }
         public double Percent { get; set; }
     }
 }

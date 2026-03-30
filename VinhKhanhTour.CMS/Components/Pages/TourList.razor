@@ -4,38 +4,50 @@
 @inject TourService TourService
 @inject NavigationManager NavManager
 
-<PageTitle>Tour Management</PageTitle>
+<PageTitle>Quản lý Tour - VinhKhanh Tour</PageTitle>
 
 <div class="dashboard-container page-transition">
     <div class="header-section">
-        <h1 class="header-title">Tour Management</h1>
+        <h1 class="header-title">🗺️ Quản lý Tour</h1>
         <button class="btn btn-primary" @onclick='() => NavManager.NavigateTo("/tours/new")'>
-            Add New Tour
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            Thêm Tour Mới
         </button>
     </div>
 
     @if (tours == null)
     {
-        <p>Loading...</p>
+        <div style="text-align: center; padding: 3rem; color: var(--text-secondary);">
+            <div class="loading-spinner">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
+            </div>
+            <p class="loading-pulse">Đang tải danh sách Tour...</p>
+        </div>
     }
     else if (!tours.Any())
     {
         <div class="form-container" style="text-align: center; padding: 4rem 2rem;">
-            <h2>No Tours Found</h2>
-            <button class="btn btn-primary" @onclick='() => NavManager.NavigateTo("/tours/new")'>Create Tour</button>
+            <div style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;">🗺️</div>
+            <h2 style="color: var(--text-primary);">Chưa có Tour nào</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 2rem;">Hãy tạo tour tham quan đầu tiên cho du khách.</p>
+            <button class="btn btn-primary" @onclick='() => NavManager.NavigateTo("/tours/new")'>Tạo Tour</button>
         </div>
     }
     else
     {
+        <div style="margin-bottom: 1.5rem; color: var(--text-secondary); font-size: 0.9rem;">
+            Tổng cộng: <strong style="color: var(--primary-color);">@tours.Count</strong> tour
+        </div>
+
         <div class="poi-grid">
             @foreach (var tour in tours)
             {
                 <div class="poi-card" @key="tour.Id">
                     <h3 class="poi-title">@tour.Name</h3>
-                    <p class="poi-description">@tour.Description</p>
+                    <p class="poi-description">@(string.IsNullOrWhiteSpace(tour.Description) ? "Chưa có mô tả." : tour.Description)</p>
                     <div class="poi-actions">
-                        <button class="btn" style="background: rgba(255,255,255,0.1); color: white;" @onclick="() => EditTour(tour.Id)">Edit</button>
-                        <button class="btn btn-danger" @onclick="() => DeleteTour(tour.Id)">Delete</button>
+                        <button class="btn btn-secondary" @onclick="() => EditTour(tour.Id)">✏️ Sửa</button>
+                        <button class="btn btn-danger" @onclick="() => ConfirmDeleteTour(tour)">🗑️ Xóa</button>
                     </div>
                 </div>
             }
@@ -43,8 +55,25 @@
     }
 </div>
 
+@if (showDeleteConfirm && tourToDelete != null)
+{
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 1000; animation: fadeIn 0.2s;">
+        <div class="form-container" style="max-width: 420px; text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">⚠️</div>
+            <h3 style="margin-top: 0; color: var(--text-primary);">Xóa Tour?</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 2rem;">Bạn có chắc muốn xóa "<strong>@tourToDelete.Name</strong>"?</p>
+            <div style="display: flex; gap: 1rem;">
+                <button class="btn btn-secondary" style="flex: 1;" @onclick="CancelDelete">Hủy</button>
+                <button class="btn btn-danger" style="flex: 1; background: var(--danger); color: white;" @onclick="DeleteTour">Xóa</button>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     private List<Tour>? tours;
+    private bool showDeleteConfirm = false;
+    private Tour? tourToDelete;
 
     protected override async Task OnInitializedAsync()
     {
@@ -61,9 +90,25 @@
         NavManager.NavigateTo($"/tours/edit/{id}");
     }
 
-    private async Task DeleteTour(int id)
+    private void ConfirmDeleteTour(Tour tour)
     {
-        await TourService.DeleteTourAsync(id);
-        await LoadTours();
+        tourToDelete = tour;
+        showDeleteConfirm = true;
+    }
+
+    private void CancelDelete()
+    {
+        showDeleteConfirm = false;
+        tourToDelete = null;
+    }
+
+    private async Task DeleteTour()
+    {
+        if (tourToDelete != null)
+        {
+            await TourService.DeleteTourAsync(tourToDelete.Id);
+            await LoadTours();
+        }
+        CancelDelete();
     }
 }

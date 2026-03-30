@@ -5,24 +5,24 @@
 @inject PoiService PoiService
 @inject NavigationManager NavManager
 
-<PageTitle>@(IsEdit ? "Edit Location" : "Add New Location")</PageTitle>
+<PageTitle>@(IsEdit ? "Sửa Địa điểm" : "Thêm Địa điểm Mới") - VinhKhanh Tour</PageTitle>
 
 <div class="dashboard-container page-transition">
     <div class="header-section">
-        <h1 class="header-title">@(IsEdit ? "Edit Location" : "Add New Location")</h1>
-        <button class="btn" style="background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2);" @onclick='() => NavManager.NavigateTo("/")'>
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 0.5rem;"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-            Back to Dashboard
+        <h1 class="header-title">@(IsEdit ? "✏️ Sửa Địa điểm" : "➕ Thêm Địa điểm Mới")</h1>
+        <button class="btn btn-secondary" @onclick='() => NavManager.NavigateTo("/")'>
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            Quay lại
         </button>
     </div>
 
     @if (isLoading)
     {
         <div style="text-align: center; padding: 3rem; color: var(--text-secondary);">
-            <div style="animation: spin 1s linear infinite; display: inline-block; margin-bottom: 1rem;">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
+            <div class="loading-spinner">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
             </div>
-            <p>Loading location data...</p>
+            <p class="loading-pulse">Đang tải dữ liệu...</p>
         </div>
     }
     else
@@ -34,82 +34,99 @@
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
                     <!-- Vietnamese Section -->
                     <div class="form-group" style="grid-column: 1 / -1;">
-                        <h3 style="margin-top: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem; color: var(--primary);">Vietnamese (Default)</h3>
+                        <h3 class="section-title">🇻🇳 Tiếng Việt (Mặc định)</h3>
                     </div>
                     <div class="form-group" style="grid-column: 1 / -1;">
-                        <label class="form-label">Location Name (VI)</label>
-                        <InputText @bind-Value="poi.Name" class="form-control" placeholder="Tên địa điểm" required />
-                    </div>
-
-                    <div class="form-group" style="grid-column: 1 / -1;">
-                        <label class="form-label">Description (VI)</label>
-                        <InputTextArea @bind-Value="poi.Description" class="form-control" rows="3" placeholder="Mô tả..." />
+                        <label class="form-label">Tên Địa điểm (VI)</label>
+                        <InputText @bind-Value="poi.Name" class="form-control" placeholder="Nhập tên địa điểm..." required />
                     </div>
 
                     <div class="form-group" style="grid-column: 1 / -1;">
-                        <label class="form-label">Audio URL (VI)</label>
+                        <label class="form-label">Mô tả (VI)</label>
+                        <InputTextArea @bind-Value="poi.Description" class="form-control" rows="3" placeholder="Mô tả chi tiết về địa điểm này..." />
+                    </div>
+
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label class="form-label">Kịch bản Audio (VI)</label>
+                        <InputTextArea @bind-Value="poi.TtsScript" class="form-control" rows="3" placeholder="Nội dung sẽ được đọc khi phát audio..." />
+                    </div>
+
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label class="form-label">🎵 Link Audio (VI)</label>
                         <InputText @bind-Value="poi.AudioUrlVi" class="form-control" placeholder="https://... (Link file .mp3)" />
                     </div>
 
                     <!-- English Section -->
                     <div class="form-group" style="grid-column: 1 / -1;">
-                        <h3 style="margin-top: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem; color: var(--primary);">English Translation</h3>
+                        <h3 class="section-title">🇬🇧 Bản dịch Tiếng Anh</h3>
                     </div>
                     <div class="form-group" style="grid-column: 1 / -1;">
-                        <label class="form-label">Location Name (EN)</label>
-                        <InputText @bind-Value="poi.NameEn" class="form-control" placeholder="Location Name" />
-                    </div>
-
-                    <div class="form-group" style="grid-column: 1 / -1;">
-                        <label class="form-label">Description (EN)</label>
-                        <InputTextArea @bind-Value="poi.DescriptionEn" class="form-control" rows="3" placeholder="Description..." />
+                        <label class="form-label">Tên Địa điểm (EN)</label>
+                        <InputText @bind-Value="poi.NameEn" class="form-control" placeholder="Location Name in English" />
                     </div>
 
                     <div class="form-group" style="grid-column: 1 / -1;">
-                        <label class="form-label">Audio URL (EN)</label>
+                        <label class="form-label">Mô tả (EN)</label>
+                        <InputTextArea @bind-Value="poi.DescriptionEn" class="form-control" rows="3" placeholder="Description in English..." />
+                    </div>
+
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label class="form-label">Kịch bản Audio (EN)</label>
+                        <InputTextArea @bind-Value="poi.TtsScriptEn" class="form-control" rows="3" placeholder="Audio script in English..." />
+                    </div>
+
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label class="form-label">🎵 Link Audio (EN)</label>
                         <InputText @bind-Value="poi.AudioUrlEn" class="form-control" placeholder="https://... (Audio link for English)" />
                     </div>
 
+                    <!-- Location Data -->
                     <div class="form-group" style="grid-column: 1 / -1;">
-                        <h3 style="margin-top: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem; color: var(--primary);">Location Data</h3>
+                        <h3 class="section-title">📍 Thông tin Vị trí</h3>
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">Latitude</label>
+                        <label class="form-label">Vĩ độ (Latitude)</label>
                         <InputNumber @bind-Value="poi.Latitude" class="form-control" step="0.000001" />
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">Longitude</label>
+                        <label class="form-label">Kinh độ (Longitude)</label>
                         <InputNumber @bind-Value="poi.Longitude" class="form-control" step="0.000001" />
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">Radius (meters)</label>
+                        <label class="form-label">Bán kính (mét)</label>
                         <InputNumber @bind-Value="poi.Radius" class="form-control" />
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">Priority Level</label>
+                        <label class="form-label">Mức ưu tiên</label>
                         <InputNumber @bind-Value="poi.Priority" class="form-control" />
+                    </div>
+
+                    <!-- Image -->
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <h3 class="section-title">🖼️ Hình ảnh</h3>
+                    </div>
+
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label class="form-label">Link Hình ảnh</label>
+                        <InputText @bind-Value="poi.ImageUrl" class="form-control" placeholder="Tên file hoặc URL hình ảnh..." />
                     </div>
                 </div>
 
                 <div style="margin-top: 2rem; display: flex; justify-content: flex-end; gap: 1rem;">
-                    <button type="button" class="btn" style="background: rgba(255,255,255,0.1); color: white;" @onclick='() => NavManager.NavigateTo("/")'>Cancel</button>
+                    <button type="button" class="btn btn-secondary" @onclick='() => NavManager.NavigateTo("/")'>Hủy</button>
                     <button type="submit" class="btn btn-primary">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 0.5rem;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-                        @(IsEdit ? "Save Changes" : "Create Location")
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                        @(IsEdit ? "Lưu thay đổi" : "Tạo Địa điểm")
                     </button>
                 </div>
             </EditForm>
         </div>
     }
 </div>
-
-<style>
-    @@keyframes spin { 100% { transform: rotate(360deg); } }
-</style>
 
 @code {
     [Parameter]

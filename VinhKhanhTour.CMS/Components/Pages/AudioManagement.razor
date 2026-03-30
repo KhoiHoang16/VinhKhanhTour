@@ -1,0 +1,175 @@
+@page "/audio"
+@using VinhKhanhTour.Shared.Models
+@using VinhKhanhTour.CMS.Services
+@inject PoiService PoiService
+@inject NavigationManager NavManager
+
+<PageTitle>Quản lý Audio - VinhKhanh Tour</PageTitle>
+
+<div class="dashboard-container page-transition">
+    <div class="header-section">
+        <h1 class="header-title">🎵 Quản lý Audio</h1>
+    </div>
+
+    @if (pois == null)
+    {
+        <div style="text-align: center; padding: 3rem; color: var(--text-secondary);">
+            <div class="loading-spinner">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
+            </div>
+            <p class="loading-pulse">Đang tải dữ liệu Audio...</p>
+        </div>
+    }
+    else
+    {
+        <!-- Stats -->
+        <div class="stat-grid">
+            <div class="stat-card">
+                <h3 class="stat-label">Tổng Địa điểm</h3>
+                <p class="stat-value">@pois.Count</p>
+            </div>
+            <div class="stat-card">
+                <h3 class="stat-label">Có Audio VI</h3>
+                <p class="stat-value" style="-webkit-text-fill-color: var(--success); color: var(--success);">@pois.Count(p => !string.IsNullOrWhiteSpace(p.AudioUrlVi))</p>
+            </div>
+            <div class="stat-card">
+                <h3 class="stat-label">Có Audio EN</h3>
+                <p class="stat-value" style="-webkit-text-fill-color: var(--info); color: var(--info);">@pois.Count(p => !string.IsNullOrWhiteSpace(p.AudioUrlEn))</p>
+            </div>
+            <div class="stat-card">
+                <h3 class="stat-label">Thiếu Audio</h3>
+                <p class="stat-value" style="-webkit-text-fill-color: var(--danger); color: var(--danger);">@pois.Count(p => string.IsNullOrWhiteSpace(p.AudioUrlVi))</p>
+            </div>
+        </div>
+
+        @if (successMessage != null)
+        {
+            <div style="background: rgba(34, 197, 94, 0.15); border: 1px solid var(--success); border-radius: 0.75rem; padding: 0.75rem 1.25rem; margin-bottom: 1.5rem; color: var(--success); font-weight: 600; display: flex; align-items: center; gap: 0.5rem;">
+                ✅ @successMessage
+            </div>
+        }
+
+        <!-- Audio Table -->
+        <div class="poi-card" style="overflow-x: auto;">
+            <h3 style="margin-top: 0; margin-bottom: 1.5rem; font-weight: 700; font-size: 1.1rem;">Danh sách Audio theo Địa điểm</h3>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Địa điểm</th>
+                        <th>Audio Tiếng Việt</th>
+                        <th>Audio Tiếng Anh</th>
+                        <th>Kịch bản TTS</th>
+                        <th style="text-align: right;">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var poi in pois)
+                    {
+                        <tr @key="poi.Id">
+                            <td style="font-weight: 600; color: var(--text-primary);">@poi.Name</td>
+                            <td>
+                                @if (editingId == poi.Id)
+                                {
+                                    <input type="text" class="form-control" style="font-size: 0.85rem; padding: 0.4rem 0.6rem;" 
+                                           @bind="editAudioVi" placeholder="Link .mp3 tiếng Việt" />
+                                }
+                                else if (!string.IsNullOrWhiteSpace(poi.AudioUrlVi))
+                                {
+                                    <span class="badge badge-success">✅ Đã có</span>
+                                    <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">@poi.AudioUrlVi</div>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-danger">❌ Chưa có</span>
+                                }
+                            </td>
+                            <td>
+                                @if (editingId == poi.Id)
+                                {
+                                    <input type="text" class="form-control" style="font-size: 0.85rem; padding: 0.4rem 0.6rem;" 
+                                           @bind="editAudioEn" placeholder="Link .mp3 English" />
+                                }
+                                else if (!string.IsNullOrWhiteSpace(poi.AudioUrlEn))
+                                {
+                                    <span class="badge badge-success">✅ Đã có</span>
+                                    <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">@poi.AudioUrlEn</div>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-warning">⚠ Chưa có</span>
+                                }
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrWhiteSpace(poi.TtsScript))
+                                {
+                                    <span class="badge badge-success">✅ VI</span>
+                                }
+                                @if (!string.IsNullOrWhiteSpace(poi.TtsScriptEn))
+                                {
+                                    <span class="badge badge-info">✅ EN</span>
+                                }
+                                @if (string.IsNullOrWhiteSpace(poi.TtsScript) && string.IsNullOrWhiteSpace(poi.TtsScriptEn))
+                                {
+                                    <span class="badge badge-danger">❌ Trống</span>
+                                }
+                            </td>
+                            <td style="text-align: right;">
+                                @if (editingId == poi.Id)
+                                {
+                                    <button class="btn btn-success" style="padding: 0.35rem 0.75rem; font-size: 0.82rem;" @onclick="() => SaveAudio(poi)">💾 Lưu</button>
+                                    <button class="btn btn-secondary" style="padding: 0.35rem 0.75rem; font-size: 0.82rem; margin-left: 0.5rem;" @onclick="CancelEdit">Hủy</button>
+                                }
+                                else
+                                {
+                                    <button class="btn btn-secondary" style="padding: 0.35rem 0.75rem; font-size: 0.82rem;" @onclick="() => StartEdit(poi)">✏️ Sửa Audio</button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@code {
+    private List<Poi>? pois;
+    private int? editingId;
+    private string editAudioVi = "";
+    private string editAudioEn = "";
+    private string? successMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        pois = await PoiService.GetPoisAsync();
+    }
+
+    private void StartEdit(Poi poi)
+    {
+        editingId = poi.Id;
+        editAudioVi = poi.AudioUrlVi ?? "";
+        editAudioEn = poi.AudioUrlEn ?? "";
+        successMessage = null;
+    }
+
+    private void CancelEdit()
+    {
+        editingId = null;
+        successMessage = null;
+    }
+
+    private async Task SaveAudio(Poi poi)
+    {
+        poi.AudioUrlVi = editAudioVi;
+        poi.AudioUrlEn = editAudioEn;
+        await PoiService.UpdatePoiAsync(poi);
+        editingId = null;
+        successMessage = $"Đã cập nhật audio cho \"{poi.Name}\"";
+        await LoadData();
+    }
+}

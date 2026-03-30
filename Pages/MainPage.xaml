@@ -5,6 +5,7 @@
              xmlns:pageModels="clr-namespace:VinhKhanhTour.PageModels"
              xmlns:local="clr-namespace:VinhKhanhTour.MarkupExtensions"
              x:Class="VinhKhanhTour.Pages.MainPage"
+             x:Name="ThisPage"
              Title="{local:Translate 'Khám phá Ẩm thực'}"
              BackgroundColor="{AppThemeBinding Light={StaticResource LightBackground}, Dark={StaticResource DarkBackground}}">
 
@@ -168,18 +169,19 @@
                     <VerticalStackLayout BindableLayout.ItemsSource="{Binding Pois}" Spacing="0">
                         <BindableLayout.ItemTemplate>
                             <DataTemplate x:DataType="models:Poi">
-                                <Border StrokeShape="RoundRectangle 16" 
+                                    <Border StrokeShape="RoundRectangle 16" 
                                         StrokeThickness="1"
                                         Stroke="{AppThemeBinding Light=#E0E0E0, Dark=#333333}"
                                         BackgroundColor="{AppThemeBinding Light=White, Dark=#1E1E1E}"
                                         Margin="0,0,0,16" 
                                         Padding="0">
-                                    <Border.GestureRecognizers>
-                                        <TapGestureRecognizer 
-                                            Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:MainPageModel}}, Path=GoToPoiCommand}"
-                                            CommandParameter="{Binding .}" />
-                                    </Border.GestureRecognizers>
                                     <Grid RowDefinitions="Auto, Auto">
+                                        <Grid.GestureRecognizers>
+                                            <TapGestureRecognizer 
+                                                x:DataType="{x:Null}"
+                                                Command="{Binding BindingContext.GoToPoiCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
+                                                CommandParameter="{Binding}" />
+                                        </Grid.GestureRecognizers>
                                         
                                         <!-- Image -->
                                         <Image Grid.Row="0"
