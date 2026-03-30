@@ -30,7 +30,7 @@ namespace VinhKhanhTour.Services
             {
                 // Fetch the latest POIs from the CMS backend
                 var serverPois = await _httpClient.GetFromJsonAsync<List<Poi>>("/api/poi");
-                if (serverPois != null)
+                if (serverPois != null && serverPois.Any())
                 {
                     // For a simple sync, let's upsert all server POIs into the local database
                     foreach (var poi in serverPois)
