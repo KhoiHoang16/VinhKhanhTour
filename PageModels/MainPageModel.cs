@@ -192,9 +192,30 @@ namespace VinhKhanhTour.PageModels
         [RelayCommand]
         private async Task AppearingAsync()
         {
+            // Always reload from local DB (fast) so newly synced POIs show up
+            _allPois = await _poiRepository.GetAllPoisAsync();
+            ApplyFilters();
+
             if (!_isDataLoaded)
             {
-                await RefreshAsync();
+                // First load: trigger background CMS sync
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await _apiService.SyncDatabaseAsync();
+                        var updatedPois = await _poiRepository.GetAllPoisAsync();
+                        MainThread.BeginInvokeOnMainThread(() =>
+                        {
+                            _allPois = updatedPois;
+                            ApplyFilters();
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[Background Sync] {ex.Message}");
+                    }
+                });
                 _isDataLoaded = true;
             }
 

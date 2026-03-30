@@ -11,6 +11,7 @@ namespace VinhKhanhTour.Pages
     public partial class MapPage : ContentPage
     {
         private readonly NarrationEngine _narrationEngine;
+        private readonly VinhKhanhTour.Shared.Data.PoiRepository _poiRepo;
         private bool _isTrackingLocation = false;
 
         private int _selectedPoiId = 0;
@@ -22,10 +23,10 @@ namespace VinhKhanhTour.Pages
                 _selectedPoiId = value;
                 if (_isMapLoaded)
                 {
-                    MainThread.BeginInvokeOnMainThread(() =>
+                    MainThread.BeginInvokeOnMainThread(async () =>
                     {
                         UpdateMapCirclesState();
-                        CenterOnSelectedPoi();
+                        await CenterOnSelectedPoiAsync();
                     });
                 }
             }
@@ -40,10 +41,11 @@ namespace VinhKhanhTour.Pages
 
         private bool _isMapLoaded = false;
 
-        public MapPage(NarrationEngine narrationEngine)
+        public MapPage(NarrationEngine narrationEngine, VinhKhanhTour.Shared.Data.PoiRepository poiRepo)
         {
             InitializeComponent();
             _narrationEngine = narrationEngine;
+            _poiRepo = poiRepo;
             // Removed LoadPoisToMap() here to prevent blocking the UI during page construction 
         }
 
@@ -52,14 +54,12 @@ namespace VinhKhanhTour.Pages
             base.OnNavigatedTo(args);
             
             // OnNavigatedTo được gọi SAU KHI animation chuyển trang đã hoàn tất hoàn toàn.
-            if (!_isMapLoaded)
+            MainThread.BeginInvokeOnMainThread(async () => 
             {
-                MainThread.BeginInvokeOnMainThread(async () => 
-                {
-                    await LoadPoisToMapAsync();
-                    _isMapLoaded = true;
-                });
-            }
+                await LoadPoisToMapAsync();
+                _isMapLoaded = true;
+            });
+
             
             // Đợi thêm 1 chút để UI bản đồ kịp render mượt mà trước khi gọi hộp thoại Quyền GPS
             Task.Delay(500).ContinueWith(async (t) => 
@@ -244,7 +244,7 @@ namespace VinhKhanhTour.Pages
             // Xử lý tính toán ngầm trên CPU khác, không làm treo giao diện (Background Thread)
             Task.Run(async () => 
             {
-                var pois = Poi.GetSampleData(); 
+                var pois = await _poiRepo.GetAllPoisAsync(); 
 
                 // Tìm quán ốc gần nhất trong bán kính kích hoạt
                 Poi? nearestTriggeredPoi = null;
@@ -322,15 +322,24 @@ namespace VinhKhanhTour.Pages
         private async Task LoadPoisToMapAsync()
         {
 #if ANDROID || IOS || MACCATALYST
-            VinhKhanhMap = new Microsoft.Maui.Controls.Maps.Map
+            if (VinhKhanhMap == null)
             {
-                IsShowingUser = true,
-                MapType = MapType.Street
-            };
-            MapContainer.Children.Add(VinhKhanhMap);
+                VinhKhanhMap = new Microsoft.Maui.Controls.Maps.Map
+                {
+                    IsShowingUser = true,
+                    MapType = MapType.Street
+                };
+                MapContainer.Children.Add(VinhKhanhMap);
+            }
+            else
+            {
+                VinhKhanhMap.Pins.Clear();
+                VinhKhanhMap.MapElements.Clear();
+                _poiCircles.Clear();
+            }
 
-            // 1. Get 5 sample snail places
-            var poiList = Poi.GetSampleData();
+            // 1. Get POIs from database instead of sample list
+            var poiList = await _poiRepo.GetAllPoisAsync();
 
             foreach (var poi in poiList)
             {
@@ -364,7 +373,7 @@ namespace VinhKhanhTour.Pages
             }
 
             UpdateMapCirclesState();
-            CenterOnSelectedPoi();
+            await CenterOnSelectedPoiAsync();
 #else
             MapContainer.Children.Add(new Label 
             {
@@ -407,11 +416,11 @@ namespace VinhKhanhTour.Pages
 #endif
         }
 
-        private void CenterOnSelectedPoi()
+        private async Task CenterOnSelectedPoiAsync()
         {
 #if ANDROID || IOS || MACCATALYST
             if (VinhKhanhMap == null) return;
-            var poiList = Poi.GetSampleData();
+            var poiList = await _poiRepo.GetAllPoisAsync();
             Poi? targetPoi = null;
             
             if (_selectedPoiId > 0)
@@ -432,7 +441,10 @@ namespace VinhKhanhTour.Pages
                 
                 try 
                 {
-                    VinhKhanhMap.MoveToRegion(mapSpan);
+                    MainThread.BeginInvokeOnMainThread(() => 
+                    {
+                        VinhKhanhMap.MoveToRegion(mapSpan);
+                    });
                 }
                 catch (Exception ex)
                 {

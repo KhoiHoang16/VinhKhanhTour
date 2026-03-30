@@ -30,7 +30,7 @@ namespace VinhKhanhTour.Services
             {
                 // Fetch the latest POIs from the CMS backend
                 var serverPois = await _httpClient.GetFromJsonAsync<List<Poi>>("/api/poi");
-                if (serverPois != null && serverPois.Any())
+                if (serverPois != null)
                 {
                     // For a simple sync, let's upsert all server POIs into the local database
                     foreach (var poi in serverPois)
@@ -45,6 +45,20 @@ namespace VinhKhanhTour.Services
                             await _poiRepo.UpdatePoiAsync(poi);
                         }
                     }
+
+                    // Remove local POIs that no longer exist on the server
+                    var localPois = await _poiRepo.GetAllPoisAsync();
+                    var serverPoiIds = serverPois.Select(p => p.Id).ToHashSet();
+                    
+                    foreach (var localPoi in localPois)
+                    {
+                        if (!serverPoiIds.Contains(localPoi.Id))
+                        {
+                            await _poiRepo.DeletePoiAsync(localPoi);
+                            Debug.WriteLine($"[Sync] Deleted local POI {localPoi.Id} as it was removed from CMS.");
+                        }
+                    }
+
                     Debug.WriteLine($"[Sync] Successfully synchronized {serverPois.Count} POIs from the CMS.");
                 }
             }
