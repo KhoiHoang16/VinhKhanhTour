@@ -435,7 +435,7 @@ namespace VinhKhanhTour.Shared.Models
                     TtsScriptIt = "Gli irresistibili spaghetti tailandesi 68 piccanti stimoleranno le tue papille gustative.",
                     TtsScriptPt = "O irresistível macarrão tailandês picante 68 vai estimular as suas papilas gustativas.",
                     Priority = 3,
-                    ImageUrl = "bun_thai_68_1774970185387.png"
+                    ImageUrl = "bun_thai_68_1774970185387.jpg"
                 },
                 new Poi
                 {
@@ -478,7 +478,7 @@ namespace VinhKhanhTour.Shared.Models
                     TtsScriptIt = "La fonduta di capra 414 riscalderà il tuo stomaco nelle serate di Saigon.",
                     TtsScriptPt = "O fondue de cabra 414 aquecerá o seu estômago nas noites de Saigão.",
                     Priority = 4,
-                    ImageUrl = "lau_de_414_1774970205367.png"
+                    ImageUrl = "lau_de_414_1774970205367.jpg"
                 },
                 new Poi
                 {
@@ -521,7 +521,7 @@ namespace VinhKhanhTour.Shared.Models
                     TtsScriptIt = "Il delizioso profumo di carne grigliata da Fumo Barbecue ti invoglierà ad entrare.",
                     TtsScriptPt = "O cheiro maravilhoso e delicioso de carne grelhada convidará você a entrar.",
                     Priority = 5,
-                    ImageUrl = "khoi_bbq_1774970225661.png"
+                    ImageUrl = "khoi_bbq_1774970225661.jpg"
                 },
                 new Poi
                 {
@@ -564,7 +564,7 @@ namespace VinhKhanhTour.Shared.Models
                     TtsScriptIt = "Grigliare sulle tegole è un'esperienza culinaria unica che dovete provare.",
                     TtsScriptPt = "Grelhar em telhas é uma experiência de culinária única que você deve testar.",
                     Priority = 4,
-                    ImageUrl = "nuong_ngoi_saigon_1774970246067.png"
+                    ImageUrl = "nuong_ngoi_saigon_1774970246067.jpg"
                 },
                 new Poi
                 {
@@ -607,7 +607,7 @@ namespace VinhKhanhTour.Shared.Models
                     TtsScriptIt = "Le laccate costolette al miele dello zio Teo promettono una cena soddisfacente.",
                     TtsScriptPt = "As costelas com cobertura de mel brilhante do Tio Teo garantem um jantar ótimo.",
                     Priority = 3,
-                    ImageUrl = "suon_nuong_chu_teo_1774970264977.png"
+                    ImageUrl = "suon_nuong_chu_teo_1774970264977.jpg"
                 },
                 new Poi
                 {
@@ -650,7 +650,7 @@ namespace VinhKhanhTour.Shared.Models
                     TtsScriptIt = "Cerchi qualcosa di diverso? Sushi Mr. Tom porta la cucina giapponese in strada; devi assolutamente provare il tagliere misto.",
                     TtsScriptPt = "À procura de uma brisa fresca? Sushi Mr Tôm traz a culinária japonesa para a calçada; tens mesmo de provar a variedade mista.",
                     Priority = 4,
-                    ImageUrl = "sushi_mr_tom_1774970284030.png"
+                    ImageUrl = "sushi_mr_tom_1774970284030.jpg"
                 },
                 new Poi
                 {
@@ -693,7 +693,7 @@ namespace VinhKhanhTour.Shared.Models
                     TtsScriptIt = "Dopo un pasto abbondante, un bicchiere freddo di zuppa dolce da Delicious Sweet Soup 81 è un'ottima scelta.",
                     TtsScriptPt = "Depois de uma refeição salgada e farta, um copo frio de deliciosa sopa doce 81 é uma ótima escolha.",
                     Priority = 3,
-                    ImageUrl = "che_ngon_81_1774970306024.png"
+                    ImageUrl = "che_ngon_81_1774970306024.jpg"
                 },
                 new Poi
                 {
@@ -736,7 +736,7 @@ namespace VinhKhanhTour.Shared.Models
                     TtsScriptIt = "Ferma a Pollo alla Griglia O O O al numero 100 per gustare il pollo tenero profumato alle cinque spezie.",
                     TtsScriptPt = "Dá as tuas paragens na Gà Nướng Ò ó o no número 100 para saborear o frango tenro e aromático confecionado com cinco especiarias.",
                     Priority = 3,
-                    ImageUrl = "ga_nuong_o_o_o_1774970325066.png"
+                    ImageUrl = "ga_nuong_o_o_o_1774970325066.jpg"
                 }
             };
         }
