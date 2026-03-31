@@ -2,6 +2,7 @@
 @using VinhKhanhTour.Shared.Models
 @using VinhKhanhTour.CMS.Services
 @inject PoiService PoiService
+@inject GeminiTranslationService GeminiService
 
 <PageTitle>Quản lý Bản dịch - VinhKhanh Tour</PageTitle>
 
@@ -47,6 +48,12 @@
                 ✅ @successMessage
             </div>
         }
+        @if (errorMessage != null)
+        {
+            <div style="background: rgba(239, 68, 68, 0.15); border: 1px solid var(--danger); border-radius: 0.75rem; padding: 0.75rem 1.25rem; margin-bottom: 1.5rem; color: var(--danger); font-weight: 600;">
+                ❌ @errorMessage
+            </div>
+        }
 
         <!-- Translation Overview Table -->
         <div class="poi-card" style="overflow-x: auto; margin-bottom: 1.5rem;">
@@ -63,6 +70,8 @@
                         <th style="text-align: center;">🇰🇷 KO</th>
                         <th style="text-align: center;">🇪🇸 ES</th>
                         <th style="text-align: center;">🇷🇺 RU</th>
+                        <th style="text-align: center;">🇮🇹 IT</th>
+                        <th style="text-align: center;">🇵🇹 PT</th>
                         <th style="text-align: right;">Hành động</th>
                     </tr>
                 </thead>
@@ -79,9 +88,15 @@
                             <td style="text-align: center;">@StatusBadge(!string.IsNullOrWhiteSpace(poi.NameKo))</td>
                             <td style="text-align: center;">@StatusBadge(!string.IsNullOrWhiteSpace(poi.NameEs))</td>
                             <td style="text-align: center;">@StatusBadge(!string.IsNullOrWhiteSpace(poi.NameRu))</td>
-                            <td style="text-align: right;">
+                            <td style="text-align: center;">@StatusBadge(!string.IsNullOrWhiteSpace(poi.NameIt))</td>
+                            <td style="text-align: center;">@StatusBadge(!string.IsNullOrWhiteSpace(poi.NamePt))</td>
+                            <td style="text-align: right; white-space: nowrap;">
+                                <button class="btn btn-primary" style="padding: 0.3rem 0.7rem; font-size: 0.8rem; margin-right: 0.25rem;" 
+                                        @onclick="() => AutoTranslate(poi)" disabled="@(translatingId == poi.Id || !GeminiService.IsConfigured)">
+                                    @(translatingId == poi.Id ? "⏳ Đang dịch..." : "🤖 Dịch tự động")
+                                </button>
                                 <button class="btn btn-secondary" style="padding: 0.3rem 0.7rem; font-size: 0.8rem;" @onclick="() => ToggleEdit(poi)">
-                                    @(editingId == poi.Id ? "📁 Đóng" : "✏️ Sửa bản dịch")
+                                    @(editingId == poi.Id ? "📁 Đóng" : "✏️ Sửa")
                                 </button>
                             </td>
                         </tr>
@@ -167,6 +182,24 @@
                                             <input type="text" class="form-control" @bind="poi.DescriptionRu" placeholder="Описание на русском" />
                                         </div>
 
+                                        <div class="form-group" style="margin-bottom: 0.75rem;">
+                                            <label class="form-label">🇮🇹 Tên (IT)</label>
+                                            <input type="text" class="form-control" @bind="poi.NameIt" placeholder="Nome in italiano" />
+                                        </div>
+                                        <div class="form-group" style="margin-bottom: 0.75rem;">
+                                            <label class="form-label">🇮🇹 Mô tả (IT)</label>
+                                            <input type="text" class="form-control" @bind="poi.DescriptionIt" placeholder="Descrizione in italiano" />
+                                        </div>
+
+                                        <div class="form-group" style="margin-bottom: 0.75rem;">
+                                            <label class="form-label">🇵🇹 Tên (PT)</label>
+                                            <input type="text" class="form-control" @bind="poi.NamePt" placeholder="Nome em português" />
+                                        </div>
+                                        <div class="form-group" style="margin-bottom: 0.75rem;">
+                                            <label class="form-label">🇵🇹 Mô tả (PT)</label>
+                                            <input type="text" class="form-control" @bind="poi.DescriptionPt" placeholder="Descrição em português" />
+                                        </div>
+
                                         <div style="grid-column: 1 / -1; display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 0.5rem;">
                                             <button class="btn btn-secondary" @onclick="() => CancelEdit()">Hủy</button>
                                             <button class="btn btn-primary" @onclick="() => SaveTranslation(poi)">💾 Lưu bản dịch</button>
@@ -185,7 +218,9 @@
 @code {
     private List<Poi>? pois;
     private int? editingId;
+    private int? translatingId;
     private string? successMessage;
+    private string? errorMessage;
 
     protected override async Task OnInitializedAsync()
     {
@@ -227,7 +262,71 @@
     {
         await PoiService.UpdatePoiAsync(poi);
         successMessage = $"Đã cập nhật bản dịch cho \"{poi.Name}\"";
+        errorMessage = null;
         editingId = null;
         await LoadData();
+    }
+
+    private async Task AutoTranslate(Poi poi)
+    {
+        translatingId = poi.Id;
+        errorMessage = null;
+        successMessage = null;
+        StateHasChanged();
+
+        try
+        {
+            var result = await GeminiService.TranslatePoiAsync(poi.Name ?? "", poi.Description ?? "", poi.TtsScript ?? "");
+
+            // Assign Name Translations
+            if (result.Name.TryGetValue("en", out var nEn)) poi.NameEn = nEn;
+            if (result.Name.TryGetValue("es", out var nEs)) poi.NameEs = nEs;
+            if (result.Name.TryGetValue("fr", out var nFr)) poi.NameFr = nFr;
+            if (result.Name.TryGetValue("de", out var nDe)) poi.NameDe = nDe;
+            if (result.Name.TryGetValue("zh", out var nZh)) poi.NameZh = nZh;
+            if (result.Name.TryGetValue("ja", out var nJa)) poi.NameJa = nJa;
+            if (result.Name.TryGetValue("ko", out var nKo)) poi.NameKo = nKo;
+            if (result.Name.TryGetValue("ru", out var nRu)) poi.NameRu = nRu;
+            if (result.Name.TryGetValue("it", out var nIt)) poi.NameIt = nIt;
+            if (result.Name.TryGetValue("pt", out var nPt)) poi.NamePt = nPt;
+
+            // Assign Description Translations
+            if (result.Description.TryGetValue("en", out var dEn)) poi.DescriptionEn = dEn;
+            if (result.Description.TryGetValue("es", out var dEs)) poi.DescriptionEs = dEs;
+            if (result.Description.TryGetValue("fr", out var dFr)) poi.DescriptionFr = dFr;
+            if (result.Description.TryGetValue("de", out var dDe)) poi.DescriptionDe = dDe;
+            if (result.Description.TryGetValue("zh", out var dZh)) poi.DescriptionZh = dZh;
+            if (result.Description.TryGetValue("ja", out var dJa)) poi.DescriptionJa = dJa;
+            if (result.Description.TryGetValue("ko", out var dKo)) poi.DescriptionKo = dKo;
+            if (result.Description.TryGetValue("ru", out var dRu)) poi.DescriptionRu = dRu;
+            if (result.Description.TryGetValue("it", out var dIt)) poi.DescriptionIt = dIt;
+            if (result.Description.TryGetValue("pt", out var dPt)) poi.DescriptionPt = dPt;
+
+            // Assign TtsScript Translations
+            if (result.TtsScript.TryGetValue("en", out var tEn)) poi.TtsScriptEn = tEn;
+            if (result.TtsScript.TryGetValue("es", out var tEs)) poi.TtsScriptEs = tEs;
+            if (result.TtsScript.TryGetValue("fr", out var tFr)) poi.TtsScriptFr = tFr;
+            if (result.TtsScript.TryGetValue("de", out var tDe)) poi.TtsScriptDe = tDe;
+            if (result.TtsScript.TryGetValue("zh", out var tZh)) poi.TtsScriptZh = tZh;
+            if (result.TtsScript.TryGetValue("ja", out var tJa)) poi.TtsScriptJa = tJa;
+            if (result.TtsScript.TryGetValue("ko", out var tKo)) poi.TtsScriptKo = tKo;
+            if (result.TtsScript.TryGetValue("ru", out var tRu)) poi.TtsScriptRu = tRu;
+            if (result.TtsScript.TryGetValue("it", out var tIt)) poi.TtsScriptIt = tIt;
+            if (result.TtsScript.TryGetValue("pt", out var tPt)) poi.TtsScriptPt = tPt;
+
+            // Save to database
+            await PoiService.UpdatePoiAsync(poi);
+            successMessage = $"🤖 Đã dịch tự động thành công cho \"{poi.Name}\"";
+            await LoadData();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Lỗi khi dịch: {ex.Message}";
+        }
+        finally
+        {
+            translatingId = null;
+            StateHasChanged();
+        }
     }
 }

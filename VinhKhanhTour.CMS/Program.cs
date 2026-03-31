@@ -20,6 +20,7 @@ builder.Services.AddSingleton<PoiRepository>();
 builder.Services.AddScoped<PoiService>();
 builder.Services.AddScoped<TourService>();
 builder.Services.AddScoped<AnalyticsService>();
+builder.Services.AddScoped<GeminiTranslationService>();
 
 VinhKhanhTour.Shared.Models.Poi.LocalizationService = new VinhKhanhTour.CMS.Services.CmsLocalizationService();
 
