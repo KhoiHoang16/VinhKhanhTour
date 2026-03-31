@@ -57,6 +57,55 @@ namespace VinhKhanhTour.Shared.Data
                     await _connection.InsertAllAsync(sampleData);
                 }
 
+                // One-time fix (v3): Update existing POIs with multi-language translations
+                var translationFlag = dbPath + ".translations_v3";
+                if (!File.Exists(translationFlag))
+                {
+                    try
+                    {
+                        var samplePois = Poi.GetSampleData();
+                        foreach (var sample in samplePois)
+                        {
+                            var existing = await _connection.Table<Poi>().Where(p => p.Id == sample.Id).FirstOrDefaultAsync();
+                            if (existing != null)
+                            {
+                                // Copy translation fields from sample to existing POI
+                                existing.NameEs = sample.NameEs;
+                                existing.NameFr = sample.NameFr;
+                                existing.NameDe = sample.NameDe;
+                                existing.NameZh = sample.NameZh;
+                                existing.NameJa = sample.NameJa;
+                                existing.NameKo = sample.NameKo;
+                                existing.NameRu = sample.NameRu;
+                                existing.NameIt = sample.NameIt;
+                                existing.NamePt = sample.NamePt;
+                                existing.DescriptionEs = sample.DescriptionEs;
+                                existing.DescriptionFr = sample.DescriptionFr;
+                                existing.DescriptionDe = sample.DescriptionDe;
+                                existing.DescriptionZh = sample.DescriptionZh;
+                                existing.DescriptionJa = sample.DescriptionJa;
+                                existing.DescriptionKo = sample.DescriptionKo;
+                                existing.DescriptionRu = sample.DescriptionRu;
+                                existing.DescriptionIt = sample.DescriptionIt;
+                                existing.DescriptionPt = sample.DescriptionPt;
+                                existing.TtsScriptEs = sample.TtsScriptEs;
+                                existing.TtsScriptFr = sample.TtsScriptFr;
+                                existing.TtsScriptDe = sample.TtsScriptDe;
+                                existing.TtsScriptZh = sample.TtsScriptZh;
+                                existing.TtsScriptJa = sample.TtsScriptJa;
+                                existing.TtsScriptKo = sample.TtsScriptKo;
+                                existing.TtsScriptRu = sample.TtsScriptRu;
+                                existing.TtsScriptIt = sample.TtsScriptIt;
+                                existing.TtsScriptPt = sample.TtsScriptPt;
+                                await _connection.UpdateAsync(existing);
+                            }
+                        }
+                        File.WriteAllText(translationFlag, "done");
+                        Debug.WriteLine("[DB Migration v3] Updated POIs with multi-language translations.");
+                    }
+                    catch (Exception ex) { Debug.WriteLine($"[DB Migration v3] Error: {ex.Message}"); }
+                }
+
                 _hasInitialized = true;
             }
             finally

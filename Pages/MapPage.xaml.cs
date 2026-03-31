@@ -113,7 +113,7 @@ namespace VinhKhanhTour.Pages
                 }
                 else
                 {
-                    await DisplayAlert("Lỗi Quyền", "Không thể truy cập vị trí để tự động Thuyết minh.", "OK");
+                    await DisplayAlert(Services.LocalizationResourceManager.Instance["Lỗi Quyền"], Services.LocalizationResourceManager.Instance["Không thể truy cập vị trí để tự động Thuyết minh."], "OK");
                 }
             }
             catch (Exception ex)
@@ -377,7 +377,7 @@ namespace VinhKhanhTour.Pages
 #else
             MapContainer.Children.Add(new Label 
             {
-                Text = "Bản đồ không khả dụng trên nền tảng này.",
+                Text = Services.LocalizationResourceManager.Instance["Bản đồ không khả dụng trên nền tảng này."],
                 HorizontalOptions = LayoutOptions.Center,
                 VerticalOptions = LayoutOptions.Center,
                 HorizontalTextAlignment = TextAlignment.Center,

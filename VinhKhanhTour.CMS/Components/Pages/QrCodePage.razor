@@ -143,56 +143,17 @@
     }
 
     /// <summary>
-    /// Generates a simple QR-like SVG pattern (decorative representation).
-    /// In production, use a proper QR library like QRCoder.
+    /// Generates a real, scannable QR Code SVG using QRCoder library.
+    /// Encodes the URL so phones can scan and open it in a browser.
     /// </summary>
     private string GenerateQrSvg(string data, string label)
     {
-        // Generate a deterministic pattern based on the data string hash
-        int hash = Math.Abs(data.GetHashCode());
-        var rng = new Random(hash);
-        int size = 21; // QR v1 is 21x21
-        int cellSize = 6;
-        int totalSize = size * cellSize;
-
-        var sb = new System.Text.StringBuilder();
-        sb.Append($"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 {totalSize} {totalSize}' width='150' height='150'>");
-        
-        // Background
-        sb.Append($"<rect width='{totalSize}' height='{totalSize}' fill='white'/>");
-
-        // Corner finder patterns (top-left, top-right, bottom-left)
-        DrawFinderPattern(sb, 0, 0, cellSize);
-        DrawFinderPattern(sb, (size - 7) * cellSize, 0, cellSize);
-        DrawFinderPattern(sb, 0, (size - 7) * cellSize, cellSize);
-
-        // Data modules
-        for (int row = 0; row < size; row++)
-        {
-            for (int col = 0; col < size; col++)
-            {
-                // Skip finder pattern areas
-                if ((row < 8 && col < 8) || (row < 8 && col >= size - 8) || (row >= size - 8 && col < 8))
-                    continue;
-
-                if (rng.Next(100) < 45)
-                {
-                    sb.Append($"<rect x='{col * cellSize}' y='{row * cellSize}' width='{cellSize}' height='{cellSize}' fill='#1C1917'/>");
-                }
-            }
-        }
-
-        sb.Append("</svg>");
-        return sb.ToString();
+        using var qrGenerator = new QRCoder.QRCodeGenerator();
+        using var qrCodeData = qrGenerator.CreateQrCode(data, QRCoder.QRCodeGenerator.ECCLevel.M);
+        var svgQrCode = new QRCoder.SvgQRCode(qrCodeData);
+        // Generate SVG with dark modules and white background, sized 150x150
+        string svgContent = svgQrCode.GetGraphic(4, "#1C1917", "#FFFFFF", sizingMode: QRCoder.SvgQRCode.SizingMode.ViewBoxAttribute);
+        return svgContent;
     }
 
-    private void DrawFinderPattern(System.Text.StringBuilder sb, int x, int y, int cellSize)
-    {
-        // Outer border
-        sb.Append($"<rect x='{x}' y='{y}' width='{7 * cellSize}' height='{7 * cellSize}' fill='#1C1917'/>");
-        // White inner
-        sb.Append($"<rect x='{x + cellSize}' y='{y + cellSize}' width='{5 * cellSize}' height='{5 * cellSize}' fill='white'/>");
-        // Center square
-        sb.Append($"<rect x='{x + 2 * cellSize}' y='{y + 2 * cellSize}' width='{3 * cellSize}' height='{3 * cellSize}' fill='#F97316'/>");
-    }
 }
