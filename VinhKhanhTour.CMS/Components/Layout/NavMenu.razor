@@ -1,59 +1,254 @@
-<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">🍊 VinhKhanh Tour</a>
+<div class="sidebar-container">
+    <div class="sidebar-header">
+        <div class="logo-icon">🍜</div>
+        <div class="logo-text">
+            <div class="title">Vĩnh Khánh</div>
+            <div class="subtitle">Content Management</div>
+        </div>
+    </div>
+
+    <!-- Mobile Toggler -->
+    <input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+
+    <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler')?.click()">
+        <nav class="nav flex-column sidebar-nav">
+            <div class="nav-item">
+                <NavLink class="nav-link" href="analytics" Match="NavLinkMatch.All">
+                    <span class="nav-icon">📊</span> Tổng quan
+                </NavLink>
+            </div>
+
+            <div class="nav-item">
+                <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                    <span class="nav-icon">📍</span> Quản lý POI
+                </NavLink>
+            </div>
+
+            <div class="nav-item">
+                <NavLink class="nav-link" href="translations">
+                    <span class="nav-icon">🌐</span> Bản dịch
+                </NavLink>
+            </div>
+
+            <div class="nav-item">
+                <NavLink class="nav-link" href="audio">
+                    <span class="nav-icon">🎵</span> Audio
+                </NavLink>
+            </div>
+
+            <div class="nav-item">
+                <NavLink class="nav-link" href="history">
+                    <span class="nav-icon">📋</span> Lịch sử
+                </NavLink>
+            </div>
+
+            <div class="nav-item">
+                <NavLink class="nav-link" href="tours">
+                    <span class="nav-icon">🗺️</span> Quản lý Tour
+                </NavLink>
+            </div>
+            
+            <div class="nav-item">
+                <NavLink class="nav-link" href="qrcode">
+                    <span class="nav-icon">📱</span> QR Code
+                </NavLink>
+            </div>
+        </nav>
+    </div>
+
+    <div class="sidebar-footer">
+        <div class="user-profile">
+            <div class="avatar">A</div>
+            <div class="email">Adminstrastor</div>
+        </div>
+        <a href="/account/logout" class="logout-btn">
+            <div class="logout-icon"></div> Đăng xuất
+        </a>
     </div>
 </div>
 
-<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+<style>
+    .sidebar-container {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        background-color: #1a1a24;
+        color: #fff;
+    }
 
-<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
-    <nav class="nav flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> 📍 Quản lý Địa điểm
-            </NavLink>
-        </div>
+    .sidebar-header {
+        display: flex;
+        align-items: center;
+        padding: 24px 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        margin-bottom: 10px;
+    }
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="audio">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> 🎵 Quản lý Audio
-            </NavLink>
-        </div>
+    .logo-icon {
+        font-size: 28px;
+        margin-right: 12px;
+        line-height: 1;
+    }
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="translations">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> 🌐 Bản dịch
-            </NavLink>
-        </div>
+    .logo-text {
+        display: flex;
+        flex-direction: column;
+    }
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="tours">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> 🗺️ Quản lý Tour
-            </NavLink>
-        </div>
+    .logo-text .title {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-weight: 800;
+        font-style: italic;
+        font-size: 1.25rem;
+        color: #ffffff;
+        letter-spacing: 0.5px;
+        line-height: 1.2;
+    }
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="analytics">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> 📊 Phân tích Dữ liệu
-            </NavLink>
-        </div>
+    .logo-text .subtitle {
+        font-size: 0.75rem;
+        color: #71717a;
+        font-weight: 500;
+    }
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="history">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> 📜 Lịch sử Sử dụng
-            </NavLink>
-        </div>
+    .nav-scrollable {
+        flex: 1;
+        overflow-y: auto;
+        padding: 0 16px;
+    }
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="qrcode">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> 📱 QR Code
-            </NavLink>
-        </div>
+    .nav-scrollable::-webkit-scrollbar {
+        width: 6px;
+    }
+    .nav-scrollable::-webkit-scrollbar-thumb {
+        background: rgba(255,255,255,0.1);
+        border-radius: 4px;
+    }
 
-        <div class="nav-item px-3 mt-4" style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;">
-            <a class="nav-link text-danger" href="/account/logout">
-                <span class="bi bi-box-arrow-right-nav-menu" aria-hidden="true"></span> 🚪 Đăng xuất
-            </a>
-        </div>
-    </nav>
-</div>
+    .sidebar-nav {
+        gap: 8px;
+    }
+
+    .nav-item {
+        width: 100%;
+        margin-bottom: 4px;
+    }
+
+    .nav-item .nav-link {
+        display: flex;
+        align-items: center;
+        padding: 12px 16px;
+        color: #a1a1aa;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+
+    .nav-item .nav-link .nav-icon {
+        font-size: 1.1rem;
+        margin-right: 14px;
+        width: 24px;
+        text-align: center;
+    }
+
+    .nav-item .nav-link:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+        color: #d4d4d8;
+    }
+
+    .nav-item .nav-link.active {
+        background-color: #3b2a1a;
+        color: #f59e0b;
+    }
+
+    .sidebar-footer {
+        padding: 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+        background-color: #1a1a24;
+    }
+
+    .user-profile {
+        display: flex;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+
+    .avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background-color: #f59e0b;
+        color: #000;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        margin-right: 12px;
+    }
+
+    .email {
+        color: #a1a1aa;
+        font-size: 0.85rem;
+    }
+
+    .logout-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 12px;
+        background-color: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 8px;
+        color: #a1a1aa;
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+    .logout-btn:hover {
+        background-color: rgba(255, 255, 255, 0.08);
+        color: #fff;
+    }
+
+    .logout-icon {
+        width: 6px;
+        height: 14px;
+        background-color: #d97706;
+        border-radius: 2px;
+        margin-right: 10px;
+    }
+
+    /* Mobile settings */
+    .navbar-toggler {
+        appearance: none;
+        cursor: pointer;
+        width: 3.5rem;
+        height: 2.5rem;
+        color: white;
+        position: absolute;
+        top: 0.5rem;
+        right: 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.8%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") no-repeat center/1.75rem rgba(255, 255, 255, 0.05);
+        border-radius: 0.5rem;
+        z-index: 2;
+    }
+
+    @@media (min-width: 641px) {
+        .navbar-toggler {
+            display: none;
+        }
+    }
+    
+    @@media (max-width: 640.98px) {
+        .nav-scrollable { display: none; }
+        .sidebar-footer { display: none; }
+        .navbar-toggler:checked ~ .nav-scrollable { display: block; }
+        .navbar-toggler:checked ~ .sidebar-footer { display: block; }
+        .sidebar-container { height: auto; }
+    }
+</style>

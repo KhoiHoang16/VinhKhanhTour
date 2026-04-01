@@ -423,7 +423,7 @@ namespace VinhKhanhTour.Shared.Models
                     Latitude = 10.76020,
                     Longitude = 106.70110,
                     Radius = 30,
-                    TtsScript = "Bún Thái 68 chua cay khó cưỡng sẽ kích thích vị giác của bạn.",
+                    TtsScript = "123123123132123 Bún Thái 68 chua cay khó cưỡng sẽ kích thích vị giác của bạn.",
                     TtsScriptEn = "Irresistible spicy Thai noodles 68 will stimulate your taste buds.",
                     TtsScriptEs = "Los irresistibles fideos tailandeses 68 picantes estimularán sus papilas gustativas.",
                     TtsScriptFr = "Les irrésistibles nouilles thaïes 68 épicées stimuleront vos papilles.",
