@@ -15,6 +15,29 @@ builder.Services.AddRazorComponents()
 builder.Services.AddControllers();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+if (string.IsNullOrEmpty(connectionString))
+{
+    connectionString = Environment.GetEnvironmentVariable("DATABASE_URL");
+}
+
+// Chuyển đổi định dạng postgresql:// của Render thành định dạng chuẩn cho EF Core
+if (!string.IsNullOrEmpty(connectionString) && (connectionString.StartsWith("postgres://") || connectionString.StartsWith("postgresql://")))
+{
+    var uri = new Uri(connectionString);
+    var userInfo = uri.UserInfo.Split(':');
+    var builderDb = new Npgsql.NpgsqlConnectionStringBuilder
+    {
+        Host = uri.Host,
+        Port = uri.IsDefaultPort ? 5432 : uri.Port,
+        Username = userInfo.Length > 0 ? userInfo[0] : "",
+        Password = userInfo.Length > 1 ? userInfo[1] : "",
+        Database = uri.LocalPath.TrimStart('/'),
+        SslMode = Npgsql.SslMode.Require,
+        TrustServerCertificate = true
+    };
+    connectionString = builderDb.ToString();
+}
 builder.Services.AddDbContext<CmsDbContext>(options =>
     options.UseNpgsql(connectionString));
 
