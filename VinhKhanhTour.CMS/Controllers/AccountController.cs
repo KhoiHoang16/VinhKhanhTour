@@ -37,7 +37,15 @@ namespace VinhKhanhTour.CMS.Controllers
                     new ClaimsPrincipal(claimsIdentity),
                     new AuthenticationProperties { IsPersistent = true });
 
-                return LocalRedirect(string.IsNullOrEmpty(ReturnUrl) ? "/" : $"/{ReturnUrl}");
+                string target = string.IsNullOrEmpty(ReturnUrl) ? "/" : ReturnUrl;
+                if (!target.StartsWith("/")) target = "/" + target;
+
+                if (!Url.IsLocalUrl(target))
+                {
+                    target = "/";
+                }
+
+                return LocalRedirect(target);
             }
 
             return LocalRedirect($"/login?error=true&returnUrl={Uri.EscapeDataString(ReturnUrl ?? "")}");
