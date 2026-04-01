@@ -34,7 +34,7 @@ namespace VinhKhanhTour
     		builder.Services.AddLogging(configure => configure.AddDebug());
 #endif
 
-            builder.Services.AddSingleton<PoiRepository>();
+            builder.Services.AddSingleton<IPoiRepository, SqlitePoiRepository>();
             builder.Services.AddSingleton<VinhKhanhTour.Services.ApiService>();
             builder.Services.AddSingleton<IErrorHandler, ModalErrorHandler>();
             builder.Services.AddSingleton<MainPageModel>();

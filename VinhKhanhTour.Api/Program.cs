@@ -24,7 +24,7 @@ Constants.DatabasePath = Path.Combine(dbFolder, Constants.DatabaseFilename);
 
 builder.Services.AddOpenApi();
 builder.Services.AddSingleton<IErrorHandler, ApiErrorHandler>();
-builder.Services.AddSingleton<PoiRepository>();
+builder.Services.AddSingleton<IPoiRepository, SqlitePoiRepository>();
 
 var app = builder.Build();
 
@@ -40,26 +40,26 @@ app.UseHttpsRedirection();
 // Map Poi Endpoints
 var poiApi = app.MapGroup("/api/poi");
 
-poiApi.MapGet("/", async (PoiRepository repo) =>
+poiApi.MapGet("/", async (IPoiRepository repo) =>
 {
     var pois = await repo.GetAllPoisAsync();
     return Results.Ok(pois);
 });
 
-poiApi.MapPost("/", async (PoiRepository repo, Poi poi) => 
+poiApi.MapPost("/", async (IPoiRepository repo, Poi poi) => 
 {
     await repo.SavePoiAsync(poi);
     return Results.Created($"/api/poi/{poi.Id}", poi);
 });
 
-poiApi.MapPut("/{id}", async (int id, PoiRepository repo, Poi poi) =>
+poiApi.MapPut("/{id}", async (int id, IPoiRepository repo, Poi poi) =>
 {
     poi.Id = id;
     await repo.SavePoiAsync(poi);
     return Results.NoContent();
 });
 
-poiApi.MapDelete("/{id}", async (int id, PoiRepository repo) =>
+poiApi.MapDelete("/{id}", async (int id, IPoiRepository repo) =>
 {
     var pois = await repo.GetAllPoisAsync();
     var poi = pois.FirstOrDefault(p => p.Id == id);

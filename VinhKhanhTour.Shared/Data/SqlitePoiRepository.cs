@@ -6,14 +6,14 @@ using VinhKhanhTour.Shared.Services;
 
 namespace VinhKhanhTour.Shared.Data
 {
-    public class PoiRepository
+    public class SqlitePoiRepository : IPoiRepository
     {
         private SQLiteAsyncConnection? _connection;
         private readonly IErrorHandler _errorHandler;
         private readonly SemaphoreSlim _initLock = new SemaphoreSlim(1, 1);
         private bool _hasInitialized = false;
 
-        public PoiRepository(IErrorHandler errorHandler)
+        public SqlitePoiRepository(IErrorHandler errorHandler)
         {
             _errorHandler = errorHandler;
         }

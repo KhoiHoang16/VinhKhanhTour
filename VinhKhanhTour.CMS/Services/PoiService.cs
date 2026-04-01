@@ -5,9 +5,9 @@ namespace VinhKhanhTour.CMS.Services
 {
     public class PoiService
     {
-        private readonly PoiRepository _repo;
+        private readonly IPoiRepository _repo;
 
-        public PoiService(PoiRepository repo)
+        public PoiService(IPoiRepository repo)
         {
             _repo = repo;
         }

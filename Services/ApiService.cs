@@ -8,9 +8,9 @@ namespace VinhKhanhTour.Services
     public class ApiService
     {
         private readonly HttpClient _httpClient;
-        private readonly PoiRepository _poiRepo;
+        private readonly VinhKhanhTour.Shared.Data.IPoiRepository _poiRepo;
 
-        public ApiService(PoiRepository poiRepo)
+        public ApiService(VinhKhanhTour.Shared.Data.IPoiRepository poiRepo)
         {
             _poiRepo = poiRepo;
             

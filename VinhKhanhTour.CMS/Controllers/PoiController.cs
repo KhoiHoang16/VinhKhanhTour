@@ -8,9 +8,9 @@ namespace VinhKhanhTour.CMS.Controllers
     [Route("api/poi")]
     public class PoiController : ControllerBase
     {
-        private readonly PoiRepository _repo;
+        private readonly IPoiRepository _repo;
 
-        public PoiController(PoiRepository repo)
+        public PoiController(IPoiRepository repo)
         {
             _repo = repo;
         }

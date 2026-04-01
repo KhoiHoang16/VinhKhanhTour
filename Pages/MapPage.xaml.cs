@@ -11,7 +11,7 @@ namespace VinhKhanhTour.Pages
     public partial class MapPage : ContentPage
     {
         private readonly NarrationEngine _narrationEngine;
-        private readonly VinhKhanhTour.Shared.Data.PoiRepository _poiRepo;
+        private readonly VinhKhanhTour.Shared.Data.IPoiRepository _poiRepo;
         private bool _isTrackingLocation = false;
 
         private int _selectedPoiId = 0;
@@ -41,7 +41,7 @@ namespace VinhKhanhTour.Pages
 
         private bool _isMapLoaded = false;
 
-        public MapPage(NarrationEngine narrationEngine, VinhKhanhTour.Shared.Data.PoiRepository poiRepo)
+        public MapPage(NarrationEngine narrationEngine, VinhKhanhTour.Shared.Data.IPoiRepository poiRepo)
         {
             InitializeComponent();
             _narrationEngine = narrationEngine;
