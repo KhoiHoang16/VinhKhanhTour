@@ -1,0 +1,420 @@
+@page "/listen/{Id:int}"
+@layout VinhKhanhTour.CMS.Components.Layout.EmptyLayout
+@using VinhKhanhTour.Shared.Data
+@using VinhKhanhTour.Shared.Models
+@inject IPoiRepository PoiRepository
+@inject IJSRuntime JSRuntime
+
+<PageTitle>@(poi?.Name ?? "Đang tải...") - VinhKhanh Tour Audio</PageTitle>
+
+<div class="listen-app-container">
+    @if (isLoading)
+    {
+        <div class="centered-content">
+            <div class="spinner"></div>
+            <p>Đang tải dữ liệu quán...</p>
+        </div>
+    }
+    else if (poi == null)
+    {
+        <div class="centered-content error">
+            <div class="icon">🔍</div>
+            <h2>Không tìm thấy quán ăn</h2>
+            <p>Mã QR này có vẻ không hợp lệ hoặc quán ăn đã bị xóa khỏi hệ thống.</p>
+        </div>
+    }
+    else
+    {
+        <!-- Màn hình chính sau khi tương tác -->
+        <div class="app-content @(hasInteracted ? "active" : "")">
+            <div class="poi-image-wrapper">
+                <img src="@($"/images/{poi.DisplayImage}")" alt="@poi.Name" onerror="this.src='/images/poi_placeholder.png';" class="poi-image" />
+                <div class="image-overlay"></div>
+            </div>
+
+            <div class="poi-info">
+                <h1>@poi.Name</h1>
+                <p class="category">@poi.DisplayCategory</p>
+                <div class="divider"></div>
+                <p class="description">@poi.Description</p>
+            </div>
+
+            <div class="audio-player-card">
+                <div class="now-playing">
+                    <div class="audio-animation">
+                        <span></span><span></span><span></span><span></span>
+                    </div>
+                    <span>Đã tạm dừng</span>
+                </div>
+                
+                <audio id="audioElement" 
+                       src="@(string.IsNullOrEmpty(poi.AudioUrlVi) ? "" : $"/audio/{poi.AudioUrlVi}")" 
+                       preload="auto">
+                </audio>
+
+                <div class="controls">
+                    <button id="playPauseBtn" class="btn-play-pause" onclick="toggleAudio()">
+                        <svg id="icon-play" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><path d="M8 5v14l11-7z"/></svg>
+                        <svg id="icon-pause" viewBox="0 0 24 24" fill="currentColor"><path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/></svg>
+                    </button>
+                    <button class="btn-restart" onclick="restartAudio()">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Màn hình chờ Splash Screen vượt chính sách Autoplay của Browser -->
+        <div id="splashScreen" class="splash-screen @(hasInteracted ? "hidden" : "")" @onclick="HandleInteraction">
+            <div class="pulse-ring"></div>
+            <div class="tap-icon">👉</div>
+            <h2 class="tap-text">Chạm vào màn hình</h2>
+            <p class="tap-subtext">để nghe giới thiệu về quán<br/><strong>@poi.Name</strong></p>
+        </div>
+    }
+</div>
+
+<style>
+    /* Reset & Fonts cho giao diện Mobile-first PWA */
+    body, html {
+        margin: 0; padding: 0; height: 100%;
+        font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        background-color: #121212;
+        color: #ffffff;
+        overflow: hidden; /* Prevent scrolling on splash */
+    }
+
+    .listen-app-container {
+        position: relative;
+        height: 100vh;
+        width: 100vw;
+        max-width: 480px; /* Mobile width constraint */
+        margin: 0 auto;
+        background: #1e1e1e;
+        box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .centered-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        text-align: center;
+        padding: 20px;
+    }
+
+    .spinner {
+        width: 40px; height: 40px;
+        border: 4px solid rgba(255,165,0,0.3);
+        border-top-color: #ffa500;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 15px;
+    }
+    @@keyframes spin { 100% { transform: rotate(360deg); } }
+
+    /* Splash Screen (Touch to Play) */
+    .splash-screen {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: linear-gradient(135deg, #FF8C00 0%, #E65100 100%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 100;
+        transition: opacity 0.5s ease-out, visibility 0.5s;
+        cursor: pointer;
+    }
+    .splash-screen.hidden {
+        opacity: 0;
+        visibility: hidden;
+    }
+    .pulse-ring {
+        position: absolute;
+        width: 120px; height: 120px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 50%;
+        animation: pulse 2s infinite ease-in-out;
+    }
+    .tap-icon {
+        font-size: 3rem;
+        z-index: 2;
+        animation: bounce 1.5s infinite;
+    }
+    .tap-text {
+        font-size: 1.8rem;
+        font-weight: 800;
+        margin: 20px 0 5px;
+        color: white;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        z-index: 2;
+    }
+    .tap-subtext {
+        font-size: 1rem;
+        color: rgba(255,255,255,0.9);
+        text-align: center;
+        z-index: 2;
+    }
+
+    @@keyframes pulse {
+        0% { transform: scale(0.8); opacity: 0.8; }
+        100% { transform: scale(2); opacity: 0; }
+    }
+    @@keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-15px); }
+    }
+
+    /* Main App Content */
+    .app-content {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        opacity: 0;
+        transform: scale(0.95);
+        transition: opacity 0.8s ease, transform 0.8s ease;
+        overflow-y: auto;
+    }
+    .app-content.active {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    .poi-image-wrapper {
+        position: relative;
+        width: 100%;
+        height: 40vh;
+        flex-shrink: 0;
+    }
+    .poi-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .image-overlay {
+        position: absolute;
+        bottom: 0; left: 0; right: 0;
+        height: 50%;
+        background: linear-gradient(to top, #1e1e1e 0%, transparent 100%);
+    }
+
+    .poi-info {
+        padding: 0 25px;
+        margin-top: -30px;
+        position: relative;
+        z-index: 10;
+        flex-grow: 1;
+    }
+    .poi-info h1 {
+        margin: 0;
+        font-size: 2rem;
+        font-weight: 800;
+        color: #fff;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    }
+    .category {
+        display: inline-block;
+        background: #FF8C00;
+        color: #fff;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-top: 10px;
+    }
+    .divider {
+        height: 2px;
+        width: 40px;
+        background: #FF8C00;
+        margin: 20px 0;
+    }
+    .description {
+        font-size: 1rem;
+        line-height: 1.6;
+        color: #ccc;
+    }
+
+    .audio-player-card {
+        background: rgba(255, 255, 255, 0.05);
+        border-top: 1px solid rgba(255,255,255,0.1);
+        padding: 20px 25px 30px;
+        backdrop-filter: blur(10px);
+    }
+
+    .now-playing {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 20px;
+        font-size: 0.9rem;
+        color: #FF8C00;
+        font-weight: 600;
+    }
+
+    .audio-animation span {
+        display: inline-block;
+        width: 4px; height: 10px;
+        background: #FF8C00;
+        margin: 0 2px;
+        border-radius: 2px;
+        transition: height 0.2s;
+    }
+    .audio-animation.playing span:nth-child(1) { animation: eq 1.2s ease-in-out infinite 0s; }
+    .audio-animation.playing span:nth-child(2) { animation: eq 1.2s ease-in-out infinite 0.2s; }
+    .audio-animation.playing span:nth-child(3) { animation: eq 1.2s ease-in-out infinite 0.4s; }
+    .audio-animation.playing span:nth-child(4) { animation: eq 1.2s ease-in-out infinite 0.1s; }
+    
+    @@keyframes eq {
+        0%, 100% { height: 10px; }
+        50% { height: 25px; }
+    }
+
+    .controls {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 20px;
+    }
+    .btn-play-pause {
+        width: 70px; height: 70px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #FF8C00, #E65100);
+        border: none;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 15px rgba(255, 140, 0, 0.4);
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+    .btn-play-pause:active { transform: scale(0.95); }
+    .btn-play-pause svg { width: 35px; height: 35px; }
+
+    .btn-restart {
+        width: 45px; height: 45px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.1);
+        border: none;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+    }
+    .btn-restart svg { width: 20px; height: 20px; }
+
+</style>
+
+<script>
+    // JS Logic specifically for Audio playback to bypass browser Autoplay policies
+    var audioEl = null;
+    var ttsText = "";
+    var ttsSynthesis = window.speechSynthesis;
+    var usingNativeAudio = true;
+
+    function initAudio(hasAudioFile, fallbackScript) {
+        audioEl = document.getElementById('audioElement');
+        ttsText = fallbackScript;
+        usingNativeAudio = hasAudioFile === 'True';
+        
+        if (audioEl) {
+            audioEl.addEventListener('play', () => updateDomState(true));
+            audioEl.addEventListener('pause', () => updateDomState(false));
+            audioEl.addEventListener('ended', () => updateDomState(false));
+        }
+    }
+
+    function updateDomState(isPlaying) {
+        var el = document.querySelector('.now-playing span');
+        if (el) el.innerText = isPlaying ? "Đang phát..." : "Đã tạm dừng";
+        
+        var anim = document.querySelector('.audio-animation');
+        if (anim) {
+            if (isPlaying) anim.classList.add('playing');
+            else anim.classList.remove('playing');
+        }
+
+        var iconPlay = document.getElementById('icon-play');
+        var iconPause = document.getElementById('icon-pause');
+        if (iconPlay && iconPause) {
+            iconPlay.style.display = isPlaying ? 'none' : 'block';
+            iconPause.style.display = isPlaying ? 'block' : 'none';
+        }
+    }
+
+    function doPlayAudio() {
+        if (!usingNativeAudio && ttsText) {
+            if (ttsSynthesis.speaking) return;
+            var utterance = new SpeechSynthesisUtterance(ttsText);
+            utterance.lang = 'vi-VN';
+            utterance.onstart = () => updateDomState(true);
+            utterance.onend = () => updateDomState(false);
+            ttsSynthesis.speak(utterance);
+        } else if (audioEl) {
+            audioEl.play().catch(e => console.log('Audio error: ' + e));
+        }
+    }
+
+    function toggleAudio() {
+        if (!usingNativeAudio) {
+            if (ttsSynthesis.speaking) {
+                if (ttsSynthesis.paused) { ttsSynthesis.resume(); updateDomState(true); }
+                else { ttsSynthesis.pause(); updateDomState(false); }
+            } else {
+                doPlayAudio();
+            }
+        } else if (audioEl) {
+            if (audioEl.paused) audioEl.play();
+            else audioEl.pause();
+        }
+    }
+
+    function restartAudio() {
+        if (!usingNativeAudio) {
+            ttsSynthesis.cancel();
+            doPlayAudio();
+        } else if (audioEl) {
+            audioEl.currentTime = 0;
+            audioEl.play();
+        }
+    }
+</script>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private Poi? poi;
+    private bool isLoading = true;
+    private bool hasInteracted = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var allPois = await PoiRepository.GetAllPoisAsync();
+        poi = allPois.FirstOrDefault(p => p.Id == Id);
+        isLoading = false;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && poi != null)
+        {
+            await JSRuntime.InvokeVoidAsync("initAudio", !string.IsNullOrEmpty(poi.AudioUrlVi) ? "True" : "False", poi.TtsScript ?? "");
+        }
+    }
+
+    private async Task HandleInteraction()
+    {
+        if (hasInteracted) return;
+        
+        hasInteracted = true;
+        await JSRuntime.InvokeVoidAsync("updateDomState", true);
+        await JSRuntime.InvokeVoidAsync("doPlayAudio");
+    }
+}

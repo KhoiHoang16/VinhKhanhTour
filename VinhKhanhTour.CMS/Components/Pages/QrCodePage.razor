@@ -3,24 +3,22 @@
 @using VinhKhanhTour.CMS.Services
 @inject PoiService PoiService
 @inject NavigationManager NavManager
+@inject IJSRuntime JSRuntime
 
-<PageTitle>QR Code Kích hoạt Nội dung - VinhKhanh Tour</PageTitle>
+<PageTitle>QR Code & Listen App - VinhKhanh Tour</PageTitle>
 
 <div class="dashboard-container page-transition">
     <div class="header-section">
-        <h1 class="header-title">📱 QR Code Kích hoạt Nội dung</h1>
+        <h1 class="header-title">📱 Quản lý QR Code Quán Ăn</h1>
     </div>
 
     <div class="poi-card" style="margin-bottom: 1.5rem; background: linear-gradient(135deg, rgba(249, 115, 22, 0.15), rgba(251, 191, 36, 0.1));">
         <div style="display: flex; align-items: center; gap: 1rem;">
-            <div style="font-size: 2.5rem;">📱</div>
+            <div style="font-size: 2.5rem;">🎧</div>
             <div>
-                <h3 style="margin: 0; color: var(--text-primary); font-size: 1.1rem;">Quét QR Code = Nghe ngay!</h3>
+                <h3 style="margin: 0; color: var(--text-primary); font-size: 1.1rem;">Listen App - Chạm để nghe</h3>
                 <p style="margin: 0.25rem 0 0; color: var(--text-secondary); font-size: 0.9rem;">
-                    Đặt mã QR tại 3 trạm xe buýt: <strong style="color: var(--primary-color);">Khánh Hội</strong>, 
-                    <strong style="color: var(--primary-color);">Vĩnh Hội</strong>, 
-                    <strong style="color: var(--primary-color);">Xóm Chiếu</strong>. 
-                    Du khách quét mã để nghe nội dung ngay — <strong>không cần GPS</strong>.
+                    Hệ thống sẽ tạo ra các mã QR <strong>Base64</strong> trỏ thẳng về trang Web App của từng quán ăn. Du khách quét bằng camera điện thoại để nghe Audio lập tức mà không cần cài App cục bộ!
                 </p>
             </div>
         </div>
@@ -32,128 +30,100 @@
             <div class="loading-spinner">
                 <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
             </div>
-            <p class="loading-pulse">Đang tải dữ liệu...</p>
+            <p class="loading-pulse">Đang nạp dữ liệu QR Code...</p>
         </div>
     }
     else
     {
-        @foreach (var stop in busStops)
-        {
-            <div style="margin-bottom: 2rem;">
-                <div class="bus-stop-header">
-                    🚌 @stop.Name
-                </div>
-                <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1.25rem; padding-left: 0.25rem;">
-                    @stop.Description
-                </p>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.25rem;">
+            @foreach (var poi in pois)
+            {
+                var listenUrl = $"{baseUrl}/listen/{poi.Id}";
+                var base64Qr = GenerateQrBase64(listenUrl);
 
-                @{
-                    var stopPois = pois.Where(p => stop.AssociatedPoiIds.Contains(p.Id)).ToList();
-                }
+                <div class="qr-card" @key="poi.Id">
+                    <h4 style="margin: 0 0 0.25rem; color: var(--text-primary); font-size: 1rem; font-weight: 700;">@poi.Name</h4>
+                    <p style="color: var(--text-secondary); font-size: 0.82rem; margin: 0 0 1rem;">
+                        @(string.IsNullOrWhiteSpace(poi.Description) ? "Quét mã để nghe giới thiệu." : (poi.Description.Length > 50 ? poi.Description.Substring(0, 50) + "..." : poi.Description))
+                    </p>
 
-                @if (!stopPois.Any())
-                {
-                    <div class="poi-card" style="text-align: center; padding: 2rem; color: var(--text-secondary);">
-                        Không có địa điểm nào liên kết với trạm này.
+                    <!-- QR Code Ảnh Base64 -->
+                    <div class="qr-image" style="background: white; padding: 10px; border-radius: 8px; display: inline-block;">
+                        <img src="data:image/png;base64,@base64Qr" alt="QR @poi.Name" style="width: 150px; height: 150px;" />
                     </div>
-                }
-                else
-                {
-                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.25rem;">
-                        @foreach (var poi in stopPois)
+
+                    <div style="margin-top: 0.5rem;">
+                        <span class="badge badge-primary" style="font-size: 0.75rem;">ID: @poi.Id</span>
+                        @if (!string.IsNullOrWhiteSpace(poi.AudioUrlVi))
                         {
-                            var qrUrl = $"{baseUrl}/api/poi/qr/{poi.Id}?stop={stop.Id}";
-                            <div class="qr-card" @key="@($"{stop.Id}_{poi.Id}")">
-                                <h4 style="margin: 0 0 0.25rem; color: var(--text-primary); font-size: 1rem; font-weight: 700;">@poi.Name</h4>
-                                <p style="color: var(--text-secondary); font-size: 0.82rem; margin: 0 0 1rem;">
-                                    @(string.IsNullOrWhiteSpace(poi.Description) ? "Quét để nghe thông tin." : (poi.Description.Length > 60 ? poi.Description.Substring(0, 60) + "..." : poi.Description))
-                                </p>
-
-                                <!-- QR Code SVG -->
-                                <div class="qr-image">
-                                    @((MarkupString)GenerateQrSvg(qrUrl, poi.Name))
-                                </div>
-
-                                <div style="margin-top: 0.5rem;">
-                                    <span class="badge badge-primary" style="font-size: 0.75rem;">POI #@poi.Id</span>
-                                    @if (!string.IsNullOrWhiteSpace(poi.AudioUrlVi))
-                                    {
-                                        <span class="badge badge-success" style="font-size: 0.75rem;">🎵 Audio VI</span>
-                                    }
-                                </div>
-
-                                <div style="margin-top: 0.75rem; font-size: 0.75rem; color: var(--text-secondary); word-break: break-all; background: rgba(0,0,0,0.2); padding: 0.5rem; border-radius: 0.4rem;">
-                                    @qrUrl
-                                </div>
-
-                                <div style="margin-top: 0.75rem; display: flex; gap: 0.5rem; justify-content: center;">
-                                    <button class="btn btn-secondary" style="padding: 0.3rem 0.7rem; font-size: 0.8rem;" @onclick="() => CopyUrl(qrUrl)">
-                                        📋 Sao chép URL
-                                    </button>
-                                </div>
-                            </div>
+                            <span class="badge badge-success" style="font-size: 0.75rem;">🎵 Có Audio (MP3)</span>
+                        }
+                        else
+                        {
+                            <span class="badge badge-warning" style="font-size: 0.75rem;">🤖 Trí tuệ nhân tạo đọc</span>
                         }
                     </div>
-                }
-            </div>
-        }
 
-        <!-- Instructions -->
-        <div class="poi-card" style="margin-top: 1rem;">
-            <h3 style="margin-top: 0; margin-bottom: 1rem; font-weight: 700; font-size: 1.05rem;">📋 Hướng dẫn Sử dụng QR Code</h3>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
-                <div style="text-align: center; padding: 1rem;">
-                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">1️⃣</div>
-                    <h4 style="margin: 0 0 0.5rem; color: var(--primary-color);">In mã QR</h4>
-                    <p style="color: var(--text-secondary); font-size: 0.85rem; margin: 0;">In các mã QR ở trên và dán tại trạm xe buýt tương ứng.</p>
+                    <div style="margin-top: 0.75rem; font-size: 0.75rem; color: var(--text-secondary); word-break: break-all; background: rgba(0,0,0,0.2); padding: 0.5rem; border-radius: 0.4rem;">
+                        @listenUrl
+                    </div>
+
+                    <div style="margin-top: 0.75rem; display: flex; gap: 0.5rem; justify-content: center;">
+                        <button class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;" @onclick="@(() => DownloadBase64Image(base64Qr, $"QR_VinhKhanh_{poi.Id}.png"))">
+                            ⬇️ Tải ảnh QR
+                        </button>
+                    </div>
                 </div>
-                <div style="text-align: center; padding: 1rem;">
-                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">2️⃣</div>
-                    <h4 style="margin: 0 0 0.5rem; color: var(--primary-color);">Du khách quét mã</h4>
-                    <p style="color: var(--text-secondary); font-size: 0.85rem; margin: 0;">Du khách dùng camera điện thoại quét mã QR tại điểm dừng.</p>
-                </div>
-                <div style="text-align: center; padding: 1rem;">
-                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">3️⃣</div>
-                    <h4 style="margin: 0 0 0.5rem; color: var(--primary-color);">Nghe ngay - Không cần GPS</h4>
-                    <p style="color: var(--text-secondary); font-size: 0.85rem; margin: 0;">App mở nội dung POI và phát audio ngay lập tức, không yêu cầu GPS.</p>
-                </div>
-            </div>
+            }
         </div>
     }
 </div>
 
+<!-- Thêm Script xử lý tải file Base64 -->
+<script>
+    window.downloadFileFromBase64 = function(base64Str, fileName) {
+        var a = document.createElement("a");
+        a.href = "data:image/png;base64," + base64Str;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+</script>
+
 @code {
     private bool isLoading = true;
     private List<Poi> pois = new();
-    private List<BusStop> busStops = new();
     private string baseUrl = "";
 
     protected override async Task OnInitializedAsync()
     {
         baseUrl = NavManager.BaseUri.TrimEnd('/');
-        busStops = BusStop.GetBusStops();
         pois = await PoiService.GetPoisAsync();
         isLoading = false;
     }
 
-    private void CopyUrl(string url)
-    {
-        // In Blazor Server, JS interop would be used to copy.
-        // For now we just show the URL visually.
-    }
-
     /// <summary>
-    /// Generates a real, scannable QR Code SVG using QRCoder library.
-    /// Encodes the URL so phones can scan and open it in a browser.
+    /// Tạo mã QR Code dưới dạng PngByteQRCode để không phụ thuộc vào thư viện System.Drawing.Common 
+    /// (Rất an toàn khi chạy trên môi trường Linux của Render).
     /// </summary>
-    private string GenerateQrSvg(string data, string label)
+    private string GenerateQrBase64(string data)
     {
         using var qrGenerator = new QRCoder.QRCodeGenerator();
-        using var qrCodeData = qrGenerator.CreateQrCode(data, QRCoder.QRCodeGenerator.ECCLevel.M);
-        var svgQrCode = new QRCoder.SvgQRCode(qrCodeData);
-        // Generate SVG with dark modules and white background, sized 150x150
-        string svgContent = svgQrCode.GetGraphic(4, "#1C1917", "#FFFFFF", sizingMode: QRCoder.SvgQRCode.SizingMode.ViewBoxAttribute);
-        return svgContent;
+        using var qrCodeData = qrGenerator.CreateQrCode(data, QRCoder.QRCodeGenerator.ECCLevel.Q);
+        using var qrCode = new QRCoder.PngByteQRCode(qrCodeData);
+        
+        // Modules array (màu đen R:28, G:25, B:23) với nền trắng
+        byte[] darkColor = new byte[] { 28, 25, 23, 255 }; 
+        byte[] lightColor = new byte[] { 255, 255, 255, 255 };
+        
+        // Graphic pixel = 5
+        byte[] qrCodeImage = qrCode.GetGraphic(5, darkColor, lightColor);
+        return Convert.ToBase64String(qrCodeImage);
     }
 
+    private async Task DownloadBase64Image(string base64Str, string filename)
+    {
+        await JSRuntime.InvokeVoidAsync("downloadFileFromBase64", base64Str, filename);
+    }
 }
