@@ -5,38 +5,56 @@
 @inject IPoiRepository PoiRepository
 @inject IJSRuntime JSRuntime
 
-<PageTitle>@(poi?.Name ?? "Đang tải...") - VinhKhanh Tour Audio</PageTitle>
+<PageTitle>@(GetPoiName()) - VinhKhanh Tour Audio</PageTitle>
 
 <div class="listen-app-container">
     @if (isLoading)
     {
         <div class="centered-content">
             <div class="spinner"></div>
-            <p>Đang tải dữ liệu quán...</p>
+            <p>@GetUiString("Loading")</p>
         </div>
     }
     else if (poi == null)
     {
         <div class="centered-content error">
             <div class="icon">🔍</div>
-            <h2>Không tìm thấy quán ăn</h2>
-            <p>Mã QR này có vẻ không hợp lệ hoặc quán ăn đã bị xóa khỏi hệ thống.</p>
+            <h2>@GetUiString("NotFoundTitle")</h2>
+            <p>@GetUiString("NotFoundDesc")</p>
         </div>
     }
     else
     {
+        <!-- Language Selector -->
+        <div class="language-selector @(hasInteracted ? "active" : "")">
+            <select class="lang-dropdown" @onchange="ChangeLanguage">
+                <option value="vi" selected="@(currentLang == "vi")">🇻🇳 Tiếng Việt</option>
+                <option value="en" selected="@(currentLang == "en")">🇬🇧 English</option>
+                <option value="es" selected="@(currentLang == "es")">🇪🇸 Español</option>
+                <option value="fr" selected="@(currentLang == "fr")">🇫🇷 Français</option>
+                <option value="de" selected="@(currentLang == "de")">🇩🇪 Deutsch</option>
+                <option value="zh" selected="@(currentLang == "zh")">🇨🇳 中文</option>
+                <option value="ja" selected="@(currentLang == "ja")">🇯🇵 日本語</option>
+                <option value="ko" selected="@(currentLang == "ko")">🇰🇷 한국어</option>
+                <option value="ru" selected="@(currentLang == "ru")">🇷🇺 Русский</option>
+                <option value="it" selected="@(currentLang == "it")">🇮🇹 Italiano</option>
+                <option value="pt" selected="@(currentLang == "pt")">🇵🇹 Português</option>
+            </select>
+            <div class="dropdown-icon">🌐</div>
+        </div>
+
         <!-- Màn hình chính sau khi tương tác -->
         <div class="app-content @(hasInteracted ? "active" : "")">
             <div class="poi-image-wrapper">
-                <img src="@($"/images/{poi.DisplayImage}")" alt="@poi.Name" onerror="this.onerror=null; this.src='/images/vinh_khanh_food_street_banner.jpg';" class="poi-image" />
+                <img src="@($"/images/{poi.DisplayImage}")" alt="@GetPoiName()" onerror="this.onerror=null; this.src='/images/vinh_khanh_food_street_banner.jpg';" class="poi-image" />
                 <div class="image-overlay"></div>
             </div>
 
             <div class="poi-info">
-                <h1>@poi.Name</h1>
-                <p class="category">@poi.DisplayCategory</p>
+                <h1>@GetPoiName()</h1>
+                <p class="category">@GetPoiCategory()</p>
                 <div class="divider"></div>
-                <p class="description">@poi.Description</p>
+                <p class="description">@GetPoiDescription()</p>
             </div>
 
             <div class="audio-player-card">
@@ -44,11 +62,11 @@
                     <div class="audio-animation">
                         <span></span><span></span><span></span><span></span>
                     </div>
-                    <span id="playStateText">Đã tạm dừng</span>
+                    <span id="playStateText">@GetUiString("Paused")</span>
                 </div>
                 
                 <audio id="audioElement" 
-                       src="@(string.IsNullOrEmpty(poi.AudioUrlVi) ? "" : $"/audio/{poi.AudioUrlVi}")" 
+                       src="@GetAudioUrl()" 
                        preload="auto">
                 </audio>
 
@@ -68,8 +86,8 @@
         <div id="splashScreen" class="splash-screen @(hasInteracted ? "hidden" : "")" @onclick="HandleInteraction">
             <div class="pulse-ring"></div>
             <div class="tap-icon">👉</div>
-            <h2 class="tap-text">Chạm vào màn hình</h2>
-            <p class="tap-subtext">để nghe giới thiệu về quán<br/><strong>@poi.Name</strong></p>
+            <h2 class="tap-text">@GetUiString("TapScreen")</h2>
+            <p class="tap-subtext">@GetUiString("TapSubtext")<br/><strong>@GetPoiName()</strong></p>
         </div>
     }
 </div>
@@ -115,6 +133,41 @@
         margin-bottom: 15px;
     }
     @@keyframes spin { 100% { transform: rotate(360deg); } }
+
+    /* Language Selector */
+    .language-selector {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        z-index: 50;
+        background: rgba(0, 0, 0, 0.6);
+        border-radius: 20px;
+        padding: 5px 15px 5px 35px;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 140, 0, 0.5);
+        display: flex;
+        align-items: center;
+        transition: opacity 0.5s;
+    }
+    .language-selector:not(.active) {
+        display: none; /* Hide on splash screen */
+    }
+    .lang-dropdown {
+        background: transparent;
+        color: white;
+        border: none;
+        font-size: 0.9rem;
+        font-weight: 600;
+        outline: none;
+        appearance: none;
+        cursor: pointer;
+    }
+    .lang-dropdown option { background: #1e1e1e; color: white; }
+    .dropdown-icon {
+        position: absolute;
+        left: 10px;
+        pointer-events: none;
+    }
 
     /* Splash Screen (Touch to Play) */
     .splash-screen {
@@ -317,22 +370,60 @@
     var ttsText = "";
     var ttsSynthesis = window.speechSynthesis;
     var usingNativeAudio = true;
+    var ttsLang = "vi-VN";
 
-    function initAudio(hasAudioFile, fallbackScript) {
+    var txtPlaying = "Đang phát...";
+    var txtPaused = "Đã tạm dừng";
+
+    function setLabels(playingTxt, pausedTxt) {
+        txtPlaying = playingTxt;
+        txtPaused = pausedTxt;
+        var anim = document.querySelector('.audio-animation');
+        updateDomState(anim && anim.classList.contains('playing'));
+    }
+
+    function initAudio(hasAudioFile, fallbackScript, localeCode) {
         audioEl = document.getElementById('audioElement');
+        if (audioEl) {
+            audioEl.load();
+        }
         ttsText = fallbackScript;
         usingNativeAudio = hasAudioFile === 'True';
         
-        if (audioEl) {
+        switch (localeCode) {
+            case 'en': ttsLang = 'en-US'; break;
+            case 'es': ttsLang = 'es-ES'; break;
+            case 'fr': ttsLang = 'fr-FR'; break;
+            case 'de': ttsLang = 'de-DE'; break;
+            case 'zh': ttsLang = 'zh-CN'; break;
+            case 'ja': ttsLang = 'ja-JP'; break;
+            case 'ko': ttsLang = 'ko-KR'; break;
+            case 'ru': ttsLang = 'ru-RU'; break;
+            case 'it': ttsLang = 'it-IT'; break;
+            case 'pt': ttsLang = 'pt-PT'; break;
+            default: ttsLang = 'vi-VN'; break;
+        }
+        
+        if (audioEl && !audioEl.dataset.initialized) {
+            audioEl.dataset.initialized = "true";
             audioEl.addEventListener('play', () => updateDomState(true));
             audioEl.addEventListener('pause', () => updateDomState(false));
             audioEl.addEventListener('ended', () => updateDomState(false));
+        }
+        
+        // If it was already playing TTS before language change, stop it
+        if (!usingNativeAudio && ttsSynthesis.speaking) {
+            ttsSynthesis.cancel(); 
+            doPlayAudio(); // Restart in new language
+        } else if (usingNativeAudio && audioEl && !audioEl.paused) {
+            // Already native audio
+            audioEl.play();
         }
     }
 
     function updateDomState(isPlaying) {
         var el = document.getElementById('playStateText');
-        if (el) el.innerText = isPlaying ? "Đang phát..." : "Đã tạm dừng";
+        if (el) el.innerText = isPlaying ? txtPlaying : txtPaused;
         
         var anim = document.querySelector('.audio-animation');
         if (anim) {
@@ -352,7 +443,7 @@
         if (!usingNativeAudio && ttsText) {
             if (ttsSynthesis.speaking) return;
             var utterance = new SpeechSynthesisUtterance(ttsText);
-            utterance.lang = 'vi-VN';
+            utterance.lang = ttsLang;
             utterance.onstart = () => updateDomState(true);
             utterance.onend = () => updateDomState(false);
             ttsSynthesis.speak(utterance);
@@ -393,6 +484,7 @@
     private Poi? poi;
     private bool isLoading = true;
     private bool hasInteracted = false;
+    private string currentLang = "vi";
 
     protected override async Task OnInitializedAsync()
     {
@@ -405,8 +497,30 @@
     {
         if (firstRender && poi != null)
         {
-            await JSRuntime.InvokeVoidAsync("initAudio", !string.IsNullOrEmpty(poi.AudioUrlVi) ? "True" : "False", poi.TtsScript ?? "");
+            await PushAudioStateToJs();
         }
+    }
+
+    private async Task ChangeLanguage(ChangeEventArgs e)
+    {
+        currentLang = e.Value?.ToString() ?? "vi";
+        if (poi != null && hasInteracted)
+        {
+            // Re-Push to JS when language changes so audio/tts source swaps
+            await PushAudioStateToJs();
+        }
+        StateHasChanged();
+    }
+
+    private async Task PushAudioStateToJs()
+    {
+        string playingTxt = GetUiString("Playing");
+        string pausedTxt = GetUiString("Paused");
+        await JSRuntime.InvokeVoidAsync("setLabels", playingTxt, pausedTxt);
+        
+        string audioUrl = GetAudioUrl();
+        bool hasNativeFile = !string.IsNullOrEmpty(audioUrl);
+        await JSRuntime.InvokeVoidAsync("initAudio", hasNativeFile ? "True" : "False", GetPoiTtsScript(), currentLang);
     }
 
     private async Task HandleInteraction()
@@ -416,5 +530,83 @@
         hasInteracted = true;
         await JSRuntime.InvokeVoidAsync("updateDomState", true);
         await JSRuntime.InvokeVoidAsync("doPlayAudio");
+    }
+
+    private string GetPoiName() => currentLang switch {
+        "en" => !string.IsNullOrEmpty(poi?.NameEn) ? poi.NameEn : (poi?.Name ?? ""),
+        "es" => !string.IsNullOrEmpty(poi?.NameEs) ? poi.NameEs : (poi?.Name ?? ""),
+        "fr" => !string.IsNullOrEmpty(poi?.NameFr) ? poi.NameFr : (poi?.Name ?? ""),
+        "de" => !string.IsNullOrEmpty(poi?.NameDe) ? poi.NameDe : (poi?.Name ?? ""),
+        "zh" => !string.IsNullOrEmpty(poi?.NameZh) ? poi.NameZh : (poi?.Name ?? ""),
+        "ja" => !string.IsNullOrEmpty(poi?.NameJa) ? poi.NameJa : (poi?.Name ?? ""),
+        "ko" => !string.IsNullOrEmpty(poi?.NameKo) ? poi.NameKo : (poi?.Name ?? ""),
+        "ru" => !string.IsNullOrEmpty(poi?.NameRu) ? poi.NameRu : (poi?.Name ?? ""),
+        "it" => !string.IsNullOrEmpty(poi?.NameIt) ? poi.NameIt : (poi?.Name ?? ""),
+        "pt" => !string.IsNullOrEmpty(poi?.NamePt) ? poi.NamePt : (poi?.Name ?? ""),
+        _ => poi?.Name ?? ""
+    };
+
+    private string GetPoiDescription() => currentLang switch {
+        "en" => !string.IsNullOrEmpty(poi?.DescriptionEn) ? poi.DescriptionEn : (poi?.Description ?? ""),
+        "es" => !string.IsNullOrEmpty(poi?.DescriptionEs) ? poi.DescriptionEs : (poi?.Description ?? ""),
+        "fr" => !string.IsNullOrEmpty(poi?.DescriptionFr) ? poi.DescriptionFr : (poi?.Description ?? ""),
+        "de" => !string.IsNullOrEmpty(poi?.DescriptionDe) ? poi.DescriptionDe : (poi?.Description ?? ""),
+        "zh" => !string.IsNullOrEmpty(poi?.DescriptionZh) ? poi.DescriptionZh : (poi?.Description ?? ""),
+        "ja" => !string.IsNullOrEmpty(poi?.DescriptionJa) ? poi.DescriptionJa : (poi?.Description ?? ""),
+        "ko" => !string.IsNullOrEmpty(poi?.DescriptionKo) ? poi.DescriptionKo : (poi?.Description ?? ""),
+        "ru" => !string.IsNullOrEmpty(poi?.DescriptionRu) ? poi.DescriptionRu : (poi?.Description ?? ""),
+        "it" => !string.IsNullOrEmpty(poi?.DescriptionIt) ? poi.DescriptionIt : (poi?.Description ?? ""),
+        "pt" => !string.IsNullOrEmpty(poi?.DescriptionPt) ? poi.DescriptionPt : (poi?.Description ?? ""),
+        _ => poi?.Description ?? ""
+    };
+
+    private string GetPoiTtsScript() => currentLang switch {
+        "en" => !string.IsNullOrEmpty(poi?.TtsScriptEn) ? poi.TtsScriptEn : (poi?.TtsScript ?? ""),
+        "es" => !string.IsNullOrEmpty(poi?.TtsScriptEs) ? poi.TtsScriptEs : (poi?.TtsScript ?? ""),
+        "fr" => !string.IsNullOrEmpty(poi?.TtsScriptFr) ? poi.TtsScriptFr : (poi?.TtsScript ?? ""),
+        "de" => !string.IsNullOrEmpty(poi?.TtsScriptDe) ? poi.TtsScriptDe : (poi?.TtsScript ?? ""),
+        "zh" => !string.IsNullOrEmpty(poi?.TtsScriptZh) ? poi.TtsScriptZh : (poi?.TtsScript ?? ""),
+        "ja" => !string.IsNullOrEmpty(poi?.TtsScriptJa) ? poi.TtsScriptJa : (poi?.TtsScript ?? ""),
+        "ko" => !string.IsNullOrEmpty(poi?.TtsScriptKo) ? poi.TtsScriptKo : (poi?.TtsScript ?? ""),
+        "ru" => !string.IsNullOrEmpty(poi?.TtsScriptRu) ? poi.TtsScriptRu : (poi?.TtsScript ?? ""),
+        "it" => !string.IsNullOrEmpty(poi?.TtsScriptIt) ? poi.TtsScriptIt : (poi?.TtsScript ?? ""),
+        "pt" => !string.IsNullOrEmpty(poi?.TtsScriptPt) ? poi.TtsScriptPt : (poi?.TtsScript ?? ""),
+        _ => poi?.TtsScript ?? ""
+    };
+
+    private string GetAudioUrl()
+    {
+        if (poi == null) return "";
+        if (currentLang != "vi" && !string.IsNullOrEmpty(poi.AudioUrlEn)) {
+            // Future-proofing: If we had AudioUrlFr etc, we'd expand this.
+            return $"/audio/{poi.AudioUrlEn}";
+        }
+        return string.IsNullOrEmpty(poi.AudioUrlVi) ? "" : $"/audio/{poi.AudioUrlVi}";
+    }
+
+    private string GetPoiCategory()
+    {
+        if (poi == null) return "";
+        string cat = poi.DynamicPrimaryCategory;
+        if (currentLang == "vi") {
+            return cat switch { "BBQ" => "🍖 Đồ nướng", "Noodle" => "🍜 Món nước", "Sushi" => "🍣 Sushi", _ => "🐚 Ốc & Hải sản" };
+        } else {
+            return cat switch { "BBQ" => "🍖 BBQ & Grill", "Noodle" => "🍜 Noodles & Soup", "Sushi" => "🍣 Sushi", _ => "🐚 Seafood & Snails" };
+        }
+    }
+
+    private string GetUiString(string key)
+    {
+        bool isVi = currentLang == "vi";
+        return key switch {
+            "Loading" => isVi ? "Đang tải dữ liệu quán..." : "Loading data...",
+            "NotFoundTitle" => isVi ? "Không tìm thấy quán ăn" : "Location Not Found",
+            "NotFoundDesc" => isVi ? "Mã QR này có vẻ không hợp lệ hoặc quán ăn đã bị xóa." : "This QR code seems invalid or the location was removed.",
+            "TapScreen" => isVi ? "Chạm vào màn hình" : "Tap the screen",
+            "TapSubtext" => isVi ? "để nghe giới thiệu về quán" : "to listen to the audio guide for",
+            "Playing" => isVi ? "Đang phát..." : "Playing...",
+            "Paused" => isVi ? "Đã tạm dừng" : "Paused",
+            _ => key
+        };
     }
 }
