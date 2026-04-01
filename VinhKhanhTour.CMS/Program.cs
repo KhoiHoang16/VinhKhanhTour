@@ -62,8 +62,21 @@ using (var scope = app.Services.CreateScope())
 
         if (!db.Pois.Any())
         {
-            db.Pois.AddRange(Poi.GetSampleData());
+            var sampleData = Poi.GetSampleData();
+            // Force Identity Insert for auto-increment to work properly
+            foreach (var poi in sampleData) { poi.Id = 0; }
+            db.Pois.AddRange(sampleData);
             db.SaveChanges();
+        }
+
+        // Đảm bảo chỉ mục ID liên tục cập nhật trên PostgreSQL (Fix the Insert error)
+        if (db.Database.IsNpgsql())
+        {
+            var maxId = db.Pois.Max(p => (int?)p.Id) ?? 0;
+            if (maxId > 0)
+            {
+                db.Database.ExecuteSqlRaw($"SELECT setval(pg_get_serial_sequence('\"Pois\"', 'Id'), {maxId});");
+            }
         }
     }
     catch (Exception ex)
