@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: vinhkhanh-tour-cms
+    env: docker
+    # Chỉ định đường dẫn tới file Dockerfile ở thư mục gốc
+    dockerfilePath: ./Dockerfile
+    
+    # Kế hoạch triển khai (tuỳ chọn: free, starter, standard)
+    plan: free
+    
+    # Cấu hình Vùng/Khu vực máy chủ gần Việt Nam
+    region: singapore 
+    
+    # Cấu hình nhánh git tự động cập nhật
+    branch: main
+    
+    # Cấu hình biến môi trường
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+        
+      # (Tuỳ chọn) Đặt các biến môi trường cho Database hoặc Key tại đây
+      # Nếu cấu hình biến nhạy cảm, bạn có thể thiết lập 'sync: false' 
+      # và nhập thủ công biến đó trực tiếp qua Giao diện web của Render.com
+      - key: ConnectionStrings__DefaultConnection
+        value: "" # Khuyên dùng: Để trống và cấu hình sau thông qua Render Dashboard
+        sync: false
+        
+      # Port mặc định mà ASP.NET 9.0 Docker image thường sử dụng là 8080
+      - key: PORT
+        value: 8080
