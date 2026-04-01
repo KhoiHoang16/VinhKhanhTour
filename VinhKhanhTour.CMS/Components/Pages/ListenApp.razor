@@ -28,7 +28,7 @@
         <!-- Màn hình chính sau khi tương tác -->
         <div class="app-content @(hasInteracted ? "active" : "")">
             <div class="poi-image-wrapper">
-                <img src="@($"/images/{poi.DisplayImage}")" alt="@poi.Name" onerror="this.src='/images/poi_placeholder.png';" class="poi-image" />
+                <img src="@($"/images/{poi.DisplayImage}")" alt="@poi.Name" onerror="this.onerror=null; this.src='/images/vinh_khanh_food_street_banner.jpg';" class="poi-image" />
                 <div class="image-overlay"></div>
             </div>
 
@@ -44,7 +44,7 @@
                     <div class="audio-animation">
                         <span></span><span></span><span></span><span></span>
                     </div>
-                    <span>Đã tạm dừng</span>
+                    <span id="playStateText">Đã tạm dừng</span>
                 </div>
                 
                 <audio id="audioElement" 
@@ -331,7 +331,7 @@
     }
 
     function updateDomState(isPlaying) {
-        var el = document.querySelector('.now-playing span');
+        var el = document.getElementById('playStateText');
         if (el) el.innerText = isPlaying ? "Đang phát..." : "Đã tạm dừng";
         
         var anim = document.querySelector('.audio-animation');
