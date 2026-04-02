@@ -62,7 +62,20 @@ namespace VinhKhanhTour.Services
                     Debug.WriteLine($"[Sync] Successfully synchronized {serverPois.Count} POIs from the CMS.");
                 }
 
-                // 2. Sync (Push) Usage History to CMS
+                // Call analytics sync after POI sync completes safely
+                await SyncAnalyticsAsync();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[Sync Error] Failed to sync with CMS: {ex.Message}");
+                // If sync fails (e.g., no internet or CMS offline), we just continue with local SQLite data.
+            }
+        }
+
+        public async Task SyncAnalyticsAsync()
+        {
+            try
+            {
                 var localHistories = await _poiRepo.GetUsageHistoryAsync();
                 if (localHistories != null && localHistories.Any())
                 {
@@ -87,8 +100,7 @@ namespace VinhKhanhTour.Services
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"[Sync Error] Failed to sync with CMS: {ex.Message}");
-                // If sync fails (e.g., no internet or CMS offline), we just continue with local SQLite data.
+                Debug.WriteLine($"[Sync Analytics Error] Failed to sync analytics: {ex.Message}");
             }
         }
     }

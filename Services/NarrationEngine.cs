@@ -126,9 +126,7 @@ namespace VinhKhanhTour.Services
                     Debug.WriteLine($"[NarrationEngine] Không tìm thấy locale phù hợp cho '{currentCode}', dùng mặc định.");
                 }
 
-                await TextToSpeech.Default.SpeakAsync(poi.DisplayTtsScript, options, cancelToken: _ttsCts.Token);
-                
-                // Thu thập Lịch sử sử dụng ghi nhận vào DB cục bộ
+                // Thu thập Lịch sử sử dụng ghi nhận vào DB cục bộ NGAY LẬP TỨC (Không đợi đọc xong)
                 try 
                 {
                     await _poiRepository.RecordUsageAsync(new VinhKhanhTour.Shared.Models.UsageHistory 
@@ -145,7 +143,7 @@ namespace VinhKhanhTour.Services
                     {
                         try 
                         {
-                            await _apiService.SyncDatabaseAsync();
+                            await _apiService.SyncAnalyticsAsync();
                         }
                         catch { }
                     });
@@ -154,6 +152,9 @@ namespace VinhKhanhTour.Services
                 {
                     Debug.WriteLine($"[NarrationEngine] Lỗi ghi nhận lịch sử: {ex.Message}");
                 }
+
+                // Chặn luồng (block) cho đến khi đọc TTS hoàn tất
+                await TextToSpeech.Default.SpeakAsync(poi.DisplayTtsScript, options, cancelToken: _ttsCts.Token);
 
                 Debug.WriteLine($"[NarrationEngine] Đã đọc xong kịch bản ({currentCode}): {poi.Name}");
             }
