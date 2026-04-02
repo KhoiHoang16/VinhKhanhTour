@@ -83,6 +83,10 @@ namespace VinhKhanhTour.CMS.Controllers
                 {
                     // Reset ID để PostgreSQL tự sinh ID mới
                     history.Id = 0;
+                    // Fix: PostgreSQL yêu cầu DateTime phải có Kind=Utc
+                    // JSON deserialize mất dấu UTC nên phải gán lại
+                    history.Timestamp = DateTime.SpecifyKind(history.Timestamp, DateTimeKind.Utc);
+                    
                     var result = await _poiRepository.RecordUsageAsync(history);
                     savedCount += result;
                     _logger.LogInformation("Saved record for PoiId={PoiId}, DB result={Result}", history.PoiId, result);
