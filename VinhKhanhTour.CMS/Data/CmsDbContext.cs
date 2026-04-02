@@ -39,6 +39,12 @@ namespace VinhKhanhTour.CMS.Data
             
             modelBuilder.Entity<Tour>().HasKey(t => t.Id);
             modelBuilder.Entity<Tour>().Property(t => t.Id).ValueGeneratedOnAdd();
+            // Cấu hình quan hệ 1-N: Tour -> TourStops
+            modelBuilder.Entity<Tour>()
+                .HasMany(t => t.Stops)
+                .WithOne(ts => ts.Tour)
+                .HasForeignKey(ts => ts.TourId)
+                .OnDelete(DeleteBehavior.Cascade); // Xóa Tour -> xóa luôn các Stops
 
             modelBuilder.Entity<TourStop>().HasKey(ts => ts.Id);
             modelBuilder.Entity<TourStop>().Property(ts => ts.Id).ValueGeneratedOnAdd();

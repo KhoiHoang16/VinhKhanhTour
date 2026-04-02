@@ -17,20 +17,32 @@
     </div>
 
     <div class="form-container">
-        <EditForm Model="@tour" OnValidSubmit="SaveTour">
+        <EditForm Model="@dto" OnValidSubmit="SaveTour">
             <DataAnnotationsValidator />
             
             <div class="form-group">
                 <label class="form-label">Tên Tour</label>
-                <InputText @bind-Value="tour.Name" class="form-control" placeholder="Nhập tên tour du lịch..." required />
+                <InputText @bind-Value="dto.TourName" class="form-control" placeholder="Nhập tên tour du lịch..." required />
             </div>
             <div class="form-group">
                 <label class="form-label">Mô tả</label>
-                <InputTextArea @bind-Value="tour.Description" class="form-control" rows="4" placeholder="Mô tả chi tiết về tour này..." />
+                <InputTextArea @bind-Value="dto.Description" class="form-control" rows="4" placeholder="Mô tả chi tiết về tour này..." />
             </div>
             <div class="form-group">
                 <label class="form-label">Link Hình ảnh</label>
-                <InputText @bind-Value="tour.ImageUrl" class="form-control" placeholder="https://... hoặc tên file ảnh" />
+                <InputText @bind-Value="dto.ImageUrl" class="form-control" placeholder="https://... hoặc tên file ảnh" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Điểm xuất phát</label>
+                <InputText @bind-Value="dto.StartPoint" class="form-control" placeholder="VD: Đầu đường Vĩnh Khánh" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Điểm kết thúc</label>
+                <InputText @bind-Value="dto.EndPoint" class="form-control" placeholder="VD: Cuối đường Vĩnh Khánh" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Quãng đường (km)</label>
+                <InputNumber @bind-Value="dto.TotalDistance" class="form-control" placeholder="VD: 1.5" />
             </div>
 
             <div style="margin-top: 2rem; display: flex; justify-content: flex-end; gap: 1rem;">
@@ -49,20 +61,39 @@
     public int? Id { get; set; }
 
     private bool IsEdit => Id.HasValue;
-    private Tour tour = new Tour();
+    private TourCreateUpdateDto dto = new();
 
     protected override async Task OnInitializedAsync()
     {
         if (IsEdit && Id.HasValue)
         {
-            var existing = await TourService.GetTourAsync(Id.Value);
-            if (existing != null) tour = existing;
+            var existing = await TourService.GetTourByIdAsync(Id.Value);
+            if (existing != null)
+            {
+                dto = new TourCreateUpdateDto
+                {
+                    TourName = existing.TourName,
+                    Description = existing.Description,
+                    ImageUrl = existing.ImageUrl,
+                    StartPoint = existing.StartPoint,
+                    EndPoint = existing.EndPoint,
+                    TotalDistance = existing.TotalDistance,
+                    Stops = existing.Stops
+                };
+            }
         }
     }
 
     private async Task SaveTour()
     {
-        await TourService.SaveTourAsync(tour);
+        if (IsEdit && Id.HasValue)
+        {
+            await TourService.UpdateTourAsync(Id.Value, dto);
+        }
+        else
+        {
+            await TourService.CreateTourAsync(dto);
+        }
         NavManager.NavigateTo("/tours");
     }
 }

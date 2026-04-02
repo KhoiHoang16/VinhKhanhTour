@@ -43,7 +43,7 @@
             @foreach (var tour in tours)
             {
                 <div class="poi-card" @key="tour.Id">
-                    <h3 class="poi-title">@tour.Name</h3>
+                    <h3 class="poi-title">@tour.TourName</h3>
                     <p class="poi-description">@(string.IsNullOrWhiteSpace(tour.Description) ? "Chưa có mô tả." : tour.Description)</p>
                     <div class="poi-actions">
                         <button class="btn btn-secondary" @onclick="() => EditTour(tour.Id)">✏️ Sửa</button>
@@ -61,7 +61,7 @@
         <div class="form-container" style="max-width: 420px; text-align: center;">
             <div style="font-size: 3rem; margin-bottom: 1rem;">⚠️</div>
             <h3 style="margin-top: 0; color: var(--text-primary);">Xóa Tour?</h3>
-            <p style="color: var(--text-secondary); margin-bottom: 2rem;">Bạn có chắc muốn xóa "<strong>@tourToDelete.Name</strong>"?</p>
+            <p style="color: var(--text-secondary); margin-bottom: 2rem;">Bạn có chắc muốn xóa "<strong>@tourToDelete.TourName</strong>"?</p>
             <div style="display: flex; gap: 1rem;">
                 <button class="btn btn-secondary" style="flex: 1;" @onclick="CancelDelete">Hủy</button>
                 <button class="btn btn-danger" style="flex: 1; background: var(--danger); color: white;" @onclick="DeleteTour">Xóa</button>
@@ -71,9 +71,9 @@
 }
 
 @code {
-    private List<Tour>? tours;
+    private List<TourDetailDto>? tours;
     private bool showDeleteConfirm = false;
-    private Tour? tourToDelete;
+    private TourDetailDto? tourToDelete;
 
     protected override async Task OnInitializedAsync()
     {
@@ -82,7 +82,7 @@
 
     private async Task LoadTours()
     {
-        tours = await TourService.GetToursAsync();
+        tours = await TourService.GetAllToursAsync();
     }
 
     private void EditTour(int id)
@@ -90,7 +90,7 @@
         NavManager.NavigateTo($"/tours/edit/{id}");
     }
 
-    private void ConfirmDeleteTour(Tour tour)
+    private void ConfirmDeleteTour(TourDetailDto tour)
     {
         tourToDelete = tour;
         showDeleteConfirm = true;

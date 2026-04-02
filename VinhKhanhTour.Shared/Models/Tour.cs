@@ -1,5 +1,6 @@
 using SQLite;
 using CommunityToolkit.Mvvm.ComponentModel;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace VinhKhanhTour.Shared.Models
 {
@@ -7,9 +8,18 @@ namespace VinhKhanhTour.Shared.Models
     {
         [PrimaryKey, AutoIncrement]
         public int Id { get; set; }
-        public string Name { get; set; } = string.Empty;
+        public string TourName { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public string ImageUrl { get; set; } = string.Empty;
+
+        // Thông tin lộ trình
+        public string StartPoint { get; set; } = string.Empty;
+        public string EndPoint { get; set; } = string.Empty;
+        public double TotalDistance { get; set; } // Quãng đường (km)
+
+        // Navigation Property — EF Core sử dụng, SQLite bỏ qua
+        [SQLite.Ignore]
+        public List<TourStop> Stops { get; set; } = new();
     }
 
     public class TourStop
@@ -19,6 +29,14 @@ namespace VinhKhanhTour.Shared.Models
         [Indexed]
         public int TourId { get; set; }
         public int PoiId { get; set; }
+        public string PoiName { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
         public int OrderIndex { get; set; }
+
+        // Navigation Property
+        [SQLite.Ignore]
+        public Tour? Tour { get; set; }
     }
 }
