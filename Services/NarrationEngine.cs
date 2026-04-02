@@ -160,19 +160,6 @@ namespace VinhKhanhTour.Services
                 catch (Exception ex)
                 {
                     Debug.WriteLine($"[NarrationEngine] ❌ Lỗi ghi SQLite: {ex.GetType().Name} - {ex.Message}");
-                    // Hiện thông báo lỗi ngay trên App
-                    MainThread.BeginInvokeOnMainThread(async () => 
-                    {
-                        try
-                        {
-                            if (Application.Current?.Windows?.FirstOrDefault()?.Page != null)
-                            {
-                                await Application.Current.Windows.First().Page!.DisplayAlert(
-                                    "Lỗi", $"Không thể ghi lịch sử: {ex.Message}", "OK");
-                            }
-                        }
-                        catch { }
-                    });
                 }
 
                 // Chặn luồng (block) cho đến khi đọc TTS hoàn tất

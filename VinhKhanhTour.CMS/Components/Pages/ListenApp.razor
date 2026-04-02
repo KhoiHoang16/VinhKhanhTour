@@ -531,6 +531,26 @@
         hasInteracted = true;
         await JSRuntime.InvokeVoidAsync("updateDomState", true);
         await JSRuntime.InvokeVoidAsync("doPlayAudio");
+
+        // Ghi nhận lượt quét QR Code vào CMS database
+        if (poi != null)
+        {
+            try
+            {
+                await PoiRepository.RecordUsageAsync(new UsageHistory
+                {
+                    PoiId = poi.Id,
+                    ListenDurationSeconds = 0,
+                    IsQrTriggered = true,
+                    Timestamp = DateTime.UtcNow,
+                    DeviceId = "WebApp_QR"
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ListenApp] Lỗi ghi nhận QR usage: {ex.Message}");
+            }
+        }
     }
 
     private string GetPoiName() => currentLang switch {
