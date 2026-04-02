@@ -12,6 +12,7 @@ namespace VinhKhanhTour.CMS.Data
         public DbSet<TourStop> TourStops { get; set; }
         public DbSet<UsageHistory> UsageHistories { get; set; }
         public DbSet<UserRoute> UserRoutes { get; set; }
+        public DbSet<AppAuditLog> AppAuditLogs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -47,6 +48,9 @@ namespace VinhKhanhTour.CMS.Data
 
             modelBuilder.Entity<UserRoute>().HasKey(ur => ur.Id);
             modelBuilder.Entity<UserRoute>().Property(ur => ur.Id).ValueGeneratedOnAdd();
+
+            modelBuilder.Entity<AppAuditLog>().HasKey(al => al.Id);
+            modelBuilder.Entity<AppAuditLog>().Property(al => al.Id).ValueGeneratedOnAdd();
         }
     }
 }

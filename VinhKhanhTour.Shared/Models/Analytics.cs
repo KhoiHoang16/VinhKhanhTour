@@ -25,4 +25,14 @@ namespace VinhKhanhTour.Shared.Models
         public string RouteDataJson { get; set; } = string.Empty; 
         public DateTime Timestamp { get; set; } = DateTime.UtcNow;
     }
+
+    public class AppAuditLog
+    {
+        [PrimaryKey, AutoIncrement]
+        public int Id { get; set; }
+        public string UserId { get; set; } = string.Empty; // DeviceId or Admin Username
+        public string Action { get; set; } = string.Empty; // e.g. "UserLogin", "DataSync", "DataUpdate"
+        public string Details { get; set; } = string.Empty; // JSON details or additional text
+        public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+    }
 }
