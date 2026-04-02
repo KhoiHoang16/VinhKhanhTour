@@ -61,6 +61,29 @@ namespace VinhKhanhTour.Services
 
                     Debug.WriteLine($"[Sync] Successfully synchronized {serverPois.Count} POIs from the CMS.");
                 }
+
+                // 2. Sync (Push) Usage History to CMS
+                var localHistories = await _poiRepo.GetUsageHistoryAsync();
+                if (localHistories != null && localHistories.Any())
+                {
+                    var response = await _httpClient.PostAsJsonAsync("/api/analytics/sync-usage", localHistories);
+                    if (response.IsSuccessStatusCode)
+                    {
+                        // Clean up local after success
+                        await _poiRepo.DeleteUsageHistoriesAsync(localHistories);
+                        
+                        // Optional: Record via audit log
+                        var auditLog = new AppAuditLogDto
+                        {
+                            UserId = Microsoft.Maui.Devices.DeviceInfo.Current.Idiom.ToString() + "_" + Guid.NewGuid().ToString().Substring(0, 4),
+                            Action = "DataSync",
+                            Details = $"Pushed {localHistories.Count} usage history records."
+                        };
+                        await _httpClient.PostAsJsonAsync("/api/analytics/audit-logs", auditLog);
+                        
+                        Debug.WriteLine($"[Sync] Successfully pushed {localHistories.Count} Usage History items to CMS and cleared local cache.");
+                    }
+                }
             }
             catch (Exception ex)
             {

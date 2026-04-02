@@ -289,5 +289,24 @@ namespace VinhKhanhTour.Shared.Data
             }
             return 0;
         }
+
+        public async Task<int> DeleteUsageHistoriesAsync(List<UsageHistory> histories)
+        {
+            try
+            {
+                await InitAsync();
+                int count = 0;
+                foreach (var history in histories)
+                {
+                    count += await _connection!.DeleteAsync(history);
+                }
+                return count;
+            }
+            catch (Exception ex)
+            {
+                _errorHandler.HandleError(ex);
+            }
+            return 0;
+        }
     }
 }

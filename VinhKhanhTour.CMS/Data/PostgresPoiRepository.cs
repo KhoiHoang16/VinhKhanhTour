@@ -88,5 +88,11 @@ namespace VinhKhanhTour.CMS.Data
             _context.UsageHistories.Add(history);
             return await _context.SaveChangesAsync();
         }
+
+        public async Task<int> DeleteUsageHistoriesAsync(List<UsageHistory> histories)
+        {
+            _context.UsageHistories.RemoveRange(histories);
+            return await _context.SaveChangesAsync();
+        }
     }
 }

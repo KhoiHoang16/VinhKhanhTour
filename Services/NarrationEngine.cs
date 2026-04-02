@@ -11,10 +11,15 @@ namespace VinhKhanhTour.Services
         // Cấu hình chống spam (Debounce / Cooldown)
         // Không đọc lại cùng 1 điểm nếu chưa trôi qua 2 phút
         private readonly TimeSpan _cooldown = TimeSpan.FromMinutes(2);
-
+        private readonly VinhKhanhTour.Shared.Data.IPoiRepository _poiRepository;
         private CancellationTokenSource? _ttsCts;
 
-        public async Task PlayPoiNarrationAsync(Poi poi, bool isManual = false)
+        public NarrationEngine(VinhKhanhTour.Shared.Data.IPoiRepository poiRepository)
+        {
+            _poiRepository = poiRepository;
+        }
+
+        public async Task PlayPoiNarrationAsync(Poi poi, bool isManual = false, bool isQrTriggered = false)
         {
             // Logic chống spam đọc đè liên tục (bỏ qua nếu là click thủ công)
             if (!isManual && poi.Id == _lastPlayedPoiId && DateTime.Now - _lastPlayedTime < _cooldown)
@@ -121,6 +126,23 @@ namespace VinhKhanhTour.Services
 
                 await TextToSpeech.Default.SpeakAsync(poi.DisplayTtsScript, options, cancelToken: _ttsCts.Token);
                 
+                // Thu thập Lịch sử sử dụng ghi nhận vào DB cục bộ
+                try 
+                {
+                    await _poiRepository.RecordUsageAsync(new VinhKhanhTour.Shared.Models.UsageHistory 
+                    {
+                        PoiId = poi.Id,
+                        ListenDurationSeconds = 10, // Giả lập độ dài nghe (Có thể lấy từ AudioLength nếu có)
+                        IsQrTriggered = isQrTriggered,
+                        Timestamp = DateTime.UtcNow,
+                        DeviceId = Microsoft.Maui.Devices.DeviceInfo.Current.Idiom.ToString() + "_" + Guid.NewGuid().ToString().Substring(0, 4)
+                    });
+                } 
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[NarrationEngine] Lỗi ghi nhận lịch sử: {ex.Message}");
+                }
+
                 Debug.WriteLine($"[NarrationEngine] Đã đọc xong kịch bản ({currentCode}): {poi.Name}");
             }
             catch (TaskCanceledException)

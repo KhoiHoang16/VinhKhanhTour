@@ -22,5 +22,6 @@ namespace VinhKhanhTour.Shared.Data
         // Usage History
         Task<List<UsageHistory>> GetUsageHistoryAsync();
         Task<int> RecordUsageAsync(UsageHistory history);
+        Task<int> DeleteUsageHistoriesAsync(List<UsageHistory> histories);
     }
 }
