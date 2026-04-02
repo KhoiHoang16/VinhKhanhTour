@@ -12,11 +12,13 @@ namespace VinhKhanhTour.Services
         // Không đọc lại cùng 1 điểm nếu chưa trôi qua 2 phút
         private readonly TimeSpan _cooldown = TimeSpan.FromMinutes(2);
         private readonly VinhKhanhTour.Shared.Data.IPoiRepository _poiRepository;
+        private readonly VinhKhanhTour.Services.ApiService _apiService;
         private CancellationTokenSource? _ttsCts;
 
-        public NarrationEngine(VinhKhanhTour.Shared.Data.IPoiRepository poiRepository)
+        public NarrationEngine(VinhKhanhTour.Shared.Data.IPoiRepository poiRepository, VinhKhanhTour.Services.ApiService apiService)
         {
             _poiRepository = poiRepository;
+            _apiService = apiService;
         }
 
         public async Task PlayPoiNarrationAsync(Poi poi, bool isManual = false, bool isQrTriggered = false)
@@ -136,6 +138,16 @@ namespace VinhKhanhTour.Services
                         IsQrTriggered = isQrTriggered,
                         Timestamp = DateTime.UtcNow,
                         DeviceId = Microsoft.Maui.Devices.DeviceInfo.Current.Idiom.ToString() + "_" + Guid.NewGuid().ToString().Substring(0, 4)
+                    });
+                    
+                    // Fire-and-forget logic để lập tức gọi đẩy API luôn, không đợi lần mở app sau
+                    _ = Task.Run(async () => 
+                    {
+                        try 
+                        {
+                            await _apiService.SyncDatabaseAsync();
+                        }
+                        catch { }
                     });
                 } 
                 catch (Exception ex)

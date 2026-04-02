@@ -14,7 +14,7 @@ namespace VinhKhanhTour.Services
         {
             _poiRepo = poiRepo;
             
-            // Production: Use the deployed Render URL
+            // Dùng trực tiếp Server Render để bạn test luôn nhé
             string baseUrl = "https://vinhkhanhtour.onrender.com";
 
             _httpClient = new HttpClient
