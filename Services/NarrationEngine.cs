@@ -127,30 +127,52 @@ namespace VinhKhanhTour.Services
                 }
 
                 // Thu thập Lịch sử sử dụng ghi nhận vào DB cục bộ NGAY LẬP TỨC (Không đợi đọc xong)
+                Debug.WriteLine($"[NarrationEngine] === BẮT ĐẦU GHI USAGE === POI={poi.Id}, QR={isQrTriggered}");
                 try 
                 {
-                    await _poiRepository.RecordUsageAsync(new VinhKhanhTour.Shared.Models.UsageHistory 
+                    var usageRecord = new VinhKhanhTour.Shared.Models.UsageHistory 
                     {
                         PoiId = poi.Id,
-                        ListenDurationSeconds = 10, // Giả lập độ dài nghe (Có thể lấy từ AudioLength nếu có)
+                        ListenDurationSeconds = 10,
                         IsQrTriggered = isQrTriggered,
                         Timestamp = DateTime.UtcNow,
                         DeviceId = Microsoft.Maui.Devices.DeviceInfo.Current.Idiom.ToString() + "_" + Guid.NewGuid().ToString().Substring(0, 4)
-                    });
+                    };
+
+                    var result = await _poiRepository.RecordUsageAsync(usageRecord);
+                    Debug.WriteLine($"[NarrationEngine] ✅ Đã ghi vào SQLite! Result={result}, POI={poi.Id}, QR={isQrTriggered}");
                     
-                    // Fire-and-forget logic để lập tức gọi đẩy API luôn, không đợi lần mở app sau
+                    // Đẩy lên CMS ngay lập tức (chạy ngầm, không block TTS)
                     _ = Task.Run(async () => 
                     {
                         try 
                         {
+                            Debug.WriteLine("[NarrationEngine] 🚀 Bắt đầu đẩy Analytics lên CMS...");
                             await _apiService.SyncAnalyticsAsync();
+                            Debug.WriteLine("[NarrationEngine] ✅ Đẩy Analytics hoàn tất!");
                         }
-                        catch { }
+                        catch (Exception syncEx)
+                        {
+                            Debug.WriteLine($"[NarrationEngine] ❌ Lỗi đẩy CMS: {syncEx.GetType().Name} - {syncEx.Message}");
+                        }
                     });
                 } 
                 catch (Exception ex)
                 {
-                    Debug.WriteLine($"[NarrationEngine] Lỗi ghi nhận lịch sử: {ex.Message}");
+                    Debug.WriteLine($"[NarrationEngine] ❌ Lỗi ghi SQLite: {ex.GetType().Name} - {ex.Message}");
+                    // Hiện thông báo lỗi ngay trên App
+                    MainThread.BeginInvokeOnMainThread(async () => 
+                    {
+                        try
+                        {
+                            if (Application.Current?.Windows?.FirstOrDefault()?.Page != null)
+                            {
+                                await Application.Current.Windows.First().Page!.DisplayAlert(
+                                    "Lỗi", $"Không thể ghi lịch sử: {ex.Message}", "OK");
+                            }
+                        }
+                        catch { }
+                    });
                 }
 
                 // Chặn luồng (block) cho đến khi đọc TTS hoàn tất
