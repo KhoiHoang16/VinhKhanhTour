@@ -8,6 +8,8 @@ namespace VinhKhanhTour.Shared.Models
         public int TotalUsers { get; set; }
         public int ActiveDevices { get; set; }
         public int TotalSyncs { get; set; }
+        public int TotalListens { get; set; }
+        public int TotalQrScans { get; set; }
     }
 
     public class AuditLogFilterDto

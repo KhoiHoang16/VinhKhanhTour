@@ -43,11 +43,17 @@ namespace VinhKhanhTour.CMS.Services
             // Let's count "DataSync" actions.
             var totalSyncs = await _dbContext.AppAuditLogs.CountAsync(log => log.Action == "DataSync");
 
+            // 4. Detailed History Separations (Listens vs QR)
+            var totalListens = await _dbContext.UsageHistories.CountAsync(x => x.IsQrTriggered == false);
+            var totalQrScans = await _dbContext.UsageHistories.CountAsync(x => x.IsQrTriggered == true);
+
             return new DashboardOverviewDto
             {
                 TotalUsers = totalUsers,
                 ActiveDevices = activeDevices,
-                TotalSyncs = totalSyncs
+                TotalSyncs = totalSyncs,
+                TotalListens = totalListens,
+                TotalQrScans = totalQrScans
             };
         }
 
