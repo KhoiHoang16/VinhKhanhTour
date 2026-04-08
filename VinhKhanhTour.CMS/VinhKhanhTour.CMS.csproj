@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <ItemGroup>
     <ProjectReference Include="..\VinhKhanhTour.Shared\VinhKhanhTour.Shared.csproj" />
@@ -19,6 +19,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
     <UserSecretsId>33cbbac1-a49e-4dd1-9fbb-e03cab12caae</UserSecretsId>
+    <ServerGarbageCollection>false</ServerGarbageCollection>
   </PropertyGroup>
 
 </Project>

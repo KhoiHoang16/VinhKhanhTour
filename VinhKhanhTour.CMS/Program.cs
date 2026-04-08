@@ -7,6 +7,10 @@ using VinhKhanhTour.Shared.Services;
 using Microsoft.EntityFrameworkCore;
 using VinhKhanhTour.CMS.Data;
 
+// Workaround for SIGSEGV 139 on Render/Linux during file watching
+Environment.SetEnvironmentVariable("DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE", "false");
+Environment.SetEnvironmentVariable("DOTNET_USE_POLLING_FILE_WATCHER", "true");
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Ensure it listens to Render's PORT environment variable
