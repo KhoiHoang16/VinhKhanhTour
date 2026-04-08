@@ -8,6 +8,13 @@ using VinhKhanhTour.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Ensure it listens to Render's PORT environment variable
+var port = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrEmpty(port))
+{
+    builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+}
+
 // Add CORS
 builder.Services.AddCors(options =>
 {
@@ -35,7 +42,16 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-app.UseHttpsRedirection();
+var isRender = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RENDER"));
+if (!isRender)
+{
+    app.UseHttpsRedirection();
+}
+
+app.UseForwardedHeaders(new Microsoft.AspNetCore.Builder.ForwardedHeadersOptions
+{
+    ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto
+});
 
 // Map Poi Endpoints
 var poiApi = app.MapGroup("/api/poi");
