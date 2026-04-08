@@ -3,6 +3,7 @@
 @using VinhKhanhTour.CMS.Services
 @inject AnalyticsService AnalyticsService
 @inject PoiService PoiService
+@inject IJSRuntime JSRuntime
 
 <PageTitle>Phân tích Dữ liệu - VinhKhanh Tour</PageTitle>
 
@@ -121,33 +122,10 @@
         </div>
 
         <!-- Heatmap -->
-        <div class="poi-card" style="margin-bottom: 1.5rem;">
-            <h3 style="margin-top: 0; margin-bottom: 1rem; font-weight: 700; font-size: 1.05rem;">🗺️ Heatmap Vị Trí Người Dùng</h3>
-            <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1rem;">Phân bố vị trí người dùng khi nghe nội dung (khu vực Vĩnh Khánh)</p>
-            @if (history.Count == 0)
-            {
-                <p style="color: var(--text-secondary); text-align: center; padding: 2rem;">Chưa có dữ liệu vị trí.</p>
-            }
-            else
-            {
-                <div class="heatmap-grid">
-                    @foreach (var cell in heatmapCells)
-                    {
-                        <div class="heatmap-cell" style="background: @GetHeatColor(cell);" title="@cell lượt truy cập"></div>
-                    }
-                </div>
-                <div style="display: flex; justify-content: space-between; margin-top: 0.75rem; font-size: 0.75rem; color: var(--text-secondary);">
-                    <span>Ít truy cập</span>
-                    <div style="display: flex; gap: 3px; align-items: center;">
-                        <div style="width: 14px; height: 10px; border-radius: 2px; background: rgba(249,115,22,0.05);"></div>
-                        <div style="width: 14px; height: 10px; border-radius: 2px; background: rgba(249,115,22,0.2);"></div>
-                        <div style="width: 14px; height: 10px; border-radius: 2px; background: rgba(249,115,22,0.4);"></div>
-                        <div style="width: 14px; height: 10px; border-radius: 2px; background: rgba(249,115,22,0.65);"></div>
-                        <div style="width: 14px; height: 10px; border-radius: 2px; background: rgba(249,115,22,0.9);"></div>
-                    </div>
-                    <span>Nhiều truy cập</span>
-                </div>
-            }
+        <div class="poi-card" style="margin-bottom: 1.5rem; height: 500px; padding: 1rem; display: flex; flex-direction: column;">
+            <h3 style="margin-top: 0; margin-bottom: 0.5rem; font-weight: 700; font-size: 1.05rem;">🗺️ Heatmap Vị Trí Người Dùng</h3>
+            <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1rem;">Phân bố vị trí người dùng (khu vực Vĩnh Khánh) - Dữ liệu Mẫu</p>
+            <div id="heatmap-container" style="flex: 1; min-height: 350px; border-radius: 8px; overflow: hidden;"></div>
         </div>
 
         <!-- Recent Activity Preview -->
@@ -193,18 +171,32 @@
     private bool isLoading = true;
     private List<UsageHistory> history = new();
     private Dictionary<int, string> poiDict = new();
+    private Dictionary<int, Poi> poiFullData = new();
     private List<RankData> topPois = new();
     private List<AvgTimeData> avgTimePois = new();
-    private int[] heatmapCells = new int[200]; // 20x10 grid
     private string avgListenTimeText = "0";
     private int qrCount = 0;
     private int gpsCount = 0;
     private double qrPercent = 0;
     private double gpsPercent = 0;
+    private bool mapInitialized = false;
 
     protected override async Task OnInitializedAsync()
     {
         await LoadData();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender || (!isLoading && !mapInitialized))
+        {
+            if (!isLoading)
+            {
+                var pointsStr = System.Text.Json.JsonSerializer.Serialize(GetHeatmapPoints());
+                await JSRuntime.InvokeVoidAsync("heatmapInterop.initHeatmap", "heatmap-container", pointsStr);
+                mapInitialized = true;
+            }
+        }
     }
 
     private async Task LoadData()
@@ -214,6 +206,7 @@
         
         var pois = await PoiService.GetPoisAsync();
         poiDict = pois.ToDictionary(p => p.Id, p => p.Name);
+        poiFullData = pois.ToDictionary(p => p.Id, p => p);
 
         if (history.Any())
         {
@@ -252,53 +245,54 @@
             var total = Math.Max(1, history.Count);
             qrPercent = (double)qrCount * 100 / total;
             gpsPercent = (double)gpsCount * 100 / total;
-
-            // Heatmap - map lat/lng to grid cells
-            BuildHeatmap();
         }
         else
         {
             topPois = new List<RankData>();
             avgTimePois = new List<AvgTimeData>();
-            heatmapCells = new int[200];
         }
 
         isLoading = false;
     }
-
-    private void BuildHeatmap()
+    private object[] GetHeatmapPoints()
     {
-        heatmapCells = new int[200];
-        if (!history.Any()) return;
+        if (history == null || !history.Any())
+        {
+            return Array.Empty<object>();
+        }
 
-        double minLat = history.Min(h => h.UserLatitude);
-        double maxLat = history.Max(h => h.UserLatitude);
-        double minLng = history.Min(h => h.UserLongitude);
-        double maxLng = history.Max(h => h.UserLongitude);
-
-        double latRange = Math.Max(maxLat - minLat, 0.001);
-        double lngRange = Math.Max(maxLng - minLng, 0.001);
-
+        var heatPoints = new List<object>();
+        
+        // Tạo PoiDict Full để tra cứu tọa độ
+        // (poiDict hiện tại chỉ lưu Name, ta dựa vào original pois list)
+        
         foreach (var h in history)
         {
-            int col = Math.Clamp((int)((h.UserLongitude - minLng) / lngRange * 19), 0, 19);
-            int row = Math.Clamp((int)((h.UserLatitude - minLat) / latRange * 9), 0, 9);
-            heatmapCells[row * 20 + col]++;
-        }
-    }
+            double lat = h.UserLatitude;
+            double lng = h.UserLongitude;
 
-    private string GetHeatColor(int value)
-    {
-        if (value == 0) return "rgba(249, 115, 22, 0.03)";
-        int maxVal = heatmapCells.Max();
-        if (maxVal == 0) return "rgba(249, 115, 22, 0.03)";
-        double ratio = (double)value / maxVal;
-        double alpha = 0.08 + ratio * 0.85;
-        return $"rgba(249, 115, 22, {alpha.ToString("F2")})";
+            // Nếu DB ghi nhận 0,0 (như QR code không có GPS), 
+            // lấy tọa độ của điểm tham quan (POI) tương ứng làm điểm phát sinh
+            if ((lat == 0 || lng == 0) && poiFullData.TryGetValue(h.PoiId, out var poi))
+            {
+                lat = poi.Latitude;
+                lng = poi.Longitude;
+            }
+
+            if (lat != 0 && lng != 0)
+            {
+                // Thêm noise nhỏ gọn để heatmap mượt hơn nếu các lượt checkin chụm lại 1 điểm
+                // (optional: cộng trừ 0.0001 random offset)
+                heatPoints.Add(new double[] { lat, lng, 0.6 });
+            }
+        }
+
+        return heatPoints.ToArray();
     }
 
     private async Task GenerateMock()
     {
+        mapInitialized = false;
         await AnalyticsService.GenerateMockDataAsync();
         await LoadData();
     }

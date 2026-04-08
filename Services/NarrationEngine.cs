@@ -130,13 +130,18 @@ namespace VinhKhanhTour.Services
                 Debug.WriteLine($"[NarrationEngine] === BẮT ĐẦU GHI USAGE === POI={poi.Id}, QR={isQrTriggered}");
                 try 
                 {
+                    // Lấy vị trí GPS cuối cùng đã biết để ghi đính kèm lịch sử
+                    var location = await Microsoft.Maui.Devices.Sensors.Geolocation.Default.GetLastKnownLocationAsync();
+
                     var usageRecord = new VinhKhanhTour.Shared.Models.UsageHistory 
                     {
                         PoiId = poi.Id,
                         ListenDurationSeconds = 10,
                         IsQrTriggered = isQrTriggered,
                         Timestamp = DateTime.UtcNow,
-                        DeviceId = Microsoft.Maui.Devices.DeviceInfo.Current.Idiom.ToString() + "_" + Guid.NewGuid().ToString().Substring(0, 4)
+                        DeviceId = Microsoft.Maui.Devices.DeviceInfo.Current.Idiom.ToString() + "_" + Guid.NewGuid().ToString().Substring(0, 4),
+                        UserLatitude = location?.Latitude ?? 0,
+                        UserLongitude = location?.Longitude ?? 0
                     };
 
                     var result = await _poiRepository.RecordUsageAsync(usageRecord);

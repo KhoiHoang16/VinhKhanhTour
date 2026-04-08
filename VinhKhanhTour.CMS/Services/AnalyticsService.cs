@@ -18,7 +18,10 @@ namespace VinhKhanhTour.CMS.Services
         public async Task GenerateMockDataAsync()
         {
             var existing = await GetUsageHistoryAsync();
-            if (existing.Count > 0) return;
+            if (existing.Count > 0)
+            {
+                await _repo.DeleteUsageHistoriesAsync(existing);
+            }
 
             var random = new Random();
             for (int i = 0; i < 50; i++)
@@ -30,8 +33,10 @@ namespace VinhKhanhTour.CMS.Services
                     ListenDurationSeconds = random.Next(10, 180),
                     IsQrTriggered = random.Next(10) > 7,
                     Timestamp = DateTime.UtcNow.AddHours(-random.Next(1, 168)),
-                    UserLatitude = 10.76 + (random.NextDouble() * 0.01),
-                    UserLongitude = 106.70 + (random.NextDouble() * 0.01)
+                    // Tọa độ bám sát Vĩnh Khánh (10.7615, 106.7022) 
+                    // Độ lệch nhỏ (.0015 đến .002) để dữ liệu tập trung thành dải thay vì rải rác rộng
+                    UserLatitude = 10.761 + (random.NextDouble() * 0.0015),
+                    UserLongitude = 106.7015 + (random.NextDouble() * 0.0018)
                 });
             }
         }

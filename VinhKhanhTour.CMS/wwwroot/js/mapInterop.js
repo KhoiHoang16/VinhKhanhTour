@@ -269,3 +269,82 @@ window.tourMapInterop = {
         }
     }
 };
+
+// ===== HEATMAP (new) =====
+window.heatmapInterop = {
+    map: null,
+    heatLayer: null,
+    
+    initHeatmap: function (elementId, dataPoints) {
+        // Cleanup old map if exists
+        if (this.map !== null) {
+            this.map.off();
+            this.map.remove();
+            this.map = null;
+        }
+
+        // Initialize map with Light (Positron) theme
+        var tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+            subdomains: 'abcd',
+            maxZoom: 20
+        });
+
+        // Tọa độ Vĩnh Khánh: 10.7615, 106.7022
+        this.map = L.map(elementId).setView([10.7615, 106.7022], 16);
+        tileLayer.addTo(this.map);
+
+        // If no data points provided, use sample data
+        var points = dataPoints;
+        if (!points || points.length === 0) {
+            points = [
+                [10.7615, 106.7022, 1.0], [10.7616, 106.7023, 0.8], [10.7614, 106.7021, 0.9],
+                [10.7612, 106.7020, 0.6], [10.7610, 106.7018, 0.5], [10.7617, 106.7025, 0.7],
+                [10.7620, 106.7028, 0.6], [10.7618, 106.7024, 0.8], [10.7615, 106.7019, 0.5],
+                [10.7613, 106.7022, 0.9], [10.7611, 106.7023, 0.4], [10.7616, 106.7020, 0.7]
+            ];
+        } else {
+             // Parse JSON array if it's sent as string from Blazor
+            if (typeof points === 'string') {
+                points = JSON.parse(points);
+            }
+        }
+
+        // Add heatLayer with orange color scheme
+        this.heatLayer = L.heatLayer(points, {
+            radius: 25,
+            blur: 15,
+            maxZoom: 17,
+            gradient: {
+                0.4: 'yellow',
+                0.7: 'orange',
+                1.0: '#FF7A00'  // Custom orange hex
+            }
+        }).addTo(this.map);
+
+        var self = this;
+        setTimeout(function() {
+            if (self.map) self.map.invalidateSize();
+        }, 100);
+    },
+
+    updateHeatmap: function(dataPoints) {
+        if (!this.heatLayer) return;
+        
+        var points = dataPoints;
+        if (typeof points === 'string') {
+            points = JSON.parse(points);
+        }
+        
+        // Cập nhật lại mảng toạ độ mới cho lớp điểm nhiệt
+        this.heatLayer.setLatLngs(points);
+    },
+
+    dispose: function () {
+        if (this.map) {
+            this.map.off();
+            this.map.remove();
+            this.map = null;
+        }
+    }
+};
