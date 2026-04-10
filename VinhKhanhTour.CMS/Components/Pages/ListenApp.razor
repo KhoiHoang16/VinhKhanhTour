@@ -1,9 +1,10 @@
 @page "/listen/{Id:int}"
 @attribute [AllowAnonymous]
 @layout VinhKhanhTour.CMS.Components.Layout.EmptyLayout
-@using VinhKhanhTour.Shared.Data
 @using VinhKhanhTour.Shared.Models
-@inject IPoiRepository PoiRepository
+@using VinhKhanhTour.CMS.Data
+@using Microsoft.EntityFrameworkCore
+@inject CmsDbContext DbContext
 @inject IJSRuntime JSRuntime
 
 <PageTitle>@(GetPoiName()) - VinhKhanh Tour Audio</PageTitle>
@@ -489,8 +490,11 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var allPois = await PoiRepository.GetAllPoisAsync();
-        poi = allPois.FirstOrDefault(p => p.Id == Id);
+        // IgnoreQueryFilters() bỏ qua Agency filter để anonymous user (quét QR) có thể xem POI
+        poi = await DbContext.Pois
+            .IgnoreQueryFilters()
+            .Where(p => !p.IsDeleted && p.Id == Id)
+            .FirstOrDefaultAsync();
         isLoading = false;
     }
 
@@ -537,14 +541,16 @@
         {
             try
             {
-                await PoiRepository.RecordUsageAsync(new UsageHistory
+                DbContext.UsageHistories.Add(new UsageHistory
                 {
                     PoiId = poi.Id,
+                    AgencyId = poi.AgencyId,
                     ListenDurationSeconds = 0,
                     IsQrTriggered = true,
                     Timestamp = DateTime.UtcNow,
                     DeviceId = "WebApp_QR"
                 });
+                await DbContext.SaveChangesAsync();
             }
             catch (Exception ex)
             {
