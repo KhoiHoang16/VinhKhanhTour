@@ -1,0 +1,147 @@
+@page "/users"
+@attribute [Authorize(Roles = "Admin")]
+@using VinhKhanhTour.Shared.Models
+@using VinhKhanhTour.CMS.Data
+@using Microsoft.EntityFrameworkCore
+@inject CmsDbContext DbContext
+
+<PageTitle>Quản lý tài khoản Chủ Quán</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-4 mt-2">
+    <h3>Tài khoản Chủ quán</h3>
+    <button class="btn btn-outline-primary" @onclick="LoadUsers">
+        🔄 Làm mới
+    </button>
+</div>
+
+@if (users == null)
+{
+    <div class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Đang tải...</span>
+        </div>
+        <p class="mt-2 text-muted">Đang tải danh sách tài khoản...</p>
+    </div>
+}
+else if (!users.Any())
+{
+    <div class="alert alert-info">
+        Chưa có tài khoản chủ quán nào trong hệ thống.
+    </div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle custom-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Họ & Tên</th>
+                    <th>Tên đăng nhập / SĐT</th>
+                    <th>Email</th>
+                    <th>Ngày đăng ký</th>
+                    <th>Trạng thái</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in users)
+                {
+                    <tr>
+                        <td><strong>#@user.Id</strong></td>
+                        <td>@user.FullName</td>
+                        <td>
+                            <div>@user.Username</div>
+                            @if (!string.IsNullOrEmpty(user.PhoneNumber) && user.PhoneNumber != user.Username)
+                            {
+                                <small class="text-muted">@user.PhoneNumber</small>
+                            }
+                        </td>
+                        <td>@user.Email</td>
+                        <td>@user.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>
+                            @if (user.ForcePasswordChange)
+                            {
+                                <span class="badge bg-warning text-dark">Chưa đổi mật khẩu</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-success">Đang hoạt động</span>
+                            }
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-warning" @onclick="() => ResetPassword(user)" title="Reset mật khẩu về 123">
+                                🔑 Reset Pass
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+<style>
+    .custom-table {
+        background-color: #1e1e24;
+        border-radius: 8px;
+        overflow: hidden;
+        color: #e4e4e7;
+    }
+    .custom-table th {
+        background-color: #27272a;
+        color: #a1a1aa;
+        border-bottom: 1px solid #3f3f46;
+        padding: 12px 16px;
+        font-weight: 600;
+    }
+    .custom-table td {
+        padding: 12px 16px;
+        border-bottom: 1px solid #27272a;
+        background-color: #1e1e24;
+        color: #e4e4e7;
+    }
+    .custom-table tbody tr:hover td {
+        background-color: #27272a;
+    }
+    .badge {
+        font-weight: 500;
+        padding: 6px 10px;
+        border-radius: 4px;
+    }
+</style>
+
+@code {
+    private List<AppUser>? users;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUsers();
+    }
+
+    private async Task LoadUsers()
+    {
+        users = null;
+        StateHasChanged();
+
+        // Get users that are basically 'owner'
+        users = await DbContext.AppUsers
+            .Where(u => u.Role != "Admin")
+            .OrderByDescending(u => u.CreatedAt)
+            .ToListAsync();
+            
+        StateHasChanged();
+    }
+
+    private async Task ResetPassword(AppUser user)
+    {
+        // Simple client side reset for admin
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword("123");
+        user.ForcePasswordChange = true;
+        
+        DbContext.AppUsers.Update(user);
+        await DbContext.SaveChangesAsync();
+        
+        await LoadUsers();
+    }
+}

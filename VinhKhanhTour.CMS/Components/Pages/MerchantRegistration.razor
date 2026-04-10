@@ -1,0 +1,290 @@
+@page "/register"
+@attribute [AllowAnonymous]
+@layout VinhKhanhTour.CMS.Components.Layout.EmptyLayout
+@using VinhKhanhTour.Shared.Models
+@using VinhKhanhTour.CMS.Data
+@using Microsoft.EntityFrameworkCore
+@inject NavigationManager NavigationManager
+@inject CmsDbContext DbContext
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+
+<PageTitle>Đăng ký Chủ Quán - VinhKhanhTour</PageTitle>
+
+<div class="register-container">
+    <div class="register-card">
+        <h2>Đăng Ký Thành Viên</h2>
+        <p class="subtitle">Đăng ký thông tin và tạo Điểm tham quan (POI) trên hệ thống VinhKhanhTour, thanh toán một lần (500,000 VND).</p>
+
+        @if (!string.IsNullOrEmpty(ErrorMessage))
+        {
+            <div class="alert alert-danger" style="font-size: 0.9rem;">
+                🚨 @ErrorMessage
+            </div>
+        }
+        @if (IsSuccess)
+        {
+            <div class="alert alert-success" style="font-size: 0.95rem;">
+                ✅ <strong>Đăng ký thành công!</strong><br />
+                Tài khoản của bạn:<br />
+                SĐT (Username): <strong>@RequestData.PhoneNumber</strong><br />
+                Mật khẩu: <strong>***</strong> (Mật khẩu bạn đã chọn)<br/>
+                <a href="/login" class="btn btn-sm btn-success mt-2">Đến trang Đăng Nhập</a>
+            </div>
+        }
+        else
+        {
+            <EditForm Model="@RequestData" OnValidSubmit="HandleRegistration">
+                <DataAnnotationsValidator />
+                
+                <div class="form-group">
+                    <label>Họ và Tên chủ quán</label>
+                    <InputText @bind-Value="RequestData.FullName" class="form-control" placeholder="VD: Nguyễn Văn A" />
+                    <ValidationMessage For="@(() => RequestData.FullName)" class="text-danger" />
+                </div>
+
+                <div class="form-group">
+                    <label>Số điện thoại (Sẽ dùng làm tên đăng nhập)</label>
+                    <InputText @bind-Value="RequestData.PhoneNumber" class="form-control" placeholder="VD: 0901234567" />
+                    <ValidationMessage For="@(() => RequestData.PhoneNumber)" class="text-danger" />
+                </div>
+
+                <div class="form-group">
+                    <label>Tên địa điểm / Quán (POI)</label>
+                    <InputText @bind-Value="RequestData.PoiName" class="form-control" placeholder="VD: Ốc Oanh" />
+                    <ValidationMessage For="@(() => RequestData.PoiName)" class="text-danger" />
+                </div>
+
+                <div class="form-group">
+                    <label>Địa chỉ</label>
+                    <InputText @bind-Value="RequestData.Address" class="form-control" placeholder="VD: 15 Vĩnh Khánh, Q4" />
+                    <ValidationMessage For="@(() => RequestData.Address)" class="text-danger" />
+                </div>
+
+                <div class="form-group">
+                    <label>Email (Không bắt buộc)</label>
+                    <InputText @bind-Value="RequestData.Email" class="form-control" placeholder="example@gmail.com" />
+                    <ValidationMessage For="@(() => RequestData.Email)" class="text-danger" />
+                </div>
+
+                <div class="form-group mb-4">
+                    <label>Mật khẩu</label>
+                    <InputText @bind-Value="RequestData.Password" type="password" class="form-control" placeholder="Nhập mật khẩu (tối thiểu 3 ký tự)" />
+                    <ValidationMessage For="@(() => RequestData.Password)" class="text-danger" />
+                </div>
+
+                <div class="info-payment mb-3 p-3 rounded" style="background-color: rgba(255, 165, 0, 0.1); border: 1px dashed #FFA500;">
+                    <strong style="color: #FFA500;">Thông tin khởi tạo:</strong><br/>
+                    Phí khởi tạo: <strong>500,000 VNĐ</strong><br/>
+                    <small>Trong bản demo nền tảng, thanh toán sẽ được giả lập tự động hoàn thành sau khi bạn ấn đăng ký.</small>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100" disabled="@IsSubmitting">
+                    @if (IsSubmitting)
+                    {
+                        <span>⏳ Đang xử lý...</span>
+                    }
+                    else
+                    {
+                        <span>💳 Xác nhận & Đăng ký</span>
+                    }
+                </button>
+            </EditForm>
+        }
+    </div>
+</div>
+
+<style>
+    body { 
+        background-color: #121212; 
+        color: white; 
+        margin: 0;
+    }
+    .register-container { 
+        min-height: 100vh; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+        background: url('/images/vinh_khanh_food_street_banner.jpg') no-repeat center center; 
+        background-size: cover; 
+        background-attachment: fixed;
+    }
+    .register-container::before {
+        content: "";
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.75);
+        z-index: 1;
+    }
+    .register-card { 
+        position: relative;
+        z-index: 2;
+        background: rgba(30, 30, 30, 0.85); 
+        padding: 40px; 
+        border-radius: 12px; 
+        width: 100%; 
+        max-width: 500px; 
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.8); 
+        backdrop-filter: blur(12px); 
+        border: 1px solid rgba(255,165,0,0.3);
+    }
+    .register-card::-webkit-scrollbar {
+        width: 6px;
+    }
+    .register-card::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .register-card::-webkit-scrollbar-thumb {
+        background: rgba(255, 165, 0, 0.5);
+        border-radius: 4px;
+    }
+    .register-card::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 165, 0, 0.8);
+    }
+    h2 { 
+        color: #FFA500; 
+        font-weight: 800; 
+        text-align: center; 
+        margin-bottom: 5px;
+    }
+    .subtitle { 
+        text-align: center; 
+        color: #ccc; 
+        margin-bottom: 20px; 
+        font-size: 0.9rem;
+    }
+    .form-group { 
+        margin-bottom: 15px; 
+    }
+    label { 
+        font-weight: 600; 
+        margin-bottom: 8px; 
+        color: #eee; 
+        font-size: 0.95rem;
+    }
+    .form-control { 
+        background-color: rgba(0,0,0,0.5); 
+        border: 1px solid #555; 
+        color: white; 
+        padding: 12px;
+    }
+    .form-control:focus { 
+        background-color: rgba(0,0,0,0.8); 
+        border-color: #FFA500; 
+        color: white; 
+        box-shadow: 0 0 0 0.25rem rgba(255, 165, 0, 0.25); 
+    }
+    .btn-primary { 
+        background-color: #FFA500; 
+        border: none; 
+        font-weight: bold; 
+        padding: 12px; 
+        font-size: 1.1rem;
+        transition: background-color 0.2s;
+    }
+    .btn-primary:hover { 
+        background-color: #e69500; 
+    }
+    .text-danger {
+        font-size: 0.85rem;
+        display: block;
+        margin-top: 5px;
+    }
+</style>
+
+@code {
+    private MerchantRegistrationRequest RequestData { get; set; } = new MerchantRegistrationRequest();
+    private bool IsSubmitting = false;
+    private bool IsSuccess = false;
+    private string? ErrorMessage { get; set; }
+
+    private async Task HandleRegistration()
+    {
+        IsSubmitting = true;
+        ErrorMessage = null;
+
+        try
+        {
+            var existingUser = await DbContext.AppUsers
+                .FirstOrDefaultAsync(u => u.PhoneNumber == RequestData.PhoneNumber || u.Username == RequestData.PhoneNumber);
+            
+            if (existingUser != null)
+            {
+                ErrorMessage = "Số điện thoại đã được đăng ký.";
+                IsSubmitting = false;
+                return;
+            }
+
+            using var transaction = await DbContext.Database.BeginTransactionAsync();
+            try
+            {
+                var maxAgencyIdUser = await DbContext.AppUsers.MaxAsync(u => (int?)u.AgencyId) ?? 0;
+                var maxAgencyIdPoi = await DbContext.Pois.IgnoreQueryFilters().MaxAsync(p => (int?)p.AgencyId) ?? 0;
+                var maxAgencyIdTour= await DbContext.Tours.IgnoreQueryFilters().MaxAsync(t => (int?)t.AgencyId) ?? 0;
+                var maxAgencyIdHistory= await DbContext.UsageHistories.IgnoreQueryFilters().MaxAsync(t => (int?)t.AgencyId) ?? 0;
+                
+                int newAgencyId = Math.Max(maxAgencyIdUser, Math.Max(maxAgencyIdPoi, Math.Max(maxAgencyIdTour, maxAgencyIdHistory))) + 1;
+
+                var newPoi = new Poi
+                {
+                    Name = RequestData.PoiName,
+                    AgencyId = newAgencyId,
+                    Description = "Thông tin đang cập nhật",
+                    Latitude = 10.76, 
+                    Longitude = 106.70 
+                };
+                
+                DbContext.Pois.Add(newPoi);
+
+                string passwordHash = BCrypt.Net.BCrypt.HashPassword(RequestData.Password);
+
+                var newUser = new AppUser
+                {
+                    Username = RequestData.PhoneNumber,
+                    PasswordHash = passwordHash,
+                    PhoneNumber = RequestData.PhoneNumber,
+                    FullName = RequestData.FullName,
+                    Email = RequestData.Email,
+                    Address = RequestData.Address,
+                    AgencyId = newAgencyId,
+                    Role = "owner",
+                    ForcePasswordChange = false,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                DbContext.AppUsers.Add(newUser);
+
+                var auditLog = new AppAuditLog
+                {
+                    Timestamp = DateTime.UtcNow,
+                    Action = "register_poi",
+                    Details = "500000",
+                    UserId = newUser.Username
+                };
+
+                DbContext.AppAuditLogs.Add(auditLog);
+
+                await DbContext.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                IsSuccess = true;
+            }
+            catch (Exception)
+            {
+                await transaction.RollbackAsync();
+                ErrorMessage = "Đã xảy ra lỗi hệ thống, không thể lưu dữ liệu.";
+            }
+        }
+        catch (Exception)
+        {
+            ErrorMessage = "Lỗi kết nối CSDL.";
+        }
+        finally
+        {
+            IsSubmitting = false;
+        }
+    }
+}

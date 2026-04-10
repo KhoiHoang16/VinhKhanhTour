@@ -1,4 +1,6 @@
 @inherits LayoutComponentBase
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 <div class="page">
     <div class="sidebar">
@@ -21,3 +23,23 @@
     <a href="." class="reload">Tải lại</a>
     <span class="dismiss">🗙</span>
 </div>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        
+        if (user.Identity != null && user.Identity.IsAuthenticated)
+        {
+            var forceChangeClaim = user.FindFirst("force_password_change");
+            if (forceChangeClaim != null && forceChangeClaim.Value == "True")
+            {
+                if (!NavigationManager.Uri.EndsWith("/change-password"))
+                {
+                    NavigationManager.NavigateTo("/change-password");
+                }
+            }
+        }
+    }
+}

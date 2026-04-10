@@ -26,6 +26,7 @@ namespace VinhKhanhTour.CMS.Data
         public DbSet<UsageHistory> UsageHistories { get; set; }
         public DbSet<UserRoute> UserRoutes { get; set; }
         public DbSet<AppAuditLog> AppAuditLogs { get; set; }
+        public DbSet<AppUser> AppUsers { get; set; }
 
         // EXTREMELY IMPORTANT: Properties must be evaluated dynamically per DbContext instance query, NOT baked into OnModelCreating
         private int? CurrentAgencyId => _currentUserService?.AgencyId ?? -1;
@@ -71,6 +72,10 @@ namespace VinhKhanhTour.CMS.Data
 
             modelBuilder.Entity<AppAuditLog>().HasKey(al => al.Id);
             modelBuilder.Entity<AppAuditLog>().Property(al => al.Id).ValueGeneratedOnAdd();
+
+            modelBuilder.Entity<AppUser>().HasKey(u => u.Id);
+            modelBuilder.Entity<AppUser>().Property(u => u.Id).ValueGeneratedOnAdd();
+            modelBuilder.Entity<AppUser>().HasIndex(u => u.Username).IsUnique();
 
             // -------------------------------------------------------------
             // GLOBAL QUERY FILTERS & INDEXES FOR AGENCY ISOLATION

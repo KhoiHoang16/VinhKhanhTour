@@ -1,16 +1,18 @@
 @page "/analytics"
 @using VinhKhanhTour.Shared.Models
 @using VinhKhanhTour.CMS.Services
+@using VinhKhanhTour.CMS.Data
+@using Microsoft.EntityFrameworkCore
 @inject AnalyticsService AnalyticsService
 @inject PoiService PoiService
 @inject IJSRuntime JSRuntime
+@inject CmsDbContext DbContext
 
 <PageTitle>Phân tích Dữ liệu - VinhKhanh Tour</PageTitle>
 
 <div class="dashboard-container page-transition">
     <div class="header-section">
         <h1 class="header-title">📊 Phân tích Dữ liệu</h1>
-        <button class="btn btn-primary" @onclick="GenerateMock">🎲 Tạo Dữ Liệu Mẫu</button>
     </div>
 
     @if (isLoading)
@@ -39,6 +41,11 @@
                 <h3 class="stat-label">TB Nghe/POI</h3>
                 <p class="stat-value" style="-webkit-text-fill-color: var(--warning); color: var(--warning);">@avgListenTimeText</p>
                 <span class="stat-unit" style="color: var(--text-secondary);">Giây</span>
+            </div>
+            <div class="stat-card">
+                <h3 class="stat-label">Doanh thu phí Đăng ký</h3>
+                <p class="stat-value" style="-webkit-text-fill-color: var(--success); color: var(--success);">@totalRevenue.ToString("N0")</p>
+                <span class="stat-unit" style="color: var(--text-secondary);">VNĐ</span>
             </div>
             <div class="stat-card">
                 <h3 class="stat-label">Quét QR Code</h3>
@@ -180,6 +187,7 @@
     private double qrPercent = 0;
     private double gpsPercent = 0;
     private bool mapInitialized = false;
+    private decimal totalRevenue = 0;
 
     protected override async Task OnInitializedAsync()
     {
@@ -250,6 +258,20 @@
         {
             topPois = new List<RankData>();
             avgTimePois = new List<AvgTimeData>();
+        }
+
+        // Calculate Revenue from DB
+        var registerLogs = await DbContext.AppAuditLogs
+            .Where(x => x.Action == "register_poi")
+            .ToListAsync();
+        
+        totalRevenue = 0;
+        foreach(var log in registerLogs)
+        {
+            if (decimal.TryParse(log.Details, out decimal rev))
+            {
+                totalRevenue += rev;
+            }
         }
 
         isLoading = false;
