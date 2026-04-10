@@ -1,11 +1,14 @@
 using SQLite;
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.ComponentModel.DataAnnotations.Schema;
+using VinhKhanhTour.Shared.Interfaces;
 
 namespace VinhKhanhTour.Shared.Models
 {
-    public class Tour
+    public class Tour : IMustHaveAgency, ISoftDelete
     {
+        public int? AgencyId { get; set; }
+        public bool IsDeleted { get; set; }
         [PrimaryKey, AutoIncrement]
         public int Id { get; set; }
         public string TourName { get; set; } = string.Empty;

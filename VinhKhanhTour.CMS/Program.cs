@@ -70,6 +70,8 @@ builder.Services.AddScoped<TourService>();
 builder.Services.AddScoped<AnalyticsService>();
 builder.Services.AddScoped<IAppAnalyticsService, AppAnalyticsService>();
 builder.Services.AddScoped<GeminiTranslationService>();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
 VinhKhanhTour.Shared.Models.Poi.LocalizationService = new VinhKhanhTour.CMS.Services.CmsLocalizationService();
 
@@ -83,7 +85,8 @@ using (var scope = app.Services.CreateScope())
     {
         db.Database.Migrate();
 
-        if (!db.Pois.Any())
+        var allPois = db.Pois.IgnoreQueryFilters().ToList();
+        if (!allPois.Any())
         {
             var sampleData = Poi.GetSampleData();
             // Force Identity Insert for auto-increment to work properly
@@ -95,7 +98,7 @@ using (var scope = app.Services.CreateScope())
         // Đảm bảo chỉ mục ID liên tục cập nhật trên PostgreSQL (Fix the Insert error)
         if (db.Database.IsNpgsql())
         {
-            var maxId = db.Pois.Max(p => (int?)p.Id) ?? 0;
+            var maxId = db.Pois.IgnoreQueryFilters().Max(p => (int?)p.Id) ?? 0;
             if (maxId > 0)
             {
                 db.Database.ExecuteSqlRaw($"SELECT setval(pg_get_serial_sequence('\"Pois\"', 'Id'), {maxId});");

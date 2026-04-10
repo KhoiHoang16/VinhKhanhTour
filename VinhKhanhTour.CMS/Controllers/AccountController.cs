@@ -47,6 +47,30 @@ namespace VinhKhanhTour.CMS.Controllers
 
                 return LocalRedirect(target);
             }
+            // Dành cho việc test Account Chủ quán / Đại lý số 1
+            if (Username?.ToLower() == "agency" && Password == "agency")
+            {
+                var claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.Name, "Agency Test User"),
+                    new Claim(ClaimTypes.Role, "AgencyClient"),
+                    new Claim("agency_id", "1") // Giả lập Data với AgencyId = 1
+                };
+
+                var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+
+                await HttpContext.SignInAsync(
+                    CookieAuthenticationDefaults.AuthenticationScheme,
+                    new ClaimsPrincipal(claimsIdentity),
+                    new AuthenticationProperties { IsPersistent = true });
+
+                string target = string.IsNullOrEmpty(ReturnUrl) ? "/" : ReturnUrl;
+                if (!target.StartsWith("/")) target = "/" + target;
+
+                if (!Url.IsLocalUrl(target)) target = "/";
+
+                return LocalRedirect(target);
+            }
 
             return LocalRedirect($"/login?error=true&returnUrl={Uri.EscapeDataString(ReturnUrl ?? "")}");
         }

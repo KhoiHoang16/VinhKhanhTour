@@ -58,8 +58,12 @@
 
     <div class="sidebar-footer">
         <div class="user-profile">
-            <div class="avatar">A</div>
-            <div class="email">Adminstrastor</div>
+            <AuthorizeView>
+                <Authorized>
+                    <div class="avatar">@(context.User.Identity?.Name?.FirstOrDefault().ToString().ToUpper() ?? "U")</div>
+                    <div class="email">@context.User.Identity?.Name</div>
+                </Authorized>
+            </AuthorizeView>
         </div>
         <a href="/account/logout" class="logout-btn">
             <div class="logout-icon"></div> Đăng xuất

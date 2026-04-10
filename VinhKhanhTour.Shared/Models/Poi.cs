@@ -3,10 +3,14 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 using VinhKhanhTour.Shared.Services;
 
+using VinhKhanhTour.Shared.Interfaces;
+
 namespace VinhKhanhTour.Shared.Models
 {
-    public partial class Poi : ObservableObject
+    public partial class Poi : ObservableObject, IMustHaveAgency, ISoftDelete
     {
+        public int? AgencyId { get; set; }
+        public bool IsDeleted { get; set; }
         public static ILocalizationService? LocalizationService { get; set; }
 
         private string GetLocalizedString(string key)

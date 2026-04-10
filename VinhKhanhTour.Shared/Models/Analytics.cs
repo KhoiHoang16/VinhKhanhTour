@@ -1,10 +1,12 @@
 using SQLite;
 using System;
+using VinhKhanhTour.Shared.Interfaces;
 
 namespace VinhKhanhTour.Shared.Models
 {
-    public class UsageHistory
+    public class UsageHistory : IMustHaveAgency
     {
+        public int? AgencyId { get; set; }
         [PrimaryKey, AutoIncrement]
         public int Id { get; set; }
         public string DeviceId { get; set; } = string.Empty;
