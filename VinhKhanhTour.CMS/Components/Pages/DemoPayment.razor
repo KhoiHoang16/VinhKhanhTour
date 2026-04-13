@@ -19,12 +19,12 @@
             <div class="gateway-logo">
                 @if (Method == "momo")
                 {
-                    <div class="logo-circle momo">💜</div>
+                    <div class="logo-circle momo"><img src="https://developers.momo.vn/v3/vi/img/logo.svg" alt="MoMo" class="pay-logo-big"/></div>
                     <h2>MoMo</h2>
                 }
                 else
                 {
-                    <div class="logo-circle vnpay">🏦</div>
+                    <div class="logo-circle vnpay"><img src="https://cdn.haitrieu.com/wp-content/uploads/2022/10/Logo-VNPAY-QR-1.png" alt="VNPay" class="pay-logo-big"/></div>
                     <h2>VNPay</h2>
                 }
             </div>
@@ -154,6 +154,7 @@
     .logo-circle.momo { background: linear-gradient(135deg, #a855f7, #7c3aed); }
     .logo-circle.vnpay { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
     .gateway-logo h2 { margin: 0; font-size: 1.3rem; color: rgba(255,255,255,0.9); }
+    .pay-logo-big { height: 36px; width: auto; filter: brightness(10); }
 
     .order-summary {
         background: rgba(255,255,255,0.06); border-radius: 16px;

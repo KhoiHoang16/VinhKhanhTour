@@ -82,7 +82,7 @@
                             }
                             else
                             {
-                                <span>💜 MoMo</span>
+                                <span><img src="https://developers.momo.vn/v3/vi/img/logo.svg" alt="MoMo" class="pay-logo"/> MoMo</span>
                             }
                         </button>
                         <button class="btn-vnpay" @onclick="PayWithVNPay" disabled="@isProcessingPayment">
@@ -92,7 +92,7 @@
                             }
                             else
                             {
-                                <span>🏦 VNPay</span>
+                                <span><img src="https://cdn.haitrieu.com/wp-content/uploads/2022/10/Logo-VNPAY-QR-1.png" alt="VNPay" class="pay-logo"/> VNPay</span>
                             }
                         </button>
                     </div>
@@ -217,6 +217,7 @@
     .btn-vnpay { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
     .btn-vnpay:hover { transform: scale(1.03); box-shadow: 0 4px 20px rgba(59,130,246,0.5); }
     .btn-momo:disabled, .btn-vnpay:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .pay-logo { height: 22px; width: auto; vertical-align: middle; margin-right: 4px; filter: brightness(10); }
 
     .btn-spinner {
         width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3);
