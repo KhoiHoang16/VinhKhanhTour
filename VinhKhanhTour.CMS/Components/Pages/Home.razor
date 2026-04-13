@@ -362,7 +362,17 @@
     {
         try
         {
-            pois = await PoiService.GetPoisAsync();
+            var allPois = await PoiService.GetPoisAsync();
+
+            // Nếu là Admin, ẩn POI "chờ duyệt" khỏi "Danh sách POI" chung (vì đã có tab riêng)
+            if (CurrentUser.IsSystemAdmin)
+            {
+                pois = allPois.Where(p => p.ApprovalStatus != ApprovalStatus.Pending).ToList();
+            }
+            else
+            {
+                pois = allPois;
+            }
         }
         catch (Exception ex)
         {
