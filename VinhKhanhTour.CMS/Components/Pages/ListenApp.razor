@@ -749,9 +749,26 @@
     {
         if (firstRender && poi != null)
         {
-            // Lấy DeviceId từ FingerprintJS
-            currentDeviceId = await JSRuntime.InvokeAsync<string>("getDeviceFingerprint");
+            // Đợi script load xong trước khi gọi JS
+            await Task.Delay(300);
+
+            // Lấy DeviceId từ FingerprintJS (retry tối đa 3 lần)
+            for (int attempt = 0; attempt < 3; attempt++)
+            {
+                try
+                {
+                    currentDeviceId = await JSRuntime.InvokeAsync<string>("getDeviceFingerprint");
+                    if (!string.IsNullOrEmpty(currentDeviceId) && currentDeviceId != "WebApp_Unknown")
+                        break;
+                }
+                catch
+                {
+                    await Task.Delay(500); // Đợi thêm nếu JS chưa sẵn sàng
+                }
+            }
+
             if (string.IsNullOrEmpty(currentDeviceId)) currentDeviceId = "WebApp_Unknown";
+            Console.WriteLine($"[ListenApp] DeviceId = {currentDeviceId}, PoiId = {Id}");
 
             // Check access từ DB
             using var dbContext = await DbFactory.CreateDbContextAsync();
@@ -761,11 +778,12 @@
                 .Where(p => p.ExpiresAt == null || p.ExpiresAt > DateTime.UtcNow)
                 .FirstOrDefaultAsync();
 
+            Console.WriteLine($"[ListenApp] Purchase found: {purchase != null}");
+
             if (purchase != null)
             {
                 showPaywall = false;
                 StateHasChanged();
-                // Đợi render xong rồi mới push audio
                 await Task.Delay(50);
                 await PushAudioStateToJs();
             }

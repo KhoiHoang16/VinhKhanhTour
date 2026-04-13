@@ -255,7 +255,19 @@
     {
         step = "processing";
         StateHasChanged();
-        await Task.Delay(1500); // Giả lập xử lý
+
+        // Luôn lấy fingerprint thật từ JS trước khi ghi DB
+        try
+        {
+            var fpId = await JSRuntime.InvokeAsync<string>("getDeviceFingerprint");
+            if (!string.IsNullOrEmpty(fpId))
+            {
+                deviceId = fpId;
+            }
+        }
+        catch { }
+
+        await Task.Delay(1000); // Giả lập xử lý
 
         try
         {
