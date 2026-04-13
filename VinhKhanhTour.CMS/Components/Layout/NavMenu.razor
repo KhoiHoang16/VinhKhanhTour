@@ -1,3 +1,7 @@
+@using VinhKhanhTour.CMS.Services
+@using VinhKhanhTour.Shared.Models
+@inject PoiService PoiService
+
 <div class="sidebar-container">
     <div class="sidebar-header">
         <div class="logo-icon">🍜</div>
@@ -53,6 +57,15 @@
                     <div class="nav-item">
                         <NavLink class="nav-link" href="users">
                             <span class="nav-icon">👥</span> Quản lý Chủ quán
+                        </NavLink>
+                    </div>
+                    <div class="nav-item">
+                        <NavLink class="nav-link" href="admin/approvals" style="position: relative;">
+                            <span class="nav-icon">✅</span> Phê duyệt nội dung
+                            @if (pendingCount > 0)
+                            {
+                                <span style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: #ef4444; color: white; font-size: 0.7rem; font-weight: 800; min-width: 20px; height: 20px; border-radius: 10px; display: flex; align-items: center; justify-content: center; padding: 0 5px;">@pendingCount</span>
+                            }
                         </NavLink>
                     </div>
                 </Authorized>
@@ -266,3 +279,20 @@
         .sidebar-container { height: auto; }
     }
 </style>
+
+@code {
+    private int pendingCount = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            pendingCount = await PoiService.GetPendingCountAsync();
+        }
+        catch
+        {
+            // Silently fail — badge just won't show
+            pendingCount = 0;
+        }
+    }
+}

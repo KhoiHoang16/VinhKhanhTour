@@ -63,7 +63,9 @@ var poiApi = app.MapGroup("/api/poi");
 poiApi.MapGet("/", async (IPoiRepository repo) =>
 {
     var pois = await repo.GetAllPoisAsync();
-    return Results.Ok(pois);
+    // Bảo mật: Public API chỉ trả về POI đã được Admin phê duyệt
+    var approvedPois = pois.Where(p => p.ApprovalStatus == ApprovalStatus.Approved).ToList();
+    return Results.Ok(approvedPois);
 });
 
 poiApi.MapPost("/", async (IPoiRepository repo, Poi poi) => 

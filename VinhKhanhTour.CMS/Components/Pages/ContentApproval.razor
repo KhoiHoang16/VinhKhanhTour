@@ -1,0 +1,228 @@
+@page "/admin/approvals"
+@using VinhKhanhTour.Shared.Models
+@using VinhKhanhTour.CMS.Services
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Admin")]
+@inject PoiService PoiService
+@inject NavigationManager NavManager
+
+<PageTitle>Phê duyệt nội dung - VinhKhanh Tour</PageTitle>
+
+<div class="dashboard-container page-transition">
+    <div class="header-section">
+        <h1 class="header-title">✅ Phê duyệt nội dung</h1>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            @if (pendingPois != null)
+            {
+                <span style="background: #f59e0b22; color: #f59e0b; border: 1px solid #f59e0b44; padding: 6px 14px; border-radius: 20px; font-weight: 700; font-size: 0.9rem;">
+                    @pendingPois.Count POI chờ duyệt
+                </span>
+            }
+        </div>
+    </div>
+
+    @if (pendingPois == null)
+    {
+        <div style="text-align: center; padding: 3rem; color: var(--text-secondary);">
+            <div class="loading-spinner">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
+            </div>
+            <p class="loading-pulse">Đang tải danh sách chờ duyệt...</p>
+        </div>
+    }
+    else if (!pendingPois.Any())
+    {
+        <div class="form-container" style="text-align: center; padding: 4rem 2rem;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 1rem; opacity: 0.6;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+            <h2 style="color: var(--text-primary);">Không có nội dung chờ duyệt</h2>
+            <p style="color: var(--text-secondary);">Tất cả POI đã được xử lý. Quay lại kiểm tra sau nhé!</p>
+        </div>
+    }
+    else
+    {
+        <div class="poi-grid">
+            @foreach (var poi in pendingPois)
+            {
+                <div class="poi-card" @key="poi.Id" style="border-left: 4px solid #f59e0b;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                        <h3 class="poi-title" style="margin: 0; flex: 1;">@poi.Name</h3>
+                        <span style="background: #f59e0b22; color: #f59e0b; border: 1px solid #f59e0b44; font-size: 0.75rem; padding: 4px 10px; border-radius: 20px; white-space: nowrap;">⏳ Pending</span>
+                    </div>
+
+                    <p class="poi-description">@(string.IsNullOrWhiteSpace(poi.Description) ? "Chưa có mô tả." : poi.Description)</p>
+
+                    <div class="poi-meta">
+                        <div>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: -2px; margin-right: 4px;"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>
+                            @poi.Latitude.ToString("F4"), @poi.Longitude.ToString("F4")
+                        </div>
+                        <div>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: -2px; margin-right: 4px;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                            Bán kính: @poi.Radius m
+                        </div>
+                        @if (poi.AgencyId.HasValue)
+                        {
+                            <div>
+                                <span style="color: var(--primary-color);">🏪</span> Agency #@poi.AgencyId
+                            </div>
+                        }
+                    </div>
+
+                    @* Audio & Translation badges *@
+                    <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap;">
+                        @if (!string.IsNullOrWhiteSpace(poi.AudioUrlVi))
+                        {
+                            <span class="badge badge-success">🎵 Audio VI</span>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(poi.AudioUrlEn))
+                        {
+                            <span class="badge badge-success">🎵 Audio EN</span>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(poi.NameEn))
+                        {
+                            <span class="badge badge-info">🌐 EN</span>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(poi.ImageUrl))
+                        {
+                            <span class="badge badge-info">🖼️ Có ảnh</span>
+                        }
+                    </div>
+
+                    @* Action buttons *@
+                    <div style="display: flex; gap: 0.75rem;">
+                        <button class="btn" style="flex: 1; background: #22c55e; color: white; border: none; font-weight: 700;" @onclick="() => ApprovePoi(poi)">
+                            ✅ Duyệt
+                        </button>
+                        <button class="btn" style="flex: 1; background: #ef4444; color: white; border: none; font-weight: 700;" @onclick="() => ShowRejectModal(poi)">
+                            ❌ Từ chối
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@* === REJECT MODAL === *@
+@if (showRejectModal && poiToReject != null)
+{
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 1000; animation: fadeIn 0.2s;">
+        <div class="form-container" style="max-width: 480px; width: 90%;">
+            <div style="text-align: center; margin-bottom: 1.5rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+            </div>
+            <h3 style="margin: 0 0 0.5rem 0; color: var(--text-primary); text-align: center;">Từ chối POI</h3>
+            <p style="color: var(--text-secondary); text-align: center; margin-bottom: 1.5rem;">
+                "<strong>@poiToReject.Name</strong>"
+            </p>
+
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label class="form-label">📝 Lý do từ chối <span style="color: #ef4444;">*</span></label>
+                <textarea @bind="rejectNote" class="form-control" rows="4" placeholder="Nhập lý do từ chối để Chủ quán sửa lại... (bắt buộc)" style="resize: vertical;"></textarea>
+                @if (showRejectError)
+                {
+                    <div style="color: #ef4444; font-size: 0.85rem; margin-top: 0.5rem;">⚠ Vui lòng nhập lý do từ chối.</div>
+                }
+            </div>
+
+            <div style="display: flex; gap: 1rem;">
+                <button class="btn btn-secondary" style="flex: 1;" @onclick="CloseRejectModal">Hủy</button>
+                <button class="btn" style="flex: 1; background: #ef4444; color: white; border: none; font-weight: 700;" @onclick="ConfirmReject">
+                    Xác nhận từ chối
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@* === SUCCESS TOAST === *@
+@if (!string.IsNullOrEmpty(toastMessage))
+{
+    <div style="position: fixed; bottom: 2rem; right: 2rem; background: @toastColor; color: white; padding: 1rem 1.5rem; border-radius: 12px; font-weight: 600; box-shadow: 0 8px 32px rgba(0,0,0,0.3); z-index: 2000; animation: fadeIn 0.3s; max-width: 400px;">
+        @toastMessage
+    </div>
+}
+
+@code {
+    private List<Poi>? pendingPois;
+    private bool showRejectModal = false;
+    private Poi? poiToReject;
+    private string rejectNote = string.Empty;
+    private bool showRejectError = false;
+    private string toastMessage = string.Empty;
+    private string toastColor = "#22c55e";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPendingPois();
+    }
+
+    private async Task LoadPendingPois()
+    {
+        try
+        {
+            pendingPois = await PoiService.GetPendingPoisAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading pending POIs: {ex.Message}");
+            pendingPois = new List<Poi>();
+        }
+    }
+
+    private async Task ApprovePoi(Poi poi)
+    {
+        var result = await PoiService.ApprovePoiAsync(poi.Id);
+        if (result)
+        {
+            await ShowToast($"✅ \"{poi.Name}\" đã được duyệt!", "#22c55e");
+            await LoadPendingPois();
+        }
+    }
+
+    private void ShowRejectModal(Poi poi)
+    {
+        poiToReject = poi;
+        rejectNote = string.Empty;
+        showRejectError = false;
+        showRejectModal = true;
+    }
+
+    private void CloseRejectModal()
+    {
+        showRejectModal = false;
+        poiToReject = null;
+        rejectNote = string.Empty;
+        showRejectError = false;
+    }
+
+    private async Task ConfirmReject()
+    {
+        if (string.IsNullOrWhiteSpace(rejectNote))
+        {
+            showRejectError = true;
+            return;
+        }
+
+        if (poiToReject != null)
+        {
+            var result = await PoiService.RejectPoiAsync(poiToReject.Id, rejectNote.Trim());
+            if (result)
+            {
+                await ShowToast($"❌ \"{poiToReject.Name}\" đã bị từ chối.", "#ef4444");
+                CloseRejectModal();
+                await LoadPendingPois();
+            }
+        }
+    }
+
+    private async Task ShowToast(string message, string color)
+    {
+        toastMessage = message;
+        toastColor = color;
+        StateHasChanged();
+        await Task.Delay(3000);
+        toastMessage = string.Empty;
+        StateHasChanged();
+    }
+}

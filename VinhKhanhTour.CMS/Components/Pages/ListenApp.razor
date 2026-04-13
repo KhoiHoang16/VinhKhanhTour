@@ -4,8 +4,10 @@
 @using VinhKhanhTour.Shared.Models
 @using VinhKhanhTour.CMS.Data
 @using Microsoft.EntityFrameworkCore
-@inject CmsDbContext DbContext
+@inject IDbContextFactory<CmsDbContext> DbFactory
 @inject IJSRuntime JSRuntime
+@inject IConfiguration Config
+@inject NavigationManager NavManager
 
 <PageTitle>@(GetPoiName()) - VinhKhanh Tour Audio</PageTitle>
 
@@ -45,56 +47,209 @@
             <div class="dropdown-icon">🌐</div>
         </div>
 
-        <!-- Màn hình chính sau khi tương tác -->
-        <div class="app-content @(hasInteracted ? "active" : "")">
-            <div class="poi-image-wrapper">
-                <img src="@($"/images/{poi.DisplayImage}")" alt="@GetPoiName()" onerror="this.onerror=null; this.src='/images/vinh_khanh_food_street_banner.jpg';" class="poi-image" />
-                <div class="image-overlay"></div>
-            </div>
+        @if (showPaywall)
+        {
+            <!-- ===== PAYWALL SCREEN ===== -->
+            <div class="paywall-container">
+                <div class="poi-image-wrapper">
+                    <img src="@($"/images/{poi.DisplayImage}")" alt="@GetPoiName()" onerror="this.onerror=null; this.src='/images/vinh_khanh_food_street_banner.jpg';" class="poi-image" />
+                    <div class="image-overlay"></div>
+                </div>
 
-            <div class="poi-info">
-                <h1>@GetPoiName()</h1>
-                <p class="category">@GetPoiCategory()</p>
-                <div class="divider"></div>
-                <p class="description">@GetPoiDescription()</p>
-            </div>
+                <div class="paywall-content">
+                    <div class="paywall-icon">🔒</div>
+                    <h1>@GetPoiName()</h1>
+                    <p class="paywall-subtitle">@GetPaywallString("Subtitle")</p>
 
-            <div class="audio-player-card">
-                <div class="now-playing">
-                    <div class="audio-animation">
-                        <span></span><span></span><span></span><span></span>
+                    <div class="paywall-price-card">
+                        <div class="price-tag">
+                            <span class="price-amount">@FormatPrice(paywallPrice)</span>
+                            <span class="price-currency">VND</span>
+                        </div>
+                        <p class="price-note">@GetPaywallString("Forever")</p>
                     </div>
-                    <span id="playStateText">@GetUiString("Paused")</span>
-                </div>
-                
-                <audio id="audioElement" 
-                       src="@GetAudioUrl()" 
-                       preload="auto">
-                </audio>
 
-                <div class="controls">
-                    <button id="playPauseBtn" class="btn-play-pause" onclick="toggleAudio()">
-                        <svg id="icon-play" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><path d="M8 5v14l11-7z"/></svg>
-                        <svg id="icon-pause" viewBox="0 0 24 24" fill="currentColor"><path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/></svg>
-                    </button>
-                    <button class="btn-restart" onclick="restartAudio()">
-                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
-                    </button>
+                    @if (!string.IsNullOrEmpty(paymentError))
+                    {
+                        <div class="paywall-error">⚠️ @paymentError</div>
+                    }
+
+                    <div class="paywall-buttons">
+                        <button class="btn-momo" @onclick="PayWithMoMo" disabled="@isProcessingPayment">
+                            @if (isProcessingPayment && selectedMethod == "momo")
+                            {
+                                <span class="btn-spinner"></span>
+                            }
+                            else
+                            {
+                                <span>💜 MoMo</span>
+                            }
+                        </button>
+                        <button class="btn-vnpay" @onclick="PayWithVNPay" disabled="@isProcessingPayment">
+                            @if (isProcessingPayment && selectedMethod == "vnpay")
+                            {
+                                <span class="btn-spinner"></span>
+                            }
+                            else
+                            {
+                                <span>🏦 VNPay</span>
+                            }
+                        </button>
+                    </div>
+
+                    <div class="paywall-recovery">
+                        @if (!showRecoveryForm)
+                        {
+                            <button class="btn-recovery-toggle" @onclick="() => showRecoveryForm = true">
+                                @GetPaywallString("AlreadyBought")
+                            </button>
+                        }
+                        else
+                        {
+                            <div class="recovery-form">
+                                <p>@GetPaywallString("RecoveryDesc")</p>
+                                <input type="text" @bind="recoveryContact" placeholder="Email / SĐT" class="recovery-input" />
+                                <button class="btn-recover" @onclick="RecoverPurchase" disabled="@isProcessingPayment">
+                                    @GetPaywallString("Recover")
+                                </button>
+                                @if (!string.IsNullOrEmpty(recoveryMessage))
+                                {
+                                    <p class="recovery-msg @(recoverySuccess ? "success" : "error")">@recoveryMessage</p>
+                                }
+                            </div>
+                        }
+                    </div>
                 </div>
             </div>
-        </div>
+        }
+        else
+        {
+            <!-- ===== AUDIO PLAYER (đã mua / đã mở khóa) ===== -->
+            <div class="app-content @(hasInteracted ? "active" : "")">
+                <div class="poi-image-wrapper">
+                    <img src="@($"/images/{poi.DisplayImage}")" alt="@GetPoiName()" onerror="this.onerror=null; this.src='/images/vinh_khanh_food_street_banner.jpg';" class="poi-image" />
+                    <div class="image-overlay"></div>
+                </div>
 
-        <!-- Màn hình chờ Splash Screen vượt chính sách Autoplay của Browser -->
-        <div id="splashScreen" class="splash-screen @(hasInteracted ? "hidden" : "")" @onclick="HandleInteraction">
-            <div class="pulse-ring"></div>
-            <div class="tap-icon">👉</div>
-            <h2 class="tap-text">@GetUiString("TapScreen")</h2>
-            <p class="tap-subtext">@GetUiString("TapSubtext")<br/><strong>@GetPoiName()</strong></p>
-        </div>
+                <div class="poi-info">
+                    <h1>@GetPoiName()</h1>
+                    <p class="category">@GetPoiCategory()</p>
+                    <div class="divider"></div>
+                    <p class="description">@GetPoiDescription()</p>
+                </div>
+
+                <div class="audio-player-card">
+                    <div class="now-playing">
+                        <div class="audio-animation">
+                            <span></span><span></span><span></span><span></span>
+                        </div>
+                        <span id="playStateText">@GetUiString("Paused")</span>
+                    </div>
+                    
+                    <audio id="audioElement" 
+                           src="@GetAudioUrl()" 
+                           preload="auto">
+                    </audio>
+
+                    <div class="controls">
+                        <button id="playPauseBtn" class="btn-play-pause" onclick="toggleAudio()">
+                            <svg id="icon-play" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><path d="M8 5v14l11-7z"/></svg>
+                            <svg id="icon-pause" viewBox="0 0 24 24" fill="currentColor"><path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/></svg>
+                        </button>
+                        <button class="btn-restart" onclick="restartAudio()">
+                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Splash Screen -->
+            <div id="splashScreen" class="splash-screen @(hasInteracted ? "hidden" : "")" @onclick="HandleInteraction">
+                <div class="pulse-ring"></div>
+                <div class="tap-icon">👉</div>
+                <h2 class="tap-text">@GetUiString("TapScreen")</h2>
+                <p class="tap-subtext">@GetUiString("TapSubtext")<br/><strong>@GetPoiName()</strong></p>
+            </div>
+        }
     }
 </div>
 
 <style>
+    /* ===== PAYWALL STYLES ===== */
+    .paywall-container {
+        min-height: 100vh; display: flex; flex-direction: column;
+        background: linear-gradient(180deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+    }
+    .paywall-container .poi-image-wrapper { max-height: 220px; }
+    .paywall-content {
+        flex: 1; padding: 24px 20px; text-align: center;
+        display: flex; flex-direction: column; align-items: center;
+    }
+    .paywall-icon { font-size: 48px; margin-bottom: 12px; animation: pulse-lock 2s infinite; }
+    @@keyframes pulse-lock { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+    .paywall-content h1 { color: #fff; font-size: 1.6rem; margin: 0 0 6px; }
+    .paywall-subtitle { color: rgba(255,255,255,0.7); font-size: 0.95rem; margin: 0 0 20px; }
+
+    .paywall-price-card {
+        background: rgba(255,255,255,0.08); backdrop-filter: blur(12px);
+        border: 1px solid rgba(255,255,255,0.15); border-radius: 16px;
+        padding: 20px 32px; margin-bottom: 20px;
+    }
+    .price-tag { display: flex; align-items: baseline; justify-content: center; gap: 6px; }
+    .price-amount { font-size: 2.4rem; font-weight: 800; color: #ffd700; }
+    .price-currency { font-size: 1rem; color: rgba(255,255,255,0.6); font-weight: 600; }
+    .price-note { color: rgba(255,255,255,0.55); font-size: 0.82rem; margin: 8px 0 0; }
+
+    .paywall-error {
+        background: rgba(255,100,100,0.15); color: #ff6b6b; padding: 10px 16px;
+        border-radius: 10px; margin-bottom: 16px; font-size: 0.85rem; width: 100%;
+    }
+
+    .paywall-buttons { display: flex; gap: 12px; width: 100%; max-width: 320px; margin-bottom: 20px; }
+    .btn-momo, .btn-vnpay {
+        flex: 1; padding: 14px 0; border: none; border-radius: 14px;
+        font-size: 1.05rem; font-weight: 700; cursor: pointer;
+        transition: transform 0.15s, box-shadow 0.15s; color: #fff;
+        display: flex; align-items: center; justify-content: center; min-height: 50px;
+    }
+    .btn-momo { background: linear-gradient(135deg, #a855f7, #7c3aed); }
+    .btn-momo:hover { transform: scale(1.03); box-shadow: 0 4px 20px rgba(168,85,247,0.5); }
+    .btn-vnpay { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+    .btn-vnpay:hover { transform: scale(1.03); box-shadow: 0 4px 20px rgba(59,130,246,0.5); }
+    .btn-momo:disabled, .btn-vnpay:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    .btn-spinner {
+        width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3);
+        border-top-color: #fff; border-radius: 50%;
+        animation: spin 0.7s linear infinite; display: inline-block;
+    }
+    @@keyframes spin { to { transform: rotate(360deg); } }
+
+    .paywall-recovery { width: 100%; max-width: 320px; }
+    .btn-recovery-toggle {
+        background: transparent; border: none; color: rgba(255,255,255,0.5);
+        font-size: 0.85rem; cursor: pointer; text-decoration: underline;
+        padding: 8px; width: 100%;
+    }
+    .btn-recovery-toggle:hover { color: rgba(255,255,255,0.8); }
+    .recovery-form { margin-top: 12px; text-align: left; }
+    .recovery-form p { color: rgba(255,255,255,0.6); font-size: 0.85rem; margin: 0 0 8px; }
+    .recovery-input {
+        width: 100%; padding: 12px 16px; border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 10px; background: rgba(255,255,255,0.08); color: #fff;
+        font-size: 0.95rem; margin-bottom: 10px; box-sizing: border-box;
+    }
+    .recovery-input::placeholder { color: rgba(255,255,255,0.35); }
+    .btn-recover {
+        width: 100%; padding: 12px; border: none; border-radius: 10px;
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: #fff; font-weight: 600; cursor: pointer; font-size: 0.95rem;
+    }
+    .btn-recover:disabled { opacity: 0.6; cursor: not-allowed; }
+    .recovery-msg { font-size: 0.85rem; margin-top: 8px; }
+    .recovery-msg.success { color: #34d399; }
+    .recovery-msg.error { color: #f87171; }
+
     /* Reset & Fonts cho giao diện Mobile-first PWA */
     body, html {
         margin: 0; padding: 0; height: 100%;
@@ -477,6 +632,70 @@
             audioEl.play();
         }
     }
+
+    // === DEVICE FINGERPRINT (FingerprintJS) ===
+    // Sử dụng FingerprintJS để tạo ID thiết bị ổn định, chính xác ~99.5%
+    // Browser không cho phép truy cập hardware ID (IMEI, Serial, MAC) vì bảo mật
+    // FingerprintJS dùng 40+ tín hiệu: canvas, WebGL, GPU, fonts, screen, audio...
+    
+    var _cachedFingerprint = null;
+
+    async function getDeviceFingerprint() {
+        // Return cached result if available
+        if (_cachedFingerprint) return _cachedFingerprint;
+
+        // Try localStorage first (instant)
+        var stored = localStorage.getItem('vkt_device_id');
+        if (stored) {
+            _cachedFingerprint = stored;
+            return stored;
+        }
+
+        try {
+            // Load FingerprintJS CDN
+            var FingerprintJS = await import('https://openfpcdn.io/fingerprintjs/v4');
+            var fp = await FingerprintJS.load();
+            var result = await fp.get();
+            
+            // result.visitorId = hash ổn định của thiết bị (ví dụ: "a1b2c3d4e5f6g7h8")
+            var visitorId = result.visitorId;
+
+            // Detect platform
+            var ua = navigator.userAgent || '';
+            var platform = 'Web';
+            if (/iPhone|iPad|iPod/i.test(ua)) platform = 'iOS';
+            else if (/Android/i.test(ua)) platform = 'Android';
+
+            // Format: "Android_a1b2c3d4" hoặc "iOS_e5f6g7h8"
+            var deviceId = platform + '_' + visitorId.substring(0, 8);
+            
+            localStorage.setItem('vkt_device_id', deviceId);
+            _cachedFingerprint = deviceId;
+            return deviceId;
+        } catch (e) {
+            console.warn('[Fingerprint] FingerprintJS failed, using fallback:', e);
+            
+            // Fallback: tạo ID từ các tín hiệu cơ bản
+            var ua = navigator.userAgent || '';
+            var screen = window.screen;
+            var raw = ua + '|' + screen.width + 'x' + screen.height + '|' + screen.colorDepth + '|' + (navigator.language || '') + '|' + new Date().getTimezoneOffset();
+            
+            var hash = 0;
+            for (var i = 0; i < raw.length; i++) {
+                hash = ((hash << 5) - hash) + raw.charCodeAt(i);
+                hash |= 0;
+            }
+            
+            var platform = 'Web';
+            if (/iPhone|iPad|iPod/i.test(ua)) platform = 'iOS';
+            else if (/Android/i.test(ua)) platform = 'Android';
+            
+            var deviceId = platform + '_' + Math.abs(hash).toString(36).substring(0, 8);
+            localStorage.setItem('vkt_device_id', deviceId);
+            _cachedFingerprint = deviceId;
+            return deviceId;
+        }
+    }
 </script>
 
 @code {
@@ -488,13 +707,41 @@
     private bool hasInteracted = false;
     private string currentLang = "vi";
 
+    // Paywall state
+    private bool showPaywall = false;
+    private bool isProcessingPayment = false;
+    private string selectedMethod = "";
+    private string? paymentError;
+    private int paywallPrice;
+    private string? currentDeviceId;
+
+    // Recovery state
+    private bool showRecoveryForm = false;
+    private string recoveryContact = "";
+    private string? recoveryMessage;
+    private bool recoverySuccess = false;
+
     protected override async Task OnInitializedAsync()
     {
-        // IgnoreQueryFilters() bỏ qua Agency filter để anonymous user (quét QR) có thể xem POI
-        poi = await DbContext.Pois
+        using var dbContext = await DbFactory.CreateDbContextAsync();
+        poi = await dbContext.Pois
             .IgnoreQueryFilters()
             .Where(p => !p.IsDeleted && p.Id == Id)
             .FirstOrDefaultAsync();
+
+        paywallPrice = Config.GetValue<int>("AudioPaywall:DefaultPriceVND", 20000);
+
+        // Kiểm tra ?unlocked=true từ payment callback
+        var uri = NavManager.ToAbsoluteUri(NavManager.Uri);
+        var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+        var justUnlocked = query.ContainsKey("unlocked");
+
+        if (!justUnlocked && poi != null)
+        {
+            // Sẽ check access sau khi có DeviceId (OnAfterRenderAsync)
+            showPaywall = true; // Default: hiện paywall, check access sẽ ẩn nếu đã mua
+        }
+
         isLoading = false;
     }
 
@@ -502,7 +749,31 @@
     {
         if (firstRender && poi != null)
         {
-            await PushAudioStateToJs();
+            // Lấy DeviceId từ FingerprintJS
+            currentDeviceId = await JSRuntime.InvokeAsync<string>("getDeviceFingerprint");
+            if (string.IsNullOrEmpty(currentDeviceId)) currentDeviceId = "WebApp_Unknown";
+
+            // Check access từ DB
+            using var dbContext = await DbFactory.CreateDbContextAsync();
+            var purchase = await dbContext.DevicePurchases
+                .Where(p => p.DeviceId == currentDeviceId && p.IsActive)
+                .Where(p => p.PoiId == Id || p.PurchaseType == "all_access")
+                .Where(p => p.ExpiresAt == null || p.ExpiresAt > DateTime.UtcNow)
+                .FirstOrDefaultAsync();
+
+            if (purchase != null)
+            {
+                showPaywall = false;
+                StateHasChanged();
+                // Đợi render xong rồi mới push audio
+                await Task.Delay(50);
+                await PushAudioStateToJs();
+            }
+            else
+            {
+                showPaywall = true;
+                StateHasChanged();
+            }
         }
     }
 
@@ -541,16 +812,22 @@
         {
             try
             {
-                DbContext.UsageHistories.Add(new UsageHistory
+                // Lấy Device ID thực từ browser (FingerprintJS)
+                var deviceId = await JSRuntime.InvokeAsync<string>("getDeviceFingerprint");
+                if (string.IsNullOrEmpty(deviceId)) deviceId = "WebApp_Unknown";
+
+                // Context riêng biệt để tránh xung đột với context đọc POI
+                using var dbContext = await DbFactory.CreateDbContextAsync();
+                dbContext.UsageHistories.Add(new UsageHistory
                 {
                     PoiId = poi.Id,
                     AgencyId = poi.AgencyId,
                     ListenDurationSeconds = 0,
                     IsQrTriggered = true,
                     Timestamp = DateTime.UtcNow,
-                    DeviceId = "WebApp_QR"
+                    DeviceId = deviceId
                 });
-                await DbContext.SaveChangesAsync();
+                await dbContext.SaveChangesAsync();
             }
             catch (Exception ex)
             {
@@ -635,5 +912,129 @@
             "Paused" => isVi ? "Đã tạm dừng" : "Paused",
             _ => key
         };
+    }
+
+    private string GetPaywallString(string key)
+    {
+        bool isVi = currentLang == "vi";
+        return key switch {
+            "Subtitle" => isVi ? "Mở khóa Audio thuyết minh cho quán này" : "Unlock the audio guide for this location",
+            "Forever" => isVi ? "Thanh toán 1 lần • Nghe mãi mãi" : "Pay once • Listen forever",
+            "AlreadyBought" => isVi ? "Đã mua trước đó? Khôi phục tại đây" : "Already purchased? Restore here",
+            "RecoveryDesc" => isVi ? "Nhập Email hoặc SĐT bạn đã dùng khi mua:" : "Enter the Email or Phone you used when purchasing:",
+            "Recover" => isVi ? "Khôi phục" : "Restore",
+            _ => key
+        };
+    }
+
+    private string FormatPrice(int price) => price.ToString("N0");
+
+    private async Task PayWithMoMo()
+    {
+        await InitiatePayment("momo");
+    }
+
+    private async Task PayWithVNPay()
+    {
+        await InitiatePayment("vnpay");
+    }
+
+    private async Task InitiatePayment(string method)
+    {
+        isProcessingPayment = true;
+        selectedMethod = method;
+        paymentError = null;
+        StateHasChanged();
+
+        try
+        {
+            var deviceId = currentDeviceId ?? "WebApp_Unknown";
+            var baseUrl = NavManager.BaseUri.TrimEnd('/');
+
+            using var http = new HttpClient { BaseAddress = new Uri(baseUrl) };
+            var payload = new { deviceId, poiId = Id, recoveryContact = (string?)null };
+
+            var endpoint = method == "momo" ? "/api/audio/create-momo-payment" : "/api/audio/create-vnpay-payment";
+            var response = await http.PostAsJsonAsync(endpoint, payload);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<PaymentUrlResponse>();
+                if (!string.IsNullOrEmpty(result?.PayUrl))
+                {
+                    NavManager.NavigateTo(result.PayUrl, true);
+                    return;
+                }
+            }
+
+            paymentError = currentLang == "vi"
+                ? "Không thể tạo link thanh toán. Vui lòng thử lại."
+                : "Could not create payment link. Please try again.";
+        }
+        catch (Exception ex)
+        {
+            paymentError = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            isProcessingPayment = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task RecoverPurchase()
+    {
+        if (string.IsNullOrWhiteSpace(recoveryContact)) return;
+
+        isProcessingPayment = true;
+        recoveryMessage = null;
+        StateHasChanged();
+
+        try
+        {
+            var deviceId = currentDeviceId ?? "WebApp_Unknown";
+            var baseUrl = NavManager.BaseUri.TrimEnd('/');
+
+            using var http = new HttpClient { BaseAddress = new Uri(baseUrl) };
+            var payload = new { newDeviceId = deviceId, recoveryContact };
+            var response = await http.PostAsJsonAsync("/api/audio/recover", payload);
+
+            if (response.IsSuccessStatusCode)
+            {
+                recoverySuccess = true;
+                recoveryMessage = currentLang == "vi"
+                    ? "✅ Khôi phục thành công! Đang mở khóa..."
+                    : "✅ Restored successfully! Unlocking...";
+                StateHasChanged();
+                await Task.Delay(1500);
+                showPaywall = false;
+                StateHasChanged();
+                await Task.Delay(50);
+                await PushAudioStateToJs();
+            }
+            else
+            {
+                recoverySuccess = false;
+                recoveryMessage = currentLang == "vi"
+                    ? "❌ Không tìm thấy giao dịch. Kiểm tra lại Email/SĐT."
+                    : "❌ No purchases found. Check your Email/Phone.";
+            }
+        }
+        catch
+        {
+            recoverySuccess = false;
+            recoveryMessage = "❌ Lỗi kết nối.";
+        }
+        finally
+        {
+            isProcessingPayment = false;
+            StateHasChanged();
+        }
+    }
+
+    private class PaymentUrlResponse
+    {
+        public string PayUrl { get; set; } = "";
+        public string OrderId { get; set; } = "";
     }
 }

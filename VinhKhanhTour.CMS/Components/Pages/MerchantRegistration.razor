@@ -5,7 +5,7 @@
 @using VinhKhanhTour.CMS.Data
 @using Microsoft.EntityFrameworkCore
 @inject NavigationManager NavigationManager
-@inject CmsDbContext DbContext
+@inject IDbContextFactory<CmsDbContext> DbFactory
 @inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
 
 <PageTitle>Đăng ký Chủ Quán - VinhKhanhTour</PageTitle>
@@ -208,6 +208,8 @@
 
         try
         {
+            using var DbContext = await DbFactory.CreateDbContextAsync();
+
             var existingUser = await DbContext.AppUsers
                 .FirstOrDefaultAsync(u => u.PhoneNumber == RequestData.PhoneNumber || u.Username == RequestData.PhoneNumber);
             

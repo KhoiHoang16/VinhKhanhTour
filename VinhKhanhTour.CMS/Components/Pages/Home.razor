@@ -43,7 +43,21 @@
             @foreach (var poi in pois)
             {
                 <div class="poi-card" @key="poi.Id">
-                    <h3 class="poi-title">@poi.DisplayName</h3>
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                        <h3 class="poi-title" style="margin: 0; flex: 1;">@poi.DisplayName</h3>
+                        @switch (poi.ApprovalStatus)
+                        {
+                            case ApprovalStatus.Pending:
+                                <span class="badge" style="background: #f59e0b22; color: #f59e0b; border: 1px solid #f59e0b44; font-size: 0.75rem; padding: 4px 10px; border-radius: 20px; white-space: nowrap;">⏳ Chờ duyệt</span>
+                                break;
+                            case ApprovalStatus.Approved:
+                                <span class="badge" style="background: #22c55e22; color: #22c55e; border: 1px solid #22c55e44; font-size: 0.75rem; padding: 4px 10px; border-radius: 20px; white-space: nowrap;">✅ Đã duyệt</span>
+                                break;
+                            case ApprovalStatus.Rejected:
+                                <span class="badge" style="background: #ef444422; color: #ef4444; border: 1px solid #ef444444; font-size: 0.75rem; padding: 4px 10px; border-radius: 20px; white-space: nowrap;">❌ Bị từ chối</span>
+                                break;
+                        }
+                    </div>
                     <p class="poi-description">@(string.IsNullOrWhiteSpace(poi.DisplayDescription) ? "Chưa có mô tả." : poi.DisplayDescription)</p>
                     
                     <div class="poi-meta">
@@ -79,6 +93,14 @@
                             <span class="badge badge-info">🌐 EN</span>
                         }
                     </div>
+
+                    @if (poi.ApprovalStatus == ApprovalStatus.Rejected && !string.IsNullOrWhiteSpace(poi.AdminNote))
+                    {
+                        <div style="background: #ef444415; border: 1px solid #ef444433; border-radius: 8px; padding: 0.75rem; margin-bottom: 1rem; font-size: 0.85rem;">
+                            <strong style="color: #ef4444;">📝 Lý do từ chối:</strong>
+                            <span style="color: var(--text-secondary); margin-left: 0.5rem;">@poi.AdminNote</span>
+                        </div>
+                    }
 
                     <div class="poi-actions">
                         <button class="btn btn-secondary" @onclick="() => EditPoi(poi.Id)">

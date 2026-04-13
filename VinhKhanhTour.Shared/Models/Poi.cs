@@ -226,6 +226,29 @@ namespace VinhKhanhTour.Shared.Models
         public double Longitude { get; set; }
         public int Priority { get; set; }
 
+        /// <summary>
+        /// Trạng thái phê duyệt của POI. Mặc định là Pending khi Agency tạo mới.
+        /// Admin sẽ duyệt (Approved) hoặc từ chối (Rejected).
+        /// </summary>
+        public ApprovalStatus ApprovalStatus { get; set; } = ApprovalStatus.Pending;
+
+        /// <summary>
+        /// Ghi chú của Admin khi từ chối POI, giải thích lý do để Agency sửa lại.
+        /// </summary>
+        public string AdminNote { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Text hiển thị badge trạng thái phê duyệt cho UI.
+        /// </summary>
+        [Ignore]
+        public string DisplayApprovalBadge => ApprovalStatus switch
+        {
+            ApprovalStatus.Pending => "⏳ Chờ duyệt",
+            ApprovalStatus.Approved => "✅ Đã duyệt",
+            ApprovalStatus.Rejected => "❌ Bị từ chối",
+            _ => "❓ Không rõ"
+        };
+
         public static List<Poi> GetSampleData()
         {
             return new List<Poi>

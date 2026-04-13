@@ -3,7 +3,7 @@
 @using VinhKhanhTour.Shared.Models
 @using VinhKhanhTour.CMS.Data
 @using Microsoft.EntityFrameworkCore
-@inject CmsDbContext DbContext
+@inject IDbContextFactory<CmsDbContext> DbFactory
 
 <PageTitle>Quản lý tài khoản Chủ Quán</PageTitle>
 
@@ -124,8 +124,8 @@ else
         users = null;
         StateHasChanged();
 
-        // Get users that are basically 'owner'
-        users = await DbContext.AppUsers
+        using var dbContext = await DbFactory.CreateDbContextAsync();
+        users = await dbContext.AppUsers
             .Where(u => u.Role != "Admin")
             .OrderByDescending(u => u.CreatedAt)
             .ToListAsync();
@@ -139,8 +139,9 @@ else
         user.PasswordHash = BCrypt.Net.BCrypt.HashPassword("123");
         user.ForcePasswordChange = true;
         
-        DbContext.AppUsers.Update(user);
-        await DbContext.SaveChangesAsync();
+        using var dbContext = await DbFactory.CreateDbContextAsync();
+        dbContext.AppUsers.Update(user);
+        await dbContext.SaveChangesAsync();
         
         await LoadUsers();
     }

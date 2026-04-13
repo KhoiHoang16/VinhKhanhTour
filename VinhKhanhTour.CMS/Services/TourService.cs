@@ -6,17 +6,18 @@ namespace VinhKhanhTour.CMS.Services
 {
     public class TourService
     {
-        private readonly CmsDbContext _context;
+        private readonly IDbContextFactory<CmsDbContext> _factory;
 
-        public TourService(CmsDbContext context)
+        public TourService(IDbContextFactory<CmsDbContext> factory)
         {
-            _context = context;
+            _factory = factory;
         }
 
         // GET: Lấy tất cả Tour (kèm danh sách Stops)
         public async Task<List<TourDetailDto>> GetAllToursAsync()
         {
-            var tours = await _context.Tours
+            using var context = await _factory.CreateDbContextAsync();
+            var tours = await context.Tours
                 .Include(t => t.Stops.OrderBy(s => s.OrderIndex))
                 .OrderBy(t => t.Id)
                 .ToListAsync();
@@ -27,7 +28,8 @@ namespace VinhKhanhTour.CMS.Services
         // GET: Lấy chi tiết 1 Tour (kèm danh sách Stops sắp xếp theo OrderIndex)
         public async Task<TourDetailDto?> GetTourByIdAsync(int id)
         {
-            var tour = await _context.Tours
+            using var context = await _factory.CreateDbContextAsync();
+            var tour = await context.Tours
                 .Include(t => t.Stops.OrderBy(s => s.OrderIndex))
                 .FirstOrDefaultAsync(t => t.Id == id);
 
@@ -37,11 +39,10 @@ namespace VinhKhanhTour.CMS.Services
         // POST: Tạo mới Tour + Stops trong 1 Transaction
         public async Task<TourDetailDto> CreateTourAsync(TourCreateUpdateDto dto)
         {
-            // Sử dụng Transaction để đảm bảo tính toàn vẹn dữ liệu
-            using var transaction = await _context.Database.BeginTransactionAsync();
+            using var context = await _factory.CreateDbContextAsync();
+            using var transaction = await context.Database.BeginTransactionAsync();
             try
             {
-                // Bước 1: Tạo Tour trước để lấy Id
                 var tour = new Tour
                 {
                     TourName = dto.TourName,
@@ -52,15 +53,14 @@ namespace VinhKhanhTour.CMS.Services
                     TotalDistance = dto.TotalDistance
                 };
 
-                _context.Tours.Add(tour);
-                await _context.SaveChangesAsync(); // tour.Id đã được PostgreSQL sinh ra
+                context.Tours.Add(tour);
+                await context.SaveChangesAsync();
 
-                // Bước 2: Gán TourId cho từng Stop rồi lưu
                 if (dto.Stops != null && dto.Stops.Any())
                 {
                     var stops = dto.Stops.Select(s => new TourStop
                     {
-                        TourId = tour.Id, // Gán khóa ngoại
+                        TourId = tour.Id,
                         PoiId = s.PoiId,
                         PoiName = s.PoiName,
                         Description = s.Description,
@@ -69,18 +69,16 @@ namespace VinhKhanhTour.CMS.Services
                         OrderIndex = s.OrderIndex
                     }).ToList();
 
-                    _context.TourStops.AddRange(stops);
-                    await _context.SaveChangesAsync();
+                    context.TourStops.AddRange(stops);
+                    await context.SaveChangesAsync();
                     tour.Stops = stops;
                 }
 
-                // Commit Transaction nếu thành công
                 await transaction.CommitAsync();
                 return MapToDetailDto(tour);
             }
             catch
             {
-                // Rollback toàn bộ nếu có lỗi
                 await transaction.RollbackAsync();
                 throw;
             }
@@ -89,16 +87,16 @@ namespace VinhKhanhTour.CMS.Services
         // PUT: Cập nhật Tour + Stops trong 1 Transaction
         public async Task<TourDetailDto?> UpdateTourAsync(int id, TourCreateUpdateDto dto)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
+            using var context = await _factory.CreateDbContextAsync();
+            using var transaction = await context.Database.BeginTransactionAsync();
             try
             {
-                var tour = await _context.Tours
+                var tour = await context.Tours
                     .Include(t => t.Stops)
                     .FirstOrDefaultAsync(t => t.Id == id);
 
                 if (tour == null) return null;
 
-                // Bước 1: Cập nhật thông tin Tour
                 tour.TourName = dto.TourName;
                 tour.Description = dto.Description;
                 tour.ImageUrl = dto.ImageUrl;
@@ -106,10 +104,8 @@ namespace VinhKhanhTour.CMS.Services
                 tour.EndPoint = dto.EndPoint;
                 tour.TotalDistance = dto.TotalDistance;
 
-                // Bước 2: Xóa toàn bộ Stops cũ
-                _context.TourStops.RemoveRange(tour.Stops);
+                context.TourStops.RemoveRange(tour.Stops);
 
-                // Bước 3: Thêm danh sách Stops mới
                 if (dto.Stops != null && dto.Stops.Any())
                 {
                     var newStops = dto.Stops.Select(s => new TourStop
@@ -123,11 +119,11 @@ namespace VinhKhanhTour.CMS.Services
                         OrderIndex = s.OrderIndex
                     }).ToList();
 
-                    _context.TourStops.AddRange(newStops);
+                    context.TourStops.AddRange(newStops);
                     tour.Stops = newStops;
                 }
 
-                await _context.SaveChangesAsync();
+                await context.SaveChangesAsync();
                 await transaction.CommitAsync();
                 return MapToDetailDto(tour);
             }
@@ -141,11 +137,12 @@ namespace VinhKhanhTour.CMS.Services
         // DELETE: Xóa Tour (Cascade sẽ tự xóa Stops)
         public async Task<bool> DeleteTourAsync(int id)
         {
-            var tour = await _context.Tours.FindAsync(id);
+            using var context = await _factory.CreateDbContextAsync();
+            var tour = await context.Tours.FindAsync(id);
             if (tour == null) return false;
 
-            _context.Tours.Remove(tour);
-            await _context.SaveChangesAsync();
+            context.Tours.Remove(tour);
+            await context.SaveChangesAsync();
             return true;
         }
 

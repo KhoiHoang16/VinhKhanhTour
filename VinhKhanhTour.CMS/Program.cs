@@ -60,11 +60,12 @@ if (!string.IsNullOrEmpty(connectionString) && (connectionString.StartsWith("pos
     };
     connectionString = builderDb.ToString();
 }
-builder.Services.AddDbContext<CmsDbContext>(options =>
-    options.UseNpgsql(connectionString));
+builder.Services.AddDbContextFactory<CmsDbContext>(options =>
+    options.UseNpgsql(connectionString), ServiceLifetime.Scoped);
 
 builder.Services.AddSingleton<IErrorHandler, CmsErrorHandler>();
 builder.Services.AddScoped<IPoiRepository, PostgresPoiRepository>();
+builder.Services.AddScoped<PostgresPoiRepository>();
 builder.Services.AddScoped<PoiService>();
 builder.Services.AddScoped<TourService>();
 builder.Services.AddScoped<AnalyticsService>();
@@ -72,6 +73,11 @@ builder.Services.AddScoped<IAppAnalyticsService, AppAnalyticsService>();
 builder.Services.AddScoped<GeminiTranslationService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+
+// Payment Services
+builder.Services.AddHttpClient("MoMo");
+builder.Services.AddSingleton<MoMoPaymentService>();
+builder.Services.AddSingleton<VNPayPaymentService>();
 
 VinhKhanhTour.Shared.Models.Poi.LocalizationService = new VinhKhanhTour.CMS.Services.CmsLocalizationService();
 

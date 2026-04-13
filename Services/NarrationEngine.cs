@@ -133,13 +133,16 @@ namespace VinhKhanhTour.Services
                     // Lấy vị trí GPS cuối cùng đã biết để ghi đính kèm lịch sử
                     var location = await Microsoft.Maui.Devices.Sensors.Geolocation.Default.GetLastKnownLocationAsync();
 
+                    // Lấy DeviceId ổn định từ SecureStorage (persistent qua app updates)
+                    var stableDeviceId = await DeviceIdentityService.GetOrCreateDeviceIdAsync();
+
                     var usageRecord = new VinhKhanhTour.Shared.Models.UsageHistory 
                     {
                         PoiId = poi.Id,
                         ListenDurationSeconds = 10,
                         IsQrTriggered = isQrTriggered,
                         Timestamp = DateTime.UtcNow,
-                        DeviceId = Microsoft.Maui.Devices.DeviceInfo.Current.Idiom.ToString() + "_" + Guid.NewGuid().ToString().Substring(0, 4),
+                        DeviceId = stableDeviceId,
                         UserLatitude = location?.Latitude ?? 0,
                         UserLongitude = location?.Longitude ?? 0
                     };

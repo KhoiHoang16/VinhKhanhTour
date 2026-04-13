@@ -6,12 +6,15 @@ using VinhKhanhTour.Shared.Models;
 using VinhKhanhTour.Shared.Interfaces;
 using VinhKhanhTour.CMS.Services;
 
+using Microsoft.Extensions.DependencyInjection;
+
 namespace VinhKhanhTour.CMS.Data
 {
     public class CmsDbContext : DbContext
     {
         private readonly ICurrentUserService? _currentUserService;
 
+        [ActivatorUtilitiesConstructor]
         public CmsDbContext(DbContextOptions<CmsDbContext> options, ICurrentUserService currentUserService) : base(options) 
         { 
             _currentUserService = currentUserService;
@@ -27,6 +30,8 @@ namespace VinhKhanhTour.CMS.Data
         public DbSet<UserRoute> UserRoutes { get; set; }
         public DbSet<AppAuditLog> AppAuditLogs { get; set; }
         public DbSet<AppUser> AppUsers { get; set; }
+        public DbSet<AppNotification> AppNotifications { get; set; }
+        public DbSet<DevicePurchase> DevicePurchases { get; set; }
 
         // EXTREMELY IMPORTANT: Properties must be evaluated dynamically per DbContext instance query, NOT baked into OnModelCreating
         private int? CurrentAgencyId => _currentUserService?.AgencyId ?? -1;
@@ -52,6 +57,7 @@ namespace VinhKhanhTour.CMS.Data
             poi.Ignore(p => p.DisplayDescription);
             poi.Ignore(p => p.DisplayTtsScript);
             poi.Ignore(p => p.DistanceToUser);
+            poi.Ignore(p => p.DisplayApprovalBadge);
             
             modelBuilder.Entity<Tour>().HasKey(t => t.Id);
             modelBuilder.Entity<Tour>().Property(t => t.Id).ValueGeneratedOnAdd();
@@ -76,6 +82,16 @@ namespace VinhKhanhTour.CMS.Data
             modelBuilder.Entity<AppUser>().HasKey(u => u.Id);
             modelBuilder.Entity<AppUser>().Property(u => u.Id).ValueGeneratedOnAdd();
             modelBuilder.Entity<AppUser>().HasIndex(u => u.Username).IsUnique();
+
+            modelBuilder.Entity<AppNotification>().HasKey(n => n.Id);
+            modelBuilder.Entity<AppNotification>().Property(n => n.Id).ValueGeneratedOnAdd();
+            modelBuilder.Entity<AppNotification>().HasIndex(n => n.RecipientAgencyId);
+
+            // DevicePurchase
+            modelBuilder.Entity<DevicePurchase>().HasKey(d => d.Id);
+            modelBuilder.Entity<DevicePurchase>().Property(d => d.Id).ValueGeneratedOnAdd();
+            modelBuilder.Entity<DevicePurchase>().HasIndex(d => new { d.DeviceId, d.PoiId });
+            modelBuilder.Entity<DevicePurchase>().HasIndex(d => d.RecoveryContact);
 
             // -------------------------------------------------------------
             // GLOBAL QUERY FILTERS & INDEXES FOR AGENCY ISOLATION
@@ -106,6 +122,16 @@ namespace VinhKhanhTour.CMS.Data
                     {
                         entry.Entity.AgencyId = _currentUserService.AgencyId.Value;
                     }
+                }
+            }
+
+            // Tự động set ApprovalStatus = Pending khi Agency (non-Admin) sửa POI
+            // Theo góp ý: không áp dụng khi Admin sửa
+            if (_currentUserService != null && !_currentUserService.IsSystemAdmin)
+            {
+                foreach (var entry in ChangeTracker.Entries<Poi>().Where(e => e.State == EntityState.Added || e.State == EntityState.Modified))
+                {
+                    entry.Entity.ApprovalStatus = ApprovalStatus.Pending;
                 }
             }
 

@@ -6,93 +6,168 @@ namespace VinhKhanhTour.CMS.Data
 {
     public class PostgresPoiRepository : IPoiRepository
     {
-        private readonly CmsDbContext _context;
+        private readonly IDbContextFactory<CmsDbContext> _factory;
 
-        public PostgresPoiRepository(CmsDbContext context)
+        public PostgresPoiRepository(IDbContextFactory<CmsDbContext> factory)
         {
-            _context = context;
+            _factory = factory;
         }
 
         public async Task<List<Poi>> GetAllPoisAsync()
         {
-            return await _context.Pois.ToListAsync();
+            using var context = await _factory.CreateDbContextAsync();
+            return await context.Pois.ToListAsync();
         }
 
         public async Task<Poi?> GetPoiAsync(int id)
         {
-            return await _context.Pois.FindAsync(id);
+            using var context = await _factory.CreateDbContextAsync();
+            return await context.Pois.FindAsync(id);
         }
 
         public async Task<int> SavePoiAsync(Poi poi)
         {
+            using var context = await _factory.CreateDbContextAsync();
             if (poi.Id == 0)
             {
-                _context.Pois.Add(poi);
+                context.Pois.Add(poi);
             }
             else
             {
-                _context.Pois.Update(poi);
+                context.Pois.Update(poi);
             }
-            return await _context.SaveChangesAsync();
+            return await context.SaveChangesAsync();
         }
 
         public async Task<int> AddPoiAsync(Poi poi)
         {
-            _context.Pois.Add(poi);
-            return await _context.SaveChangesAsync();
+            using var context = await _factory.CreateDbContextAsync();
+            context.Pois.Add(poi);
+            return await context.SaveChangesAsync();
         }
 
         public async Task<int> UpdatePoiAsync(Poi poi)
         {
-            _context.Pois.Update(poi);
-            return await _context.SaveChangesAsync();
+            using var context = await _factory.CreateDbContextAsync();
+            context.Pois.Update(poi);
+            return await context.SaveChangesAsync();
         }
 
         public async Task<int> DeletePoiAsync(Poi poi)
         {
-            _context.Pois.Remove(poi);
-            return await _context.SaveChangesAsync();
+            using var context = await _factory.CreateDbContextAsync();
+            context.Pois.Remove(poi);
+            return await context.SaveChangesAsync();
         }
 
         public async Task<List<Tour>> GetAllToursAsync()
         {
-            return await _context.Tours.ToListAsync();
+            using var context = await _factory.CreateDbContextAsync();
+            return await context.Tours.ToListAsync();
         }
 
         public async Task<int> SaveTourAsync(Tour tour)
         {
+            using var context = await _factory.CreateDbContextAsync();
             if (tour.Id == 0)
             {
-                _context.Tours.Add(tour);
+                context.Tours.Add(tour);
             }
             else
             {
-                _context.Tours.Update(tour);
+                context.Tours.Update(tour);
             }
-            return await _context.SaveChangesAsync();
+            return await context.SaveChangesAsync();
         }
 
         public async Task<int> DeleteTourAsync(Tour tour)
         {
-            _context.Tours.Remove(tour);
-            return await _context.SaveChangesAsync();
+            using var context = await _factory.CreateDbContextAsync();
+            context.Tours.Remove(tour);
+            return await context.SaveChangesAsync();
         }
 
         public async Task<List<UsageHistory>> GetUsageHistoryAsync()
         {
-            return await _context.UsageHistories.OrderByDescending(h => h.Timestamp).ToListAsync();
+            using var context = await _factory.CreateDbContextAsync();
+            return await context.UsageHistories.OrderByDescending(h => h.Timestamp).ToListAsync();
         }
 
         public async Task<int> RecordUsageAsync(UsageHistory history)
         {
-            _context.UsageHistories.Add(history);
-            return await _context.SaveChangesAsync();
+            using var context = await _factory.CreateDbContextAsync();
+            context.UsageHistories.Add(history);
+            return await context.SaveChangesAsync();
         }
 
         public async Task<int> DeleteUsageHistoriesAsync(List<UsageHistory> histories)
         {
-            _context.UsageHistories.RemoveRange(histories);
-            return await _context.SaveChangesAsync();
+            using var context = await _factory.CreateDbContextAsync();
+            context.UsageHistories.RemoveRange(histories);
+            return await context.SaveChangesAsync();
+        }
+
+        // --- APPROVAL WORKFLOW METHODS ---
+
+        /// <summary>
+        /// Lấy tất cả POI đang chờ duyệt (Pending). Dùng IgnoreQueryFilters để Admin xem được của mọi Agency.
+        /// </summary>
+        public async Task<List<Poi>> GetPendingPoisAsync()
+        {
+            using var context = await _factory.CreateDbContextAsync();
+            return await context.Pois
+                .IgnoreQueryFilters()
+                .Where(p => p.ApprovalStatus == ApprovalStatus.Pending && !p.IsDeleted)
+                .OrderByDescending(p => p.Id)
+                .ToListAsync();
+        }
+
+        /// <summary>
+        /// Lấy POI theo ID, bỏ qua query filter (cho Admin duyệt POI của Agency khác).
+        /// </summary>
+        public async Task<Poi?> GetPoiByIdIgnoreFiltersAsync(int id)
+        {
+            using var context = await _factory.CreateDbContextAsync();
+            return await context.Pois
+                .IgnoreQueryFilters()
+                .FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted);
+        }
+
+        /// <summary>
+        /// Đếm số POI đang chờ duyệt (badge count cho NavMenu).
+        /// </summary>
+        public async Task<int> GetPendingCountAsync()
+        {
+            using var context = await _factory.CreateDbContextAsync();
+            return await context.Pois
+                .IgnoreQueryFilters()
+                .CountAsync(p => p.ApprovalStatus == ApprovalStatus.Pending && !p.IsDeleted);
+        }
+
+        // --- NOTIFICATION METHODS ---
+
+        public async Task AddNotificationAsync(AppNotification notification)
+        {
+            using var context = await _factory.CreateDbContextAsync();
+            context.AppNotifications.Add(notification);
+            await context.SaveChangesAsync();
+        }
+
+        public async Task<List<AppNotification>> GetNotificationsForAgencyAsync(int agencyId)
+        {
+            using var context = await _factory.CreateDbContextAsync();
+            return await context.AppNotifications
+                .Where(n => n.RecipientAgencyId == agencyId)
+                .OrderByDescending(n => n.CreatedAt)
+                .Take(50)
+                .ToListAsync();
+        }
+
+        public async Task<int> GetUnreadNotificationCountAsync(int agencyId)
+        {
+            using var context = await _factory.CreateDbContextAsync();
+            return await context.AppNotifications
+                .CountAsync(n => n.RecipientAgencyId == agencyId && !n.IsRead);
         }
     }
 }

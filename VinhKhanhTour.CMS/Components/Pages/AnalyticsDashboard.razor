@@ -6,7 +6,7 @@
 @inject AnalyticsService AnalyticsService
 @inject PoiService PoiService
 @inject IJSRuntime JSRuntime
-@inject CmsDbContext DbContext
+@inject IDbContextFactory<CmsDbContext> DbFactory
 
 <PageTitle>Phân tích Dữ liệu - VinhKhanh Tour</PageTitle>
 
@@ -261,7 +261,8 @@
         }
 
         // Calculate Revenue from DB
-        var registerLogs = await DbContext.AppAuditLogs
+        using var dbContext = await DbFactory.CreateDbContextAsync();
+        var registerLogs = await dbContext.AppAuditLogs
             .Where(x => x.Action == "register_poi")
             .ToListAsync();
         
