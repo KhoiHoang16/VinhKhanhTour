@@ -1,11 +1,14 @@
 @page "/listen/demo-payment/{PoiId:int}"
 @page "/listen/demo-payment/{PoiId:int}/{Method}"
+@attribute [AllowAnonymous]
+@layout VinhKhanhTour.CMS.Components.Layout.EmptyLayout
 @using Microsoft.EntityFrameworkCore
 @using VinhKhanhTour.CMS.Data
 @using VinhKhanhTour.Shared.Models
 @inject IDbContextFactory<CmsDbContext> DbFactory
 @inject NavigationManager NavManager
 @inject IConfiguration Config
+@inject IJSRuntime JSRuntime
 
 <PageTitle>Thanh toán Demo — VinhKhanh Tour</PageTitle>
 
@@ -43,10 +46,10 @@
                 <p>Order: <code>@orderId</code></p>
             </div>
 
-            <button class="btn-confirm" @@onclick="ConfirmPayment">
+            <button class="btn-confirm" @onclick="ConfirmPayment">
                 ✅ Xác nhận thanh toán (@price.ToString("N0")đ)
             </button>
-            <button class="btn-cancel" @@onclick="CancelPayment">
+            <button class="btn-cancel" @onclick="CancelPayment">
                 ✖ Hủy
             </button>
         </div>
@@ -73,17 +76,66 @@
         <div class="demo-card failed">
             <div class="check-icon">❌</div>
             <h2>Đã hủy thanh toán</h2>
-            <button class="btn-back" @@onclick="GoBack">← Quay lại</button>
+            <button class="btn-back" @onclick="GoBack">← Quay lại</button>
         </div>
     }
 </div>
 
+<script>
+    // FingerprintJS — copy từ ListenApp
+    var _cachedFingerprint = null;
+
+    async function getDeviceFingerprint() {
+        if (_cachedFingerprint) return _cachedFingerprint;
+
+        var stored = localStorage.getItem('vkt_device_id');
+        if (stored) {
+            _cachedFingerprint = stored;
+            return stored;
+        }
+
+        try {
+            var FingerprintJS = await import('https://openfpcdn.io/fingerprintjs/v4');
+            var fp = await FingerprintJS.load();
+            var result = await fp.get();
+            var visitorId = result.visitorId;
+
+            var ua = navigator.userAgent || '';
+            var platform = 'Web';
+            if (/iPhone|iPad|iPod/i.test(ua)) platform = 'iOS';
+            else if (/Android/i.test(ua)) platform = 'Android';
+
+            var deviceId = platform + '_' + visitorId.substring(0, 8);
+            localStorage.setItem('vkt_device_id', deviceId);
+            _cachedFingerprint = deviceId;
+            return deviceId;
+        } catch (e) {
+            var ua = navigator.userAgent || '';
+            var screen = window.screen;
+            var raw = ua + '|' + screen.width + 'x' + screen.height + '|' + screen.colorDepth + '|' + (navigator.language || '') + '|' + new Date().getTimezoneOffset();
+            var hash = 0;
+            for (var i = 0; i < raw.length; i++) {
+                hash = ((hash << 5) - hash) + raw.charCodeAt(i);
+                hash |= 0;
+            }
+            var platform = 'Web';
+            if (/iPhone|iPad|iPod/i.test(ua)) platform = 'iOS';
+            else if (/Android/i.test(ua)) platform = 'Android';
+            var deviceId = platform + '_' + Math.abs(hash).toString(36).substring(0, 8);
+            localStorage.setItem('vkt_device_id', deviceId);
+            _cachedFingerprint = deviceId;
+            return deviceId;
+        }
+    }
+</script>
+
 <style>
+    body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; }
     .demo-pay-wrapper {
         min-height: 100vh; display: flex; align-items: center; justify-content: center;
         background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
         font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-        padding: 20px;
+        padding: 20px; box-sizing: border-box;
     }
     .demo-card {
         background: rgba(255,255,255,0.06); backdrop-filter: blur(20px);
@@ -181,6 +233,24 @@
         poiName = poi?.Name ?? $"POI #{PoiId}";
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Lấy DeviceId thực từ FingerprintJS (thay vì query string)
+            try
+            {
+                var fpId = await JSRuntime.InvokeAsync<string>("getDeviceFingerprint");
+                if (!string.IsNullOrEmpty(fpId) && fpId != deviceId)
+                {
+                    deviceId = fpId;
+                    StateHasChanged();
+                }
+            }
+            catch { }
+        }
+    }
+
     private async Task ConfirmPayment()
     {
         step = "processing";
@@ -220,6 +290,7 @@
         {
             Console.WriteLine($"[DemoPayment] Error: {ex.Message}");
             step = "failed";
+            StateHasChanged();
         }
     }
 
