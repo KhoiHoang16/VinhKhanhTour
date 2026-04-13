@@ -1,0 +1,236 @@
+@page "/listen/demo-payment/{PoiId:int}"
+@page "/listen/demo-payment/{PoiId:int}/{Method}"
+@using Microsoft.EntityFrameworkCore
+@using VinhKhanhTour.CMS.Data
+@using VinhKhanhTour.Shared.Models
+@inject IDbContextFactory<CmsDbContext> DbFactory
+@inject NavigationManager NavManager
+@inject IConfiguration Config
+
+<PageTitle>Thanh toán Demo — VinhKhanh Tour</PageTitle>
+
+<div class="demo-pay-wrapper">
+    @if (step == "confirm")
+    {
+        <div class="demo-card">
+            <div class="gateway-logo">
+                @if (Method == "momo")
+                {
+                    <div class="logo-circle momo">💜</div>
+                    <h2>MoMo</h2>
+                }
+                else
+                {
+                    <div class="logo-circle vnpay">🏦</div>
+                    <h2>VNPay</h2>
+                }
+            </div>
+
+            <div class="order-summary">
+                <p class="label">Đơn hàng</p>
+                <h3>🎧 @poiName</h3>
+                <p class="order-desc">Mở khóa Audio thuyết minh</p>
+                <div class="price-row">
+                    <span>Tổng thanh toán</span>
+                    <span class="price">@price.ToString("N0") VND</span>
+                </div>
+            </div>
+
+            <div class="demo-badge">🧪 CHẾ ĐỘ DEMO — Không trừ tiền thật</div>
+
+            <div class="device-info">
+                <p>Device: <code>@(deviceId?.Length > 16 ? deviceId[..16] + "..." : deviceId)</code></p>
+                <p>Order: <code>@orderId</code></p>
+            </div>
+
+            <button class="btn-confirm" @@onclick="ConfirmPayment">
+                ✅ Xác nhận thanh toán (@price.ToString("N0")đ)
+            </button>
+            <button class="btn-cancel" @@onclick="CancelPayment">
+                ✖ Hủy
+            </button>
+        </div>
+    }
+    else if (step == "processing")
+    {
+        <div class="demo-card processing">
+            <div class="spinner-large"></div>
+            <h2>Đang xử lý...</h2>
+            <p>Đang ghi nhận giao dịch</p>
+        </div>
+    }
+    else if (step == "success")
+    {
+        <div class="demo-card success">
+            <div class="check-icon">✅</div>
+            <h2>Thanh toán thành công!</h2>
+            <p>Bạn đã mở khóa Audio cho <strong>@poiName</strong></p>
+            <p class="redirect-note">Đang chuyển hướng về trang nghe...</p>
+        </div>
+    }
+    else if (step == "failed")
+    {
+        <div class="demo-card failed">
+            <div class="check-icon">❌</div>
+            <h2>Đã hủy thanh toán</h2>
+            <button class="btn-back" @@onclick="GoBack">← Quay lại</button>
+        </div>
+    }
+</div>
+
+<style>
+    .demo-pay-wrapper {
+        min-height: 100vh; display: flex; align-items: center; justify-content: center;
+        background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        padding: 20px;
+    }
+    .demo-card {
+        background: rgba(255,255,255,0.06); backdrop-filter: blur(20px);
+        border: 1px solid rgba(255,255,255,0.12); border-radius: 24px;
+        padding: 32px 24px; max-width: 380px; width: 100%; text-align: center;
+        color: #fff; animation: fadeIn 0.4s ease;
+    }
+    @@keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+    .gateway-logo { margin-bottom: 20px; }
+    .logo-circle {
+        width: 64px; height: 64px; border-radius: 50%; display: flex;
+        align-items: center; justify-content: center; font-size: 28px;
+        margin: 0 auto 8px;
+    }
+    .logo-circle.momo { background: linear-gradient(135deg, #a855f7, #7c3aed); }
+    .logo-circle.vnpay { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+    .gateway-logo h2 { margin: 0; font-size: 1.3rem; color: rgba(255,255,255,0.9); }
+
+    .order-summary {
+        background: rgba(255,255,255,0.06); border-radius: 16px;
+        padding: 16px; margin-bottom: 16px;
+    }
+    .order-summary .label { color: rgba(255,255,255,0.5); font-size: 0.8rem; margin: 0 0 4px; text-transform: uppercase; letter-spacing: 1px; }
+    .order-summary h3 { margin: 0 0 4px; font-size: 1.1rem; }
+    .order-summary .order-desc { color: rgba(255,255,255,0.6); font-size: 0.85rem; margin: 0 0 12px; }
+    .price-row {
+        display: flex; justify-content: space-between; align-items: center;
+        border-top: 1px solid rgba(255,255,255,0.1); padding-top: 12px;
+    }
+    .price-row span { color: rgba(255,255,255,0.7); }
+    .price-row .price { color: #ffd700; font-size: 1.3rem; font-weight: 800; }
+
+    .demo-badge {
+        background: rgba(255,200,0,0.15); color: #ffd700; border: 1px dashed rgba(255,200,0,0.4);
+        border-radius: 10px; padding: 8px; font-size: 0.8rem; font-weight: 600;
+        margin-bottom: 16px; letter-spacing: 0.5px;
+    }
+
+    .device-info { margin-bottom: 20px; }
+    .device-info p { color: rgba(255,255,255,0.4); font-size: 0.75rem; margin: 2px 0; }
+    .device-info code { color: rgba(255,255,255,0.6); background: rgba(255,255,255,0.08); padding: 2px 6px; border-radius: 4px; }
+
+    .btn-confirm {
+        width: 100%; padding: 16px; border: none; border-radius: 14px;
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: #fff; font-size: 1.1rem; font-weight: 700; cursor: pointer;
+        transition: transform 0.15s, box-shadow 0.15s; margin-bottom: 10px;
+    }
+    .btn-confirm:hover { transform: scale(1.02); box-shadow: 0 4px 20px rgba(16,185,129,0.5); }
+
+    .btn-cancel, .btn-back {
+        width: 100%; padding: 12px; border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 12px; background: transparent; color: rgba(255,255,255,0.6);
+        font-size: 0.95rem; cursor: pointer;
+    }
+    .btn-cancel:hover, .btn-back:hover { border-color: rgba(255,255,255,0.3); color: #fff; }
+
+    /* Processing */
+    .spinner-large {
+        width: 48px; height: 48px; border: 4px solid rgba(255,255,255,0.2);
+        border-top-color: #10b981; border-radius: 50%;
+        animation: spin 0.8s linear infinite; margin: 0 auto 20px;
+    }
+    @@keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Success */
+    .check-icon { font-size: 56px; margin-bottom: 12px; }
+    .redirect-note { color: rgba(255,255,255,0.4); font-size: 0.85rem; margin-top: 12px; }
+    .success h2 { color: #34d399; }
+    .failed h2 { color: #f87171; }
+</style>
+
+@code {
+    [Parameter] public int PoiId { get; set; }
+    [Parameter] public string Method { get; set; } = "vnpay";
+
+    [SupplyParameterFromQuery] public string? DeviceId { get; set; }
+
+    private string step = "confirm";
+    private string poiName = "";
+    private int price;
+    private string? deviceId;
+    private string orderId = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        price = Config.GetValue<int>("AudioPaywall:DefaultPriceVND", 20000);
+        deviceId = DeviceId ?? "Demo_Unknown";
+        orderId = $"DEMO_{PoiId}_{DateTime.UtcNow:HHmmss}";
+
+        using var db = await DbFactory.CreateDbContextAsync();
+        var poi = await db.Pois.IgnoreQueryFilters()
+            .FirstOrDefaultAsync(p => p.Id == PoiId && !p.IsDeleted);
+        poiName = poi?.Name ?? $"POI #{PoiId}";
+    }
+
+    private async Task ConfirmPayment()
+    {
+        step = "processing";
+        StateHasChanged();
+        await Task.Delay(1500); // Giả lập xử lý
+
+        try
+        {
+            using var db = await DbFactory.CreateDbContextAsync();
+
+            // Kiểm tra đã mua chưa (chống duplicate)
+            var exists = await db.DevicePurchases.AnyAsync(p =>
+                p.DeviceId == deviceId && p.PoiId == PoiId && p.IsActive);
+
+            if (!exists)
+            {
+                db.DevicePurchases.Add(new DevicePurchase
+                {
+                    DeviceId = deviceId!,
+                    PoiId = PoiId,
+                    PurchaseType = "single",
+                    Amount = price,
+                    PaymentMethod = $"demo_{Method}",
+                    TransactionId = orderId,
+                    PurchasedAt = DateTime.UtcNow,
+                    IsActive = true
+                });
+                await db.SaveChangesAsync();
+            }
+
+            step = "success";
+            StateHasChanged();
+            await Task.Delay(2000);
+            NavManager.NavigateTo($"/listen/{PoiId}?unlocked=true", true);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[DemoPayment] Error: {ex.Message}");
+            step = "failed";
+        }
+    }
+
+    private void CancelPayment()
+    {
+        step = "failed";
+        StateHasChanged();
+    }
+
+    private void GoBack()
+    {
+        NavManager.NavigateTo($"/listen/{PoiId}", true);
+    }
+}

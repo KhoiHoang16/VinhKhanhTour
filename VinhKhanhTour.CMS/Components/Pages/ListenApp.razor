@@ -949,27 +949,10 @@
         try
         {
             var deviceId = currentDeviceId ?? "WebApp_Unknown";
-            var baseUrl = NavManager.BaseUri.TrimEnd('/');
-
-            using var http = new HttpClient { BaseAddress = new Uri(baseUrl) };
-            var payload = new { deviceId, poiId = Id, recoveryContact = (string?)null };
-
-            var endpoint = method == "momo" ? "/api/audio/create-momo-payment" : "/api/audio/create-vnpay-payment";
-            var response = await http.PostAsJsonAsync(endpoint, payload);
-
-            if (response.IsSuccessStatusCode)
-            {
-                var result = await response.Content.ReadFromJsonAsync<PaymentUrlResponse>();
-                if (!string.IsNullOrEmpty(result?.PayUrl))
-                {
-                    NavManager.NavigateTo(result.PayUrl, true);
-                    return;
-                }
-            }
-
-            paymentError = currentLang == "vi"
-                ? "Không thể tạo link thanh toán. Vui lòng thử lại."
-                : "Could not create payment link. Please try again.";
+            // Demo mode: redirect sang trang thanh toán giả lập
+            var demoUrl = $"/listen/demo-payment/{Id}/{method}?DeviceId={Uri.EscapeDataString(deviceId)}";
+            NavManager.NavigateTo(demoUrl, true);
+            return;
         }
         catch (Exception ex)
         {
