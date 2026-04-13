@@ -12,186 +12,416 @@
 
 <div class="register-container">
     <div class="register-card">
-        <h2>Đăng Ký Thành Viên</h2>
-        <p class="subtitle">Đăng ký thông tin và tạo Điểm tham quan (POI) trên hệ thống VinhKhanhTour, thanh toán một lần (500,000 VND).</p>
-
-        @if (!string.IsNullOrEmpty(ErrorMessage))
-        {
-            <div class="alert alert-danger" style="font-size: 0.9rem;">
-                🚨 @ErrorMessage
-            </div>
-        }
         @if (IsSuccess)
         {
-            <div class="alert alert-success" style="font-size: 0.95rem;">
-                ✅ <strong>Đăng ký thành công!</strong><br />
-                Tài khoản của bạn:<br />
-                SĐT (Username): <strong>@RequestData.PhoneNumber</strong><br />
-                Mật khẩu: <strong>***</strong> (Mật khẩu bạn đã chọn)<br/>
-                <a href="/login" class="btn btn-sm btn-success mt-2">Đến trang Đăng Nhập</a>
+            <div class="success-screen">
+                <div class="success-icon">🎉</div>
+                <h2>Đăng ký thành công!</h2>
+                <p>Chào mừng bạn đến với VinhKhanh Tour</p>
+                <div class="success-details">
+                    <div class="detail-row">
+                        <span class="detail-label">SĐT (Username)</span>
+                        <span class="detail-value">@RequestData.PhoneNumber</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Quán</span>
+                        <span class="detail-value">@RequestData.PoiName</span>
+                    </div>
+                </div>
+                <a href="/login" class="btn-login">Đến trang Đăng Nhập →</a>
             </div>
         }
         else
         {
+            <!-- STEPPER -->
+            <div class="stepper">
+                <div class="step-item @(currentStep >= 1 ? "active" : "") @(currentStep > 1 ? "completed" : "")">
+                    <div class="step-circle">@(currentStep > 1 ? "✓" : "1")</div>
+                    <span class="step-label">Khách hàng</span>
+                </div>
+                <div class="step-line @(currentStep >= 2 ? "active" : "")"></div>
+                <div class="step-item @(currentStep >= 2 ? "active" : "") @(currentStep > 2 ? "completed" : "")">
+                    <div class="step-circle">@(currentStep > 2 ? "✓" : "2")</div>
+                    <span class="step-label">Quán</span>
+                </div>
+                <div class="step-line @(currentStep >= 3 ? "active" : "")"></div>
+                <div class="step-item @(currentStep >= 3 ? "active" : "")">
+                    <div class="step-circle">3</div>
+                    <span class="step-label">Thanh toán</span>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(ErrorMessage))
+            {
+                <div class="error-box">🚨 @ErrorMessage</div>
+            }
+
             <EditForm Model="@RequestData" OnValidSubmit="HandleRegistration">
                 <DataAnnotationsValidator />
-                
-                <div class="form-group">
-                    <label>Họ và Tên chủ quán</label>
-                    <InputText @bind-Value="RequestData.FullName" class="form-control" placeholder="VD: Nguyễn Văn A" />
-                    <ValidationMessage For="@(() => RequestData.FullName)" class="text-danger" />
-                </div>
 
-                <div class="form-group">
-                    <label>Số điện thoại (Sẽ dùng làm tên đăng nhập)</label>
-                    <InputText @bind-Value="RequestData.PhoneNumber" class="form-control" placeholder="VD: 0901234567" />
-                    <ValidationMessage For="@(() => RequestData.PhoneNumber)" class="text-danger" />
-                </div>
+                <!-- ====== STEP 1: Thông tin khách hàng ====== -->
+                @if (currentStep == 1)
+                {
+                    <div class="step-panel" style="animation: slideIn 0.35s ease">
+                        <h3 class="step-title">👤 Thông tin khách hàng</h3>
 
-                <div class="form-group">
-                    <label>Tên địa điểm / Quán (POI)</label>
-                    <InputText @bind-Value="RequestData.PoiName" class="form-control" placeholder="VD: Ốc Oanh" />
-                    <ValidationMessage For="@(() => RequestData.PoiName)" class="text-danger" />
-                </div>
+                        <div class="form-group">
+                            <label>Họ và Tên chủ quán <span class="req">*</span></label>
+                            <InputText @bind-Value="RequestData.FullName" class="form-control" placeholder="VD: Nguyễn Văn A" />
+                            <ValidationMessage For="@(() => RequestData.FullName)" class="field-error" />
+                        </div>
 
-                <div class="form-group">
-                    <label>Địa chỉ</label>
-                    <InputText @bind-Value="RequestData.Address" class="form-control" placeholder="VD: 15 Vĩnh Khánh, Q4" />
-                    <ValidationMessage For="@(() => RequestData.Address)" class="text-danger" />
-                </div>
+                        <div class="form-group">
+                            <label>Số điện thoại <span class="req">*</span> <small class="hint">(Dùng làm tên đăng nhập)</small></label>
+                            <InputText @bind-Value="RequestData.PhoneNumber" class="form-control" placeholder="VD: 0901234567" />
+                            <ValidationMessage For="@(() => RequestData.PhoneNumber)" class="field-error" />
+                        </div>
 
-                <div class="form-group">
-                    <label>Email (Không bắt buộc)</label>
-                    <InputText @bind-Value="RequestData.Email" class="form-control" placeholder="example@gmail.com" />
-                    <ValidationMessage For="@(() => RequestData.Email)" class="text-danger" />
-                </div>
+                        <div class="form-group">
+                            <label>Email <small class="hint">(Không bắt buộc)</small></label>
+                            <InputText @bind-Value="RequestData.Email" class="form-control" placeholder="example@gmail.com" />
+                            <ValidationMessage For="@(() => RequestData.Email)" class="field-error" />
+                        </div>
 
-                <div class="form-group mb-4">
-                    <label>Mật khẩu</label>
-                    <InputText @bind-Value="RequestData.Password" type="password" class="form-control" placeholder="Nhập mật khẩu (tối thiểu 3 ký tự)" />
-                    <ValidationMessage For="@(() => RequestData.Password)" class="text-danger" />
-                </div>
+                        <div class="form-group">
+                            <label>Mật khẩu <span class="req">*</span></label>
+                            <InputText @bind-Value="RequestData.Password" type="password" class="form-control" placeholder="Tối thiểu 3 ký tự" />
+                            <ValidationMessage For="@(() => RequestData.Password)" class="field-error" />
+                        </div>
 
-                <div class="info-payment mb-3 p-3 rounded" style="background-color: rgba(255, 165, 0, 0.1); border: 1px dashed #FFA500;">
-                    <strong style="color: #FFA500;">Thông tin khởi tạo:</strong><br/>
-                    Phí khởi tạo: <strong>500,000 VNĐ</strong><br/>
-                    <small>Trong bản demo nền tảng, thanh toán sẽ được giả lập tự động hoàn thành sau khi bạn ấn đăng ký.</small>
-                </div>
+                        <div class="form-group">
+                            <label>Xác nhận mật khẩu <span class="req">*</span></label>
+                            <InputText @bind-Value="RequestData.ConfirmPassword" type="password" class="form-control" placeholder="Nhập lại mật khẩu" />
+                            <ValidationMessage For="@(() => RequestData.ConfirmPassword)" class="field-error" />
+                        </div>
 
-                <button type="submit" class="btn btn-primary w-100" disabled="@IsSubmitting">
-                    @if (IsSubmitting)
-                    {
-                        <span>⏳ Đang xử lý...</span>
-                    }
-                    else
-                    {
-                        <span>💳 Xác nhận & Đăng ký</span>
-                    }
-                </button>
+                        <button type="button" class="btn-next" @onclick="GoToStep2">
+                            Tiếp tục: Thông tin quán →
+                        </button>
+                    </div>
+                }
+
+                <!-- ====== STEP 2: Thông tin quán ====== -->
+                @if (currentStep == 2)
+                {
+                    <!-- Summary Step 1 -->
+                    <div class="summary-card" style="animation: fadeIn 0.3s ease">
+                        <div class="summary-header">
+                            <span>✅ Thông tin khách hàng</span>
+                            <button type="button" class="btn-edit" @onclick="() => currentStep = 1">Sửa</button>
+                        </div>
+                        <div class="summary-body">
+                            <span>@RequestData.FullName</span> · <span>@RequestData.PhoneNumber</span>
+                        </div>
+                    </div>
+
+                    <div class="step-panel" style="animation: slideIn 0.35s ease">
+                        <h3 class="step-title">🏪 Thông tin quán</h3>
+
+                        <div class="form-group">
+                            <label>Tên địa điểm / Quán (POI) <span class="req">*</span></label>
+                            <InputText @bind-Value="RequestData.PoiName" class="form-control" placeholder="VD: Ốc Oanh" />
+                            <ValidationMessage For="@(() => RequestData.PoiName)" class="field-error" />
+                        </div>
+
+                        <div class="form-group">
+                            <label>Địa chỉ <span class="req">*</span></label>
+                            <InputText @bind-Value="RequestData.Address" class="form-control" placeholder="VD: 15 Vĩnh Khánh, Q4" />
+                            <ValidationMessage For="@(() => RequestData.Address)" class="field-error" />
+                        </div>
+
+                        <div class="form-group">
+                            <label>Loại hình kinh doanh <span class="req">*</span></label>
+                            <InputSelect @bind-Value="RequestData.BusinessType" class="form-control">
+                                <option value="">— Chọn loại hình —</option>
+                                <option value="seafood">🐚 Ốc & Hải sản</option>
+                                <option value="bbq">🍖 Lẩu & Nướng</option>
+                                <option value="noodle">🍜 Bún, Phở & Hủ Tiếu</option>
+                                <option value="rice">🍚 Cơm & Đồ ăn gia đình</option>
+                                <option value="dessert">🧁 Tráng miệng & Đồ uống</option>
+                                <option value="street_food">🥙 Ăn vặt & Đường phố</option>
+                                <option value="other">📍 Khác</option>
+                            </InputSelect>
+                            <ValidationMessage For="@(() => RequestData.BusinessType)" class="field-error" />
+                        </div>
+
+                        <div class="btn-row">
+                            <button type="button" class="btn-back" @onclick="() => currentStep = 1">← Quay lại</button>
+                            <button type="button" class="btn-next" @onclick="GoToStep3">Tiếp tục: Thanh toán →</button>
+                        </div>
+                    </div>
+                }
+
+                <!-- ====== STEP 3: Thanh toán ====== -->
+                @if (currentStep == 3)
+                {
+                    <!-- Summary Step 1 + 2 -->
+                    <div class="summary-card" style="animation: fadeIn 0.3s ease">
+                        <div class="summary-header">
+                            <span>✅ Khách hàng</span>
+                            <button type="button" class="btn-edit" @onclick="() => currentStep = 1">Sửa</button>
+                        </div>
+                        <div class="summary-body">
+                            <span>@RequestData.FullName</span> · <span>@RequestData.PhoneNumber</span>
+                        </div>
+                    </div>
+                    <div class="summary-card" style="animation: fadeIn 0.3s ease 0.1s both">
+                        <div class="summary-header">
+                            <span>✅ Quán</span>
+                            <button type="button" class="btn-edit" @onclick="() => currentStep = 2">Sửa</button>
+                        </div>
+                        <div class="summary-body">
+                            <span>@RequestData.PoiName</span> · <span>@RequestData.Address</span>
+                        </div>
+                    </div>
+
+                    <div class="step-panel" style="animation: slideIn 0.35s ease">
+                        <h3 class="step-title">💳 Phương thức thanh toán</h3>
+
+                        <div class="price-banner">
+                            <span class="price-label">Phí khởi tạo</span>
+                            <span class="price-amount">500,000 <small>VND</small></span>
+                            <span class="price-note">Thanh toán một lần · Sử dụng vĩnh viễn</span>
+                        </div>
+
+                        <div class="payment-options">
+                            <div class="pay-card @(RequestData.PaymentMethod == "bank_transfer" ? "selected" : "")"
+                                 @onclick='() => RequestData.PaymentMethod = "bank_transfer"'>
+                                <span class="pay-icon">🏦</span>
+                                <span class="pay-name">Chuyển khoản ngân hàng</span>
+                            </div>
+                            <div class="pay-card @(RequestData.PaymentMethod == "credit_card" ? "selected" : "")"
+                                 @onclick='() => RequestData.PaymentMethod = "credit_card"'>
+                                <span class="pay-icon">💳</span>
+                                <span class="pay-name">Thẻ tín dụng</span>
+                            </div>
+                            <div class="pay-card @(RequestData.PaymentMethod == "e_wallet" ? "selected" : "")"
+                                 @onclick='() => RequestData.PaymentMethod = "e_wallet"'>
+                                <span class="pay-icon">📱</span>
+                                <span class="pay-name">Ví điện tử</span>
+                            </div>
+                        </div>
+
+                        <div class="demo-notice">
+                            🧪 <strong>Bản Demo</strong> — Thanh toán sẽ được giả lập tự động hoàn thành.
+                        </div>
+
+                        <div class="btn-row">
+                            <button type="button" class="btn-back" @onclick="() => currentStep = 2">← Quay lại</button>
+                            <button type="submit" class="btn-submit" disabled="@IsSubmitting">
+                                @if (IsSubmitting)
+                                {
+                                    <span class="btn-spinner"></span> <span>Đang xử lý...</span>
+                                }
+                                else
+                                {
+                                    <span>Hoàn tất đăng ký & Thanh toán</span>
+                                }
+                            </button>
+                        </div>
+                    </div>
+                }
             </EditForm>
         }
+
+        <div class="login-link">
+            Đã có tài khoản? <a href="/login">Đăng nhập ngay</a>
+        </div>
     </div>
 </div>
 
 <style>
-    body { 
-        background-color: #121212; 
-        color: white; 
-        margin: 0;
-    }
-    .register-container { 
-        min-height: 100vh; 
-        display: flex; 
-        align-items: center; 
-        justify-content: center; 
-        padding-top: 2rem;
-        padding-bottom: 2rem;
-        background: url('/images/vinh_khanh_food_street_banner.jpg') no-repeat center center; 
-        background-size: cover; 
-        background-attachment: fixed;
+    *, *::before, *::after { box-sizing: border-box; }
+    body, html { margin: 0; padding: 0; min-height: 100vh; background: #0d0d0d; color: #fff; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+
+    .register-container {
+        min-height: 100vh; display: flex; align-items: center; justify-content: center;
+        padding: 24px 16px; position: relative;
+        background: url('/images/vinh_khanh_food_street_banner.jpg') no-repeat center center;
+        background-size: cover; background-attachment: fixed;
     }
     .register-container::before {
-        content: "";
-        position: fixed;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background: rgba(0,0,0,0.75);
+        content: ""; position: fixed; inset: 0;
+        background: linear-gradient(180deg, rgba(0,0,0,0.82) 0%, rgba(15,12,41,0.9) 50%, rgba(0,0,0,0.85) 100%);
         z-index: 1;
     }
-    .register-card { 
-        position: relative;
-        z-index: 2;
-        background: rgba(30, 30, 30, 0.85); 
-        padding: 40px; 
-        border-radius: 12px; 
-        width: 100%; 
-        max-width: 500px; 
-        max-height: 90vh;
-        overflow-y: auto;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.8); 
-        backdrop-filter: blur(12px); 
-        border: 1px solid rgba(255,165,0,0.3);
+
+    .register-card {
+        position: relative; z-index: 2;
+        background: rgba(20, 18, 35, 0.88); backdrop-filter: blur(20px);
+        border: 1px solid rgba(255,165,0,0.2); border-radius: 20px;
+        padding: 32px 28px; width: 100%; max-width: 480px;
+        box-shadow: 0 12px 48px rgba(0,0,0,0.6);
+        max-height: 92vh; overflow-y: auto;
     }
-    .register-card::-webkit-scrollbar {
-        width: 6px;
+    .register-card::-webkit-scrollbar { width: 5px; }
+    .register-card::-webkit-scrollbar-track { background: transparent; }
+    .register-card::-webkit-scrollbar-thumb { background: rgba(255,165,0,0.4); border-radius: 4px; }
+
+    /* ===== STEPPER ===== */
+    .stepper { display: flex; align-items: center; justify-content: center; margin-bottom: 28px; gap: 0; }
+    .step-item { display: flex; flex-direction: column; align-items: center; gap: 6px; position: relative; }
+    .step-circle {
+        width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+        font-size: 0.85rem; font-weight: 700;
+        background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.35);
+        border: 2px solid rgba(255,255,255,0.15);
+        transition: all 0.3s ease;
     }
-    .register-card::-webkit-scrollbar-track {
-        background: transparent;
+    .step-item.active .step-circle {
+        background: linear-gradient(135deg, #FFA500, #e68900);
+        color: #000; border-color: #FFA500;
+        box-shadow: 0 0 16px rgba(255,165,0,0.4);
     }
-    .register-card::-webkit-scrollbar-thumb {
-        background: rgba(255, 165, 0, 0.5);
-        border-radius: 4px;
+    .step-item.completed .step-circle {
+        background: #10b981; border-color: #10b981; color: #fff;
     }
-    .register-card::-webkit-scrollbar-thumb:hover {
-        background: rgba(255, 165, 0, 0.8);
+    .step-label { font-size: 0.7rem; color: rgba(255,255,255,0.35); font-weight: 500; }
+    .step-item.active .step-label { color: #FFA500; }
+    .step-item.completed .step-label { color: #10b981; }
+    .step-line {
+        width: 48px; height: 2px; background: rgba(255,255,255,0.1);
+        margin: 0 6px; margin-bottom: 20px; transition: background 0.3s;
     }
-    h2 { 
-        color: #FFA500; 
-        font-weight: 800; 
-        text-align: center; 
-        margin-bottom: 5px;
+    .step-line.active { background: linear-gradient(90deg, #10b981, #FFA500); }
+
+    /* ===== FORM ===== */
+    .step-panel { }
+    .step-title { color: #FFA500; font-size: 1.15rem; font-weight: 700; margin: 0 0 20px; }
+
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-weight: 600; margin-bottom: 6px; color: #ddd; font-size: 0.9rem; }
+    .req { color: #ff6b6b; }
+    .hint { color: rgba(255,255,255,0.4); font-weight: 400; }
+
+    .form-control {
+        width: 100%; padding: 12px 14px; border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 10px; background: rgba(0,0,0,0.4); color: #fff;
+        font-size: 0.95rem; transition: border-color 0.2s, box-shadow 0.2s; outline: none;
     }
-    .subtitle { 
-        text-align: center; 
-        color: #ccc; 
-        margin-bottom: 20px; 
-        font-size: 0.9rem;
+    .form-control:focus {
+        border-color: #FFA500; box-shadow: 0 0 0 3px rgba(255,165,0,0.15);
+        background: rgba(0,0,0,0.6);
     }
-    .form-group { 
-        margin-bottom: 15px; 
+    .form-control::placeholder { color: rgba(255,255,255,0.3); }
+    select.form-control { cursor: pointer; appearance: none; }
+
+    .field-error { color: #ff6b6b; font-size: 0.82rem; margin-top: 4px; display: block; }
+    .error-box {
+        background: rgba(255,100,100,0.12); color: #ff6b6b; border: 1px solid rgba(255,100,100,0.25);
+        border-radius: 10px; padding: 12px 16px; margin-bottom: 16px; font-size: 0.9rem;
     }
-    label { 
-        font-weight: 600; 
-        margin-bottom: 8px; 
-        color: #eee; 
-        font-size: 0.95rem;
+
+    /* ===== BUTTONS ===== */
+    .btn-next {
+        width: 100%; padding: 14px; border: none; border-radius: 12px; cursor: pointer;
+        background: linear-gradient(135deg, #FFA500, #e68900); color: #000;
+        font-size: 1rem; font-weight: 700; transition: transform 0.15s, box-shadow 0.15s;
+        margin-top: 8px;
     }
-    .form-control { 
-        background-color: rgba(0,0,0,0.5); 
-        border: 1px solid #555; 
-        color: white; 
-        padding: 12px;
+    .btn-next:hover { transform: scale(1.02); box-shadow: 0 4px 20px rgba(255,165,0,0.4); }
+
+    .btn-back {
+        padding: 12px 20px; border: 1px solid rgba(255,255,255,0.2); border-radius: 12px;
+        background: transparent; color: rgba(255,255,255,0.7); font-size: 0.95rem;
+        cursor: pointer; font-weight: 500;
     }
-    .form-control:focus { 
-        background-color: rgba(0,0,0,0.8); 
-        border-color: #FFA500; 
-        color: white; 
-        box-shadow: 0 0 0 0.25rem rgba(255, 165, 0, 0.25); 
+    .btn-back:hover { border-color: rgba(255,255,255,0.4); color: #fff; }
+
+    .btn-row { display: flex; gap: 12px; margin-top: 12px; }
+    .btn-row .btn-next { flex: 1; }
+
+    .btn-submit {
+        flex: 1; padding: 14px; border: none; border-radius: 12px; cursor: pointer;
+        background: linear-gradient(135deg, #10b981, #059669); color: #fff;
+        font-size: 1rem; font-weight: 700; transition: transform 0.15s, box-shadow 0.15s;
+        display: flex; align-items: center; justify-content: center; gap: 8px;
     }
-    .btn-primary { 
-        background-color: #FFA500; 
-        border: none; 
-        font-weight: bold; 
-        padding: 12px; 
-        font-size: 1.1rem;
-        transition: background-color 0.2s;
+    .btn-submit:hover { transform: scale(1.02); box-shadow: 0 4px 20px rgba(16,185,129,0.4); }
+    .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    .btn-spinner {
+        width: 18px; height: 18px; border: 3px solid rgba(255,255,255,0.3);
+        border-top-color: #fff; border-radius: 50%; display: inline-block;
+        animation: spin 0.7s linear infinite;
     }
-    .btn-primary:hover { 
-        background-color: #e69500; 
+
+    /* ===== SUMMARY CARD ===== */
+    .summary-card {
+        background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 12px; padding: 12px 16px; margin-bottom: 12px;
     }
-    .text-danger {
-        font-size: 0.85rem;
-        display: block;
-        margin-top: 5px;
+    .summary-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+    .summary-header span { font-size: 0.82rem; color: #10b981; font-weight: 600; }
+    .btn-edit {
+        background: none; border: none; color: #FFA500; font-size: 0.78rem;
+        cursor: pointer; text-decoration: underline; padding: 0;
+    }
+    .summary-body { color: rgba(255,255,255,0.6); font-size: 0.85rem; }
+
+    /* ===== PAYMENT ===== */
+    .price-banner {
+        background: rgba(255,165,0,0.08); border: 1px dashed rgba(255,165,0,0.3);
+        border-radius: 14px; padding: 20px; text-align: center; margin-bottom: 20px;
+    }
+    .price-label { display: block; color: rgba(255,255,255,0.5); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+    .price-amount { display: block; font-size: 2.2rem; font-weight: 800; color: #FFA500; }
+    .price-amount small { font-size: 0.9rem; color: rgba(255,255,255,0.5); }
+    .price-note { display: block; color: rgba(255,255,255,0.4); font-size: 0.8rem; margin-top: 4px; }
+
+    .payment-options { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+    .pay-card {
+        display: flex; align-items: center; gap: 14px; padding: 14px 16px;
+        border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;
+        background: rgba(255,255,255,0.04); cursor: pointer; transition: all 0.2s;
+    }
+    .pay-card:hover { border-color: rgba(255,165,0,0.3); background: rgba(255,165,0,0.05); }
+    .pay-card.selected {
+        border-color: #FFA500; background: rgba(255,165,0,0.1);
+        box-shadow: 0 0 0 2px rgba(255,165,0,0.15);
+    }
+    .pay-icon { font-size: 1.4rem; }
+    .pay-name { color: #ddd; font-weight: 500; font-size: 0.95rem; }
+
+    .demo-notice {
+        background: rgba(255,200,0,0.08); border: 1px dashed rgba(255,200,0,0.25);
+        border-radius: 10px; padding: 10px 14px; font-size: 0.82rem;
+        color: rgba(255,200,0,0.8); margin-bottom: 16px;
+    }
+
+    /* ===== SUCCESS ===== */
+    .success-screen { text-align: center; padding: 20px 0; }
+    .success-icon { font-size: 56px; margin-bottom: 12px; animation: bounce 0.6s ease; }
+    .success-screen h2 { color: #10b981; font-size: 1.5rem; margin: 0 0 6px; }
+    .success-screen > p { color: rgba(255,255,255,0.6); margin: 0 0 20px; }
+    .success-details {
+        background: rgba(255,255,255,0.05); border-radius: 12px; padding: 16px; margin-bottom: 20px;
+    }
+    .detail-row { display: flex; justify-content: space-between; padding: 6px 0; }
+    .detail-label { color: rgba(255,255,255,0.5); font-size: 0.85rem; }
+    .detail-value { color: #FFA500; font-weight: 600; font-size: 0.9rem; }
+    .btn-login {
+        display: inline-block; padding: 14px 32px; border-radius: 12px;
+        background: linear-gradient(135deg, #FFA500, #e68900); color: #000;
+        font-weight: 700; text-decoration: none; font-size: 1rem;
+    }
+
+    .login-link { text-align: center; margin-top: 20px; color: rgba(255,255,255,0.4); font-size: 0.85rem; }
+    .login-link a { color: #FFA500; text-decoration: underline; }
+
+    /* ===== ANIMATIONS ===== */
+    @@keyframes slideIn { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
+    @@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @@keyframes spin { to { transform: rotate(360deg); } }
+    @@keyframes bounce { 0% { transform: scale(0); } 60% { transform: scale(1.15); } 100% { transform: scale(1); } }
+
+    /* ===== MOBILE ===== */
+    @@media (max-width: 500px) {
+        .register-card { padding: 24px 18px; border-radius: 16px; }
+        .stepper { gap: 0; }
+        .step-line { width: 32px; }
+        .step-label { font-size: 0.6rem; }
+        .price-amount { font-size: 1.8rem; }
     }
 </style>
 
@@ -200,6 +430,47 @@
     private bool IsSubmitting = false;
     private bool IsSuccess = false;
     private string? ErrorMessage { get; set; }
+    private int currentStep = 1;
+
+    private void GoToStep2()
+    {
+        ErrorMessage = null;
+
+        // Validate step 1 fields
+        if (string.IsNullOrWhiteSpace(RequestData.FullName))
+        { ErrorMessage = "Vui lòng nhập Họ và Tên."; return; }
+
+        if (string.IsNullOrWhiteSpace(RequestData.PhoneNumber))
+        { ErrorMessage = "Vui lòng nhập Số điện thoại."; return; }
+
+        var phoneRegex = new System.Text.RegularExpressions.Regex(@"^(03|05|07|08|09)+([0-9]{8})$");
+        if (!phoneRegex.IsMatch(RequestData.PhoneNumber))
+        { ErrorMessage = "Số điện thoại không hợp lệ."; return; }
+
+        if (string.IsNullOrWhiteSpace(RequestData.Password) || RequestData.Password.Length < 3)
+        { ErrorMessage = "Mật khẩu phải có ít nhất 3 ký tự."; return; }
+
+        if (RequestData.Password != RequestData.ConfirmPassword)
+        { ErrorMessage = "Mật khẩu xác nhận không khớp."; return; }
+
+        currentStep = 2;
+    }
+
+    private void GoToStep3()
+    {
+        ErrorMessage = null;
+
+        if (string.IsNullOrWhiteSpace(RequestData.PoiName))
+        { ErrorMessage = "Vui lòng nhập Tên địa điểm."; return; }
+
+        if (string.IsNullOrWhiteSpace(RequestData.Address))
+        { ErrorMessage = "Vui lòng nhập Địa chỉ."; return; }
+
+        if (string.IsNullOrWhiteSpace(RequestData.BusinessType))
+        { ErrorMessage = "Vui lòng chọn Loại hình kinh doanh."; return; }
+
+        currentStep = 3;
+    }
 
     private async Task HandleRegistration()
     {
@@ -217,6 +488,7 @@
             {
                 ErrorMessage = "Số điện thoại đã được đăng ký.";
                 IsSubmitting = false;
+                currentStep = 1; // Quay lại bước 1 để sửa
                 return;
             }
 
