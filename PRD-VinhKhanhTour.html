@@ -638,11 +638,11 @@
     <div class="section-wrap"><section>
         <div class="stats-row reveal">
             <div class="stat-card">
-                <div class="value">3</div>
+                <div class="value">4</div>
                 <div class="label">Sub-Projects</div>
             </div>
             <div class="stat-card">
-                <div class="value">16</div>
+                <div class="value">18</div>
                 <div class="label">CMS Pages</div>
             </div>
             <div class="stat-card">
@@ -658,7 +658,7 @@
                 <div class="label">Actor Roles</div>
             </div>
             <div class="stat-card">
-                <div class="value">5</div>
+                <div class="value">6</div>
                 <div class="label">API Controllers</div>
             </div>
             <div class="stat-card">
@@ -666,8 +666,8 @@
                 <div class="label">Database Engines</div>
             </div>
             <div class="stat-card">
-                <div class="value">500K</div>
-                <div class="label">Phí đăng ký (VNĐ)</div>
+                <div class="value">9</div>
+                <div class="label">DB Tables</div>
             </div>
         </div>
     </section>
@@ -695,17 +695,22 @@
             <div class="arch-module">
                 <div class="mod-icon">🌐</div>
                 <div class="mod-name">VinhKhanhTour.CMS</div>
-                <div class="mod-desc">Blazor Server: POI CRUD, Audio, Translations, Analytics, QR</div>
+                <div class="mod-desc">Blazor Server: POI CRUD, Audio, Translations, Analytics, QR, Approval, Payment Demo</div>
             </div>
             <div class="arch-module">
                 <div class="mod-icon">📦</div>
                 <div class="mod-name">VinhKhanhTour.Shared</div>
-                <div class="mod-desc">Models, IPoiRepository, PoiRepository (SQLite), DbContext</div>
+                <div class="mod-desc">Models, IPoiRepository, PoiRepository (SQLite), Interfaces (IMustHaveAgency, ISoftDelete)</div>
+            </div>
+            <div class="arch-module">
+                <div class="mod-icon">🔌</div>
+                <div class="mod-name">VinhKhanhTour.Api</div>
+                <div class="mod-desc">Minimal API: Cung cấp endpoint đồng bộ độc lập cho Mobile App</div>
             </div>
             <div class="arch-module">
                 <div class="mod-icon">🐘</div>
                 <div class="mod-name">PostgreSQL (Render)</div>
-                <div class="mod-desc">Pois, Tours, UsageHistories, AppUsers, AppAuditLogs</div>
+                <div class="mod-desc">Pois, Tours, TourStops, UsageHistories, AppUsers, AppAuditLogs, AppNotifications, DevicePurchases, UserRoutes</div>
             </div>
             <div class="arch-module">
                 <div class="mod-icon">💾</div>
@@ -717,20 +722,20 @@
                 <div class="mod-name">Google Gemini API</div>
                 <div class="mod-desc">Dịch tự động 10 ngôn ngữ: Name, Description, TTS Script</div>
             </div>
-            <div class="arch-module reserved">
+            <div class="arch-module">
                 <div class="mod-icon">💳</div>
-                <div class="mod-name">Payment (reserved)</div>
-                <div class="mod-desc">Thanh toán thực tế, Subscriptions, Invoices</div>
+                <div class="mod-name">Payment (Demo)</div>
+                <div class="mod-desc">MoMo + VNPay sandbox. DevicePurchase tracking, QR Audio Paywall</div>
             </div>
-            <div class="arch-module reserved">
-                <div class="mod-icon">📧</div>
-                <div class="mod-name">Notification (reserved)</div>
-                <div class="mod-desc">Email xác nhận, SMS thông báo merchant mới</div>
+            <div class="arch-module">
+                <div class="mod-icon">🔔</div>
+                <div class="mod-name">Notification System</div>
+                <div class="mod-desc">AppNotification: Thông báo duyệt/từ chối POI cho Agency. Bell icon trong MainLayout</div>
             </div>
-            <div class="arch-module reserved">
-                <div class="mod-icon">📊</div>
-                <div class="mod-name">Advanced Analytics (reserved)</div>
-                <div class="mod-desc">Revenue dashboard, Retention, Cohort analysis</div>
+            <div class="arch-module">
+                <div class="mod-icon">✅</div>
+                <div class="mod-name">POI Approval Workflow</div>
+                <div class="mod-desc">Pending → Approved/Rejected. Admin duyệt, Agency gửi lại. Glassmorphism Modal</div>
             </div>
         </div>
 
@@ -741,12 +746,15 @@
                     <tr><th>Table</th><th>Module</th><th>Mục đích</th></tr>
                 </thead>
                 <tbody>
-                    <tr><td><code>Pois</code></td><td>Content</td><td>Dữ liệu POI: tên (VI + 10 lang), mô tả, toạ độ, bán kính, audio URL, TTS script. Soft Delete (IsDeleted). Global Filter: AgencyId.</td></tr>
-                    <tr><td><code>Tours</code></td><td>Tour</td><td>Tour lộ trình: tên, mô tả, start/end point, route geometry, AgencyId.</td></tr>
-                    <tr><td><code>TourStops</code></td><td>Tour</td><td>Điểm dừng của Tour: PoiId, thứ tự (Order), khoảng cách tới route.</td></tr>
-                    <tr><td><code>UsageHistories</code></td><td>Analytics</td><td>Lịch sử nghe: PoiId, thời lượng, QR/GPS, GPS user, DeviceId, AgencyId.</td></tr>
-                    <tr><td><code>AppUsers</code></td><td>Auth</td><td>Tài khoản: Username (SĐT), PasswordHash (BCrypt), Role, AgencyId, ForcePasswordChange.</td></tr>
+                    <tr><td><code>Pois</code></td><td>Content</td><td>Dữ liệu POI: tên (VI + 10 lang), mô tả, toạ độ, bán kính, audio URL, TTS script. ApprovalStatus (Pending/Approved/Rejected), AdminNote. Soft Delete, Global Filter AgencyId.</td></tr>
+                    <tr><td><code>Tours</code></td><td>Tour</td><td>Tour lộ trình: tên, mô tả, start/end point, route geometry, AgencyId. Soft Delete.</td></tr>
+                    <tr><td><code>TourStops</code></td><td>Tour</td><td>Điểm dừng của Tour: PoiId, thứ tự (Order), khoảng cách tới route. Cascade Delete.</td></tr>
+                    <tr><td><code>UsageHistories</code></td><td>Analytics</td><td>Lịch sử nghe: PoiId, thời lượng, QR/GPS, GPS user (Lat/Lng), DeviceId, AgencyId.</td></tr>
+                    <tr><td><code>UserRoutes</code></td><td>Analytics</td><td>Lộ trình di chuyển user: tọa độ GPS, timestamp.</td></tr>
+                    <tr><td><code>AppUsers</code></td><td>Auth</td><td>Tài khoản: Username (SĐT), PasswordHash (BCrypt), Role (Admin/Owner), AgencyId, ForcePasswordChange.</td></tr>
                     <tr><td><code>AppAuditLogs</code></td><td>Admin</td><td>Nhật ký: Action (register_poi), Details (500000 VNĐ), Timestamp.</td></tr>
+                    <tr><td><code>AppNotifications</code></td><td>Notification</td><td>Thông báo nội bộ: RecipientAgencyId, PoiId, Title, Message, IsRead, CreatedAt.</td></tr>
+                    <tr><td><code>DevicePurchases</code></td><td>Payment</td><td>Mua quyền nghe audio: DeviceId, PoiId, RecoveryContact, PurchasedAt. QR Audio Paywall.</td></tr>
                 </tbody>
             </table>
         </div>
@@ -772,16 +780,19 @@
                     <li>Truy cập <strong>toàn bộ</strong> dữ liệu (IsSystemAdmin = true → bypass Global Filter)</li>
                     <li>Quản lý: POI, Audio, Translation, Tour, QR, Analytics, Users</li>
                     <li>Dịch AI tự động (Gemini API)</li>
+                    <li>Phê duyệt/Từ chối POI (Approval Workflow + Glassmorphism Modal)</li>
                     <li>Xem doanh thu đăng ký, Reset mật khẩu Merchant</li>
                 </ul>
             </div>
             <div class="card">
                 <h3>🏪 Owner (Chủ quán)</h3>
                 <ul>
-                    <li>Tự đăng ký qua <code>/register</code> (công khai)</li>
+                    <li>Tự đăng ký qua <code>/register</code> (công khai, 3-step wizard)</li>
                     <li>Đăng nhập qua DB (BCrypt), chọn mật khẩu riêng</li>
                     <li>Chỉ thấy dữ liệu thuộc <strong>AgencyId</strong> của mình</li>
-                    <li>Quản lý POI, Audio, xem Analytics riêng</li>
+                    <li>Quản lý POI, Audio, xem Analytics riêng (không thấy Doanh thu, Tour)</li>
+                    <li>Nhận thông báo duyệt/từ chối POI qua 🔔 Bell icon</li>
+                    <li>Xem lý do từ chối + Gửi duyệt lại (Resubmit)</li>
                     <li>Bắt buộc đổi mật khẩu nếu Admin reset (<code>ForcePasswordChange</code>)</li>
                 </ul>
             </div>
@@ -809,11 +820,13 @@
                     <tr><td>Quản lý POI (CRUD)</td><td>✅ Toàn bộ</td><td>✅ Theo Agency</td><td>❌</td></tr>
                     <tr><td>Quản lý Audio</td><td>✅</td><td>✅</td><td>❌</td></tr>
                     <tr><td>Bản dịch + AI Gemini</td><td>✅</td><td>❌</td><td>❌</td></tr>
-                    <tr><td>Tour + OSRM Routing</td><td>✅</td><td>✅ (xem)</td><td>❌</td></tr>
+                    <tr><td>Quản lý Tour + OSRM</td><td>✅</td><td>❌</td><td>❌</td></tr>
+                    <tr><td>Phê duyệt POI</td><td>✅ Duyệt/Từ chối</td><td>✅ Xem trạng thái + Gửi lại</td><td>❌</td></tr>
+                    <tr><td>Thông báo nội bộ</td><td>❌</td><td>✅ Bell + Panel</td><td>❌</td></tr>
                     <tr><td>QR Code Generation</td><td>✅</td><td>✅</td><td>❌</td></tr>
                     <tr><td>Listen App (Web)</td><td>❌</td><td>❌</td><td>✅</td></tr>
                     <tr><td>Mobile App (MAUI)</td><td>❌</td><td>❌</td><td>✅</td></tr>
-                    <tr><td>Analytics Dashboard</td><td>✅ Toàn bộ</td><td>✅ Theo Agency</td><td>❌</td></tr>
+                    <tr><td>Analytics Dashboard</td><td>✅ Toàn bộ</td><td>✅ Theo Agency (ẩn Doanh thu)</td><td>❌</td></tr>
                     <tr><td>Doanh thu đăng ký</td><td>✅</td><td>❌</td><td>❌</td></tr>
                     <tr><td>Quản lý Users + Reset PW</td><td>✅</td><td>❌</td><td>❌</td></tr>
                 </tbody>
@@ -893,7 +906,7 @@
             <div class="icon-wrap" style="background:#fce4ec;color:var(--danger);">🌐</div>
             <div>
                 <div class="section-num">Chapter 03</div>
-                <h2>CMS Server — Blazor Server (16 Pages)</h2>
+                <h2>CMS Server — Blazor Server (18 Pages)</h2>
             </div>
         </div>
 
@@ -949,7 +962,25 @@
                     <li><code>/analytics</code> — Dashboard + Heatmap Leaflet</li>
                     <li><code>/history</code> — Bảng chi tiết phân trang</li>
                     <li>Lọc: QR/GPS, theo POI</li>
-                    <li>Doanh thu = Sum(AppAuditLog register_poi)</li>
+                    <li>Doanh thu đăng ký: chỉ Admin thấy (RBAC)</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3>✅ Phê duyệt POI (Admin)</h3>
+                <ul>
+                    <li><code>/admin/approvals</code> — Danh sách POI Pending</li>
+                    <li>Duyệt: set Approved + thông báo Agency</li>
+                    <li>Từ chối: Glassmorphism modal nhập lý do</li>
+                    <li>Agency nhận thông báo Bell + xem lý do + Gửi duyệt lại</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3>💳 Demo Payment</h3>
+                <ul>
+                    <li><code>/demo-payment</code> — QR Audio Paywall demo</li>
+                    <li>MoMo + VNPay sandbox integration</li>
+                    <li>DevicePurchase: mua quyền nghe theo DeviceId + PoiId</li>
+                    <li>RecoveryContact: khôi phục quyền mua khi đổi thiết bị</li>
                 </ul>
             </div>
         </div>
@@ -1480,28 +1511,46 @@ sequenceDiagram
         <div class="seq-group-header green">🌐 Phân hệ Web Public (UC6 - UC7)</div>
 
         <!-- UC6 -->
-        <h3 class="diagram-title">UC6. Quét QR Code & Nghe Audio</h3>
+        <h3 class="diagram-title">UC6. Quét QR Code & Nghe Audio (Paywall)</h3>
         <div class="mermaid-container reveal">
             <pre class="mermaid">
 sequenceDiagram
     actor T as Tourist
     participant LA as ListenApp (/listen/{id})
     participant DB as CmsDbContext
+    participant FP as FingerprintJS (Browser)
+    participant Pay as MoMo/VNPay API
     participant JS as Browser Audio API
     participant TTS as Browser SpeechSynthesis
 
     T->>T: Dùng Zalo/Camera quét mã QR tại quán
-    T->>LA: Truy cập URL
+    T->>LA: Truy cập URL /listen/{id}
     LA->>DB: Query POI (IgnoreQueryFilters)
     DB-->>LA: Poi Entity
-    LA-->>T: Hiển thị giao diện Web App Splash
-    T->>LA: Tap mở khóa WebAudio
-    alt Co AudioUrlMp3 != null
-        LA->>JS: audioElement.play()
-        JS-->>T: Phát File gốc (Giọng đọc chuẩn)
-    else Fallback TTS
-        LA->>TTS: Utterance = new SpeechSynthesisUtterance()
-        TTS-->>T: Trình duyệt tự đọc
+    LA->>FP: getDeviceFingerprint()
+    FP-->>LA: DeviceId (VD: Android_a1b2c3d4)
+    LA->>DB: Check DevicePurchase (DeviceId + PoiId)
+    alt Đã mua (có DevicePurchase active)
+        DB-->>LA: Purchase found → Bypass Paywall
+        LA-->>T: Hiển thị giao diện Web App Splash
+        T->>LA: Tap mở khóa WebAudio
+        alt Có AudioUrlMp3 != null
+            LA->>JS: audioElement.play()
+            JS-->>T: Phát File gốc (Giọng đọc chuẩn)
+        else Fallback TTS
+            LA->>TTS: Utterance = new SpeechSynthesisUtterance()
+            TTS-->>T: Trình duyệt tự đọc
+        end
+    else Chưa mua → Paywall
+        LA-->>T: Hiển thị Paywall (giá + nút MoMo/VNPay)
+        T->>LA: Nhấn nút thanh toán
+        LA->>Pay: Tạo đơn hàng (OrderId, Amount)
+        Pay-->>LA: PaymentUrl (redirect)
+        LA-->>T: Redirect tới trang thanh toán
+        T->>Pay: Hoàn tất thanh toán
+        Pay-->>LA: Callback ?unlocked=true
+        LA->>DB: INSERT DevicePurchase (DeviceId, PoiId)
+        LA-->>T: Mở khóa Audio Player
     end
             </pre>
         </div>
@@ -1594,7 +1643,7 @@ sequenceDiagram
         </div>
 
         <!-- UC10 -->
-        <h3 class="diagram-title">UC10. Quản lý POI (CRUD)</h3>
+        <h3 class="diagram-title">UC10. Quản lý POI (CRUD + Approval)</h3>
         <div class="mermaid-container reveal">
             <pre class="mermaid">
 sequenceDiagram
@@ -1604,17 +1653,21 @@ sequenceDiagram
     participant Map as Leaflet JS Map
     participant DB as EF Core (Global Filter)
 
-    U->>HP: Xem danh sách
+    U->>HP: Xem danh sách (Badge: Pending/Approved/Rejected)
     HP->>DB: Lấy POI. Where AgencyId = x
-    DB-->>HP: List POI thuôc Owner
+    DB-->>HP: List POI thuộc Owner
     U->>PF: Thêm mới POI
     U->>Map: Mở Modal Map
     U->>Map: Click trỏ vị trí
     Map-->>PF: JSInterop Trả về (Lat, Lng)
     U->>PF: Điền Text, Submit
     PF->>DB: Insert POI
-    DB->>DB: SaveChangesAsync()
-    PF-->>U: Quay về Home
+    DB->>DB: SaveChangesAsync() → Auto set ApprovalStatus = Pending
+    PF-->>U: Quay về Home (POI hiện "⏳ Chờ duyệt")
+    Note over U,DB: Khi POI bị từ chối
+    U->>HP: Xem lý do từ chối (Admin Note)
+    U->>PF: Sửa POI theo góp ý
+    U->>HP: Click "Gửi duyệt lại" → Status = Pending
             </pre>
         </div>
 
@@ -1703,7 +1756,9 @@ sequenceDiagram
         </div>
 
         <!-- ======================= ADMIN ONLY ======================= -->
-        <div class="seq-group-header red">🔐 Phân hệ Admin Only (UC15 - UC18)</div>
+        <div class="seq-group-header red">🔐 Phân hệ Admin Only (UC15 - UC20)</div>
+
+        <!-- UC15 remains the same below -->
 
         <!-- UC15 -->
         <h3 class="diagram-title">UC15. Dịch AI tự động (Gemini)</h3>
@@ -1777,6 +1832,78 @@ sequenceDiagram
     AD->>DB: Select Sum(Revenue_Col) WHERE Action="Register_Poi"
     DB-->>AD: Trả về Total Value (VD: 5,500,000 VNĐ)
     AD-->>A: Vẽ biểu đồ ChartJS Bar Chart dòng tiền
+            </pre>
+        </div>
+
+        <!-- UC19 -->
+        <h3 class="diagram-title">UC19. Phê duyệt / Từ chối POI (Approval Workflow)</h3>
+        <div class="mermaid-container reveal">
+            <pre class="mermaid">
+sequenceDiagram
+    actor A as Admin
+    actor O as Owner (Agency)
+    participant HP as Home Page / ContentApproval
+    participant SV as PoiService
+    participant DB as CmsDbContext
+    participant NF as AppNotification
+
+    Note over A,DB: Luồng Duyệt
+    A->>HP: Mở tab "Duyệt nội dung" (Pending list)
+    HP->>SV: GetPendingPoisAsync()
+    SV->>DB: Where ApprovalStatus == Pending
+    DB-->>HP: List POI chờ duyệt
+    A->>HP: Click "✅ Duyệt" cho POI #5
+    HP->>SV: ApprovePoiAsync(id)
+    SV->>DB: Set ApprovalStatus = Approved
+    DB->>DB: SaveChangesAsync()
+    HP-->>A: Toast "Đã duyệt thành công"
+
+    Note over A,NF: Luồng Từ chối
+    A->>HP: Click "❌ Từ chối" → Mở Glassmorphism Modal
+    A->>HP: Nhập lý do từ chối (bắt buộc)
+    HP->>SV: RejectPoiAsync(id, reason)
+    SV->>DB: Set ApprovalStatus = Rejected, AdminNote = reason
+    SV->>NF: INSERT AppNotification (AgencyId, Message)
+    DB->>DB: SaveChangesAsync()
+    HP-->>A: Toast "Đã từ chối"
+
+    Note over O,NF: Agency nhận thông báo
+    O->>HP: Đăng nhập → Bell icon hiện badge đỏ
+    O->>HP: Click Bell → Xem thông báo từ chối
+    O->>HP: Xem lý do trên POI Card
+    O->>HP: Click "🔄 Gửi duyệt lại" → Status = Pending
+            </pre>
+        </div>
+
+        <!-- UC20 -->
+        <h3 class="diagram-title">UC20. QR Audio Paywall (Mua quyền nghe)</h3>
+        <div class="mermaid-container reveal">
+            <pre class="mermaid">
+sequenceDiagram
+    actor T as Tourist
+    participant LA as ListenApp
+    participant FP as FingerprintJS
+    participant DB as DevicePurchases
+    participant Pay as MoMo / VNPay
+
+    T->>LA: Quét QR → /listen/{id}
+    LA->>FP: getDeviceFingerprint()
+    FP-->>LA: DeviceId
+    LA->>DB: Check purchase (DeviceId + PoiId)
+    alt Đã mua
+        DB-->>LA: Active purchase found
+        LA-->>T: Mở Audio Player ngay
+    else Chưa mua
+        LA-->>T: Hiện Paywall (giá VND)
+        T->>LA: Chọn MoMo hoặc VNPay
+        LA->>Pay: Tạo OrderId + Amount
+        Pay-->>T: Redirect → Trang thanh toán
+        T->>Pay: Thanh toán thành công
+        Pay->>LA: Callback /listen/{id}?unlocked=true
+        LA->>DB: INSERT DevicePurchase
+        LA-->>T: Unlock → Audio Player
+    end
+    Note over T,DB: Recovery: nhập Email/SĐT → tìm purchase cũ
             </pre>
         </div>
     </section>
@@ -1922,39 +2049,51 @@ flowchart TD
             </pre>
         </div>
 
-        <!-- ACT 5: QR Listen -->
-        <h3 class="diagram-title">5. Activity: Quét QR & Nghe Audio</h3>
+        <!-- ACT 5: QR Listen + Paywall -->
+        <h3 class="diagram-title">5. Activity: Quét QR & Paywall Audio</h3>
         <div class="mermaid-container reveal">
             <pre class="mermaid">
 flowchart TD
-    A([Tourist quét QR]) --> B[Mở /listen/ID]
+    A([Tourist quét QR]) --> B["Mở /listen/ID"]
     B --> C["Query POI (IgnoreQueryFilters)"]
     C --> D{POI tồn tại?}
     D -->|Không| E["Không tìm thấy"]
     E --> F([Kết thúc])
-    D -->|Có| G[Hiển thị Splash]
-    G --> H[Tourist tap màn hình]
-    H --> I{Có file MP3?}
-    I -->|Có| J[Phát MP3]
-    I -->|Không| K[Phát TTS]
-    J --> L[Ghi UsageHistory]
-    K --> L
-    L --> M{Đổi ngôn ngữ?}
-    M -->|Có| N[Cập nhật text]
-    N --> O[Chuyển Audio/TTS]
-    O --> M
-    M -->|Không| P{Play/Pause?}
-    P -->|Play| Q[Tiếp tục phát]
-    P -->|Pause| R[Tạm dừng]
-    P -->|Thoát| F
+    D -->|Có| G[FingerprintJS → DeviceId]
+    G --> H{DevicePurchase active?}
+    H -->|Đã mua| I[Hiển thị Splash]
+    H -->|Chưa mua| J[Hiển thị Paywall]
+    J --> K{Chọn thanh toán}
+    K -->|MoMo| L[Redirect MoMo]
+    K -->|VNPay| M[Redirect VNPay]
+    K -->|Recovery| N[Nhập Email/SĐT]
+    N --> O{Tìm thấy purchase?}
+    O -->|Có| I
+    O -->|Không| P[Báo lỗi]
+    P --> J
+    L --> Q[Callback ?unlocked=true]
+    M --> Q
+    Q --> R[INSERT DevicePurchase]
+    R --> I
+    I --> S[Tourist tap màn hình]
+    S --> T{Có file MP3?}
+    T -->|Có| U[Phát MP3]
+    T -->|Không| V[Phát TTS]
+    U --> W{Đổi ngôn ngữ?}
+    V --> W
+    W -->|Có| X[Cập nhật Audio/TTS]
+    X --> W
+    W -->|Không/Thoát| F
     style A fill:#059669,color:#fff
     style F fill:#DC2626,color:#fff
-    style J fill:#F59E0B,color:#000
-    style K fill:#7C3AED,color:#fff
+    style U fill:#F59E0B,color:#000
+    style V fill:#7C3AED,color:#fff
+    style J fill:#E11D48,color:#fff
+    style R fill:#059669,color:#fff
             </pre>
         </div>
 
-        <!-- ACT 6: Offline Sync -->
+        <!-- ACT 6: Offline Sync remains same -->
         <h3 class="diagram-title">6. Activity: Đồng bộ Offline-First</h3>
         <div class="mermaid-container reveal">
             <pre class="mermaid">
@@ -1985,6 +2124,35 @@ flowchart TD
     style S fill:#DC2626,color:#fff
     style E fill:#1E40AF,color:#fff
     style O fill:#D97706,color:#fff
+            </pre>
+        </div>
+
+        <!-- ACT 7: POI Approval -->
+        <h3 class="diagram-title">7. Activity: Phê duyệt POI</h3>
+        <div class="mermaid-container reveal">
+            <pre class="mermaid">
+flowchart TD
+    A([Owner tạo/sửa POI]) --> B["SaveChanges → Status = Pending"]
+    B --> C[Admin xem danh sách Pending]
+    C --> D{Quyết định?}
+    D -->|Duyệt| E["Set ApprovalStatus = Approved"]
+    E --> F[POI public cho Tourist]
+    D -->|Từ chối| G["Mở Glassmorphism Modal"]
+    G --> H[Nhập lý do bắt buộc]
+    H --> I["Set Rejected + AdminNote"]
+    I --> J[INSERT AppNotification]
+    J --> K["Owner thấy 🔔 Badge đỏ"]
+    K --> L["Xem lý do từ chối"]
+    L --> M["Sửa POI theo góp ý"]
+    M --> N["Click Gửi duyệt lại"]
+    N --> B
+    F --> O([Kết thúc])
+    style A fill:#059669,color:#fff
+    style O fill:#DC2626,color:#fff
+    style E fill:#059669,color:#fff
+    style I fill:#DC2626,color:#fff
+    style G fill:#7C3AED,color:#fff
+    style J fill:#F59E0B,color:#000
             </pre>
         </div>
     </section>
