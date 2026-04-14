@@ -1,6 +1,10 @@
 @inherits LayoutComponentBase
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@using VinhKhanhTour.CMS.Services
+@using VinhKhanhTour.Shared.Models
+@inject ICurrentUserService CurrentUser
+@inject PoiService PoiService
 
 <div class="page">
     <div class="sidebar">
@@ -9,7 +13,46 @@
 
     <main>
         <div class="top-row px-4">
-            <span style="color: #A8A29E; font-size: 0.85rem;">Hệ thống Quản trị VinhKhanh Tour</span>
+            @* Notification Bell for Agency users *@
+            @if (!CurrentUser.IsSystemAdmin && CurrentUser.AgencyId.HasValue)
+            {
+                <div class="notif-bell-wrap" @onclick="ToggleNotifPanel">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                    </svg>
+                    @if (unreadNotifCount > 0)
+                    {
+                        <span class="notif-badge">@unreadNotifCount</span>
+                    }
+                </div>
+
+                @if (showNotifPanel)
+                {
+                    <div class="notif-panel">
+                        <div class="notif-panel-header">
+                            <strong>🔔 Thông báo</strong>
+                            <span class="notif-panel-count">@notifications.Count</span>
+                        </div>
+                        @if (notifications.Count == 0)
+                        {
+                            <div class="notif-empty">Không có thông báo mới.</div>
+                        }
+                        else
+                        {
+                            @foreach (var n in notifications.Take(8))
+                            {
+                                <div class="notif-item @(n.IsRead ? "" : "unread")">
+                                    <div class="notif-item-title">@n.Title</div>
+                                    <div class="notif-item-msg">@n.Message</div>
+                                    <div class="notif-item-time">@n.CreatedAt.ToLocalTime().ToString("dd/MM HH:mm")</div>
+                                </div>
+                            }
+                        }
+                    </div>
+                }
+            }
+            <span style="color: #94a3b8; font-size: 0.85rem; font-family: 'Inter', sans-serif; font-weight: 500;">Hệ thống Quản trị VinhKhanh Tour</span>
         </div>
 
         <article class="content px-4">
@@ -24,7 +67,65 @@
     <span class="dismiss">🗙</span>
 </div>
 
+<style>
+    .notif-bell-wrap {
+        position: relative; cursor: pointer;
+        width: 38px; height: 38px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.08);
+        transition: all 0.3s; margin-right: auto;
+    }
+    .notif-bell-wrap:hover { background: rgba(255,255,255,0.08); }
+    .notif-bell-wrap:hover svg { stroke: #10b981; }
+    .notif-badge {
+        position: absolute; top: -2px; right: -2px;
+        background: #ef4444; color: #fff; font-size: 0.65rem;
+        font-weight: 700; min-width: 18px; height: 18px;
+        border-radius: 50%; display: flex; align-items: center;
+        justify-content: center; padding: 0 4px;
+        animation: pulse 2s infinite;
+    }
+    .notif-panel {
+        position: absolute; top: 52px; left: 8px;
+        width: 340px; max-height: 420px; overflow-y: auto;
+        background: rgba(30, 41, 59, 0.85);
+        backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 1rem; padding: 0;
+        box-shadow: 0 16px 48px rgba(0,0,0,0.4);
+        z-index: 100; animation: fadeIn 0.2s ease;
+    }
+    .notif-panel-header {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 1rem 1.25rem; border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .notif-panel-header strong { color: #e2e8f0; font-size: 0.95rem; }
+    .notif-panel-count {
+        background: rgba(16,185,129,0.15); color: #10b981;
+        padding: 2px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700;
+    }
+    .notif-empty {
+        padding: 2rem 1.25rem; text-align: center;
+        color: #64748b; font-size: 0.88rem;
+    }
+    .notif-item {
+        padding: 0.85rem 1.25rem;
+        border-bottom: 1px solid rgba(255,255,255,0.04);
+        transition: background 0.2s;
+    }
+    .notif-item:hover { background: rgba(255,255,255,0.03); }
+    .notif-item.unread { border-left: 3px solid #f59e0b; }
+    .notif-item-title { color: #e2e8f0; font-weight: 600; font-size: 0.85rem; margin-bottom: 2px; }
+    .notif-item-msg { color: #94a3b8; font-size: 0.8rem; line-height: 1.4; }
+    .notif-item-time { color: #64748b; font-size: 0.72rem; margin-top: 4px; }
+</style>
+
 @code {
+    private int unreadNotifCount = 0;
+    private List<AppNotification> notifications = new();
+    private bool showNotifPanel = false;
+
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
@@ -40,6 +141,22 @@
                     NavigationManager.NavigateTo("/change-password");
                 }
             }
+
+            // Load notifications for Agency users
+            if (!CurrentUser.IsSystemAdmin && CurrentUser.AgencyId.HasValue)
+            {
+                try
+                {
+                    notifications = await PoiService.GetNotificationsForAgencyAsync(CurrentUser.AgencyId.Value);
+                    unreadNotifCount = await PoiService.GetUnreadNotificationCountAsync(CurrentUser.AgencyId.Value);
+                }
+                catch { /* silently ignore */ }
+            }
         }
+    }
+
+    private void ToggleNotifPanel()
+    {
+        showNotifPanel = !showNotifPanel;
     }
 }

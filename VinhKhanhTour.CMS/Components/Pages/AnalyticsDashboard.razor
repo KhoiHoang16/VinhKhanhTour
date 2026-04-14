@@ -7,6 +7,7 @@
 @inject PoiService PoiService
 @inject IJSRuntime JSRuntime
 @inject IDbContextFactory<CmsDbContext> DbFactory
+@inject ICurrentUserService currentUser
 
 <PageTitle>Phân tích Dữ liệu - VinhKhanh Tour</PageTitle>
 
@@ -29,31 +30,64 @@
         <!-- Summary Cards -->
         <div class="stat-grid">
             <div class="stat-card">
-                <h3 class="stat-label">Tổng Lượt Nghe</h3>
-                <p class="stat-value">@history.Count</p>
+                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
+                    <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(16, 185, 129, 0.15); display: flex; align-items: center; justify-content: center;">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"></path><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path></svg>
+                    </div>
+                    <h3 class="stat-label" style="text-align: left;">Tổng Lượt Nghe</h3>
+                </div>
+                <p class="stat-value" style="text-align: left; -webkit-text-fill-color: #10b981; color: #10b981;">@history.Count</p>
             </div>
             <div class="stat-card">
-                <h3 class="stat-label">Tổng Thời Gian</h3>
-                <p class="stat-value" style="-webkit-text-fill-color: var(--primary-color); color: var(--primary-color);">@(Math.Round(history.Sum(h => h.ListenDurationSeconds) / 60.0, 1))</p>
-                <span class="stat-unit" style="color: var(--text-secondary);">Phút</span>
+                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
+                    <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(59, 130, 246, 0.15); display: flex; align-items: center; justify-content: center;">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    </div>
+                    <h3 class="stat-label" style="text-align: left;">Tổng Thời Gian</h3>
+                </div>
+                <p class="stat-value" style="text-align: left; -webkit-text-fill-color: #3b82f6; color: #3b82f6;">@(Math.Round(history.Sum(h => h.ListenDurationSeconds) / 60.0, 1))</p>
+                <span class="stat-unit" style="color: var(--text-secondary); text-align: left; display: block;">Phút</span>
             </div>
             <div class="stat-card">
-                <h3 class="stat-label">TB Nghe/POI</h3>
-                <p class="stat-value" style="-webkit-text-fill-color: var(--warning); color: var(--warning);">@avgListenTimeText</p>
-                <span class="stat-unit" style="color: var(--text-secondary);">Giây</span>
+                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
+                    <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(245, 158, 11, 0.15); display: flex; align-items: center; justify-content: center;">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                    </div>
+                    <h3 class="stat-label" style="text-align: left;">TB Nghe/POI</h3>
+                </div>
+                <p class="stat-value" style="text-align: left; -webkit-text-fill-color: #f59e0b; color: #f59e0b;">@avgListenTimeText</p>
+                <span class="stat-unit" style="color: var(--text-secondary); text-align: left; display: block;">Giây</span>
+            </div>
+            @if (currentUser.IsSystemAdmin)
+            {
+            <div class="stat-card">
+                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
+                    <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(245, 158, 11, 0.15); display: flex; align-items: center; justify-content: center;">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                    </div>
+                    <h3 class="stat-label" style="text-align: left;">Doanh thu Đăng ký</h3>
+                </div>
+                <p class="stat-value" style="text-align: left; -webkit-text-fill-color: #f59e0b; color: #f59e0b;">@totalRevenue.ToString("N0")</p>
+                <span class="stat-unit" style="color: var(--text-secondary); text-align: left; display: block;">VNĐ</span>
+            </div>
+            }
+            <div class="stat-card">
+                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
+                    <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(16, 185, 129, 0.15); display: flex; align-items: center; justify-content: center;">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                    </div>
+                    <h3 class="stat-label" style="text-align: left;">Quét QR Code</h3>
+                </div>
+                <p class="stat-value" style="text-align: left; -webkit-text-fill-color: #10b981; color: #10b981;">@history.Count(h => h.IsQrTriggered)</p>
             </div>
             <div class="stat-card">
-                <h3 class="stat-label">Doanh thu phí Đăng ký</h3>
-                <p class="stat-value" style="-webkit-text-fill-color: var(--success); color: var(--success);">@totalRevenue.ToString("N0")</p>
-                <span class="stat-unit" style="color: var(--text-secondary);">VNĐ</span>
-            </div>
-            <div class="stat-card">
-                <h3 class="stat-label">Quét QR Code</h3>
-                <p class="stat-value" style="-webkit-text-fill-color: var(--success); color: var(--success);">@history.Count(h => h.IsQrTriggered)</p>
-            </div>
-            <div class="stat-card">
-                <h3 class="stat-label">Thiết bị</h3>
-                <p class="stat-value" style="-webkit-text-fill-color: var(--info); color: var(--info);">@history.Select(h => h.DeviceId).Distinct().Count()</p>
+                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
+                    <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(59, 130, 246, 0.15); display: flex; align-items: center; justify-content: center;">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+                    </div>
+                    <h3 class="stat-label" style="text-align: left;">Thiết bị</h3>
+                </div>
+                <p class="stat-value" style="text-align: left; -webkit-text-fill-color: #3b82f6; color: #3b82f6;">@history.Select(h => h.DeviceId).Distinct().Count()</p>
             </div>
         </div>
 
@@ -97,7 +131,7 @@
                                 <span style="color: var(--warning);">@item.AvgSeconds.ToString("F0") giây</span>
                             </div>
                             <div class="progress-bar-bg">
-                                <div class="progress-bar-fill" style="width: @Math.Floor(item.Percent)%; background: linear-gradient(90deg, #FBBF24, #F97316);"></div>
+                                <div class="progress-bar-fill" style="width: @Math.Floor(item.Percent)%; background: linear-gradient(90deg, #f59e0b, #d97706);"></div>
                             </div>
                         </div>
                     }
@@ -110,18 +144,18 @@
             <h3 style="margin-top: 0; margin-bottom: 1.5rem; font-weight: 700; font-size: 1.05rem;">📱 So sánh QR Code vs GPS</h3>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
                 <div style="text-align: center;">
-                    <div style="font-size: 2.5rem; font-weight: 800; color: var(--success);">@qrCount</div>
+                    <div style="font-family: 'Space Grotesk', sans-serif; font-size: 2.8rem; font-weight: 700; color: var(--success);">@qrCount</div>
                     <div style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.5rem;">Quét QR Code</div>
                     <div class="progress-bar-bg">
-                        <div class="progress-bar-fill" style="width: @qrPercent%; background: linear-gradient(90deg, #22C55E, #4ADE80);"></div>
+                        <div class="progress-bar-fill" style="width: @qrPercent%; background: linear-gradient(90deg, #10b981, #34d399);"></div>
                     </div>
                     <div style="color: var(--text-secondary); font-size: 0.8rem; margin-top: 0.3rem;">@qrPercent.ToString("F1")%</div>
                 </div>
                 <div style="text-align: center;">
-                    <div style="font-size: 2.5rem; font-weight: 800; color: var(--info);">@gpsCount</div>
+                    <div style="font-family: 'Space Grotesk', sans-serif; font-size: 2.8rem; font-weight: 700; color: var(--info);">@gpsCount</div>
                     <div style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.5rem;">Tự động GPS</div>
                     <div class="progress-bar-bg">
-                        <div class="progress-bar-fill" style="width: @gpsPercent%; background: linear-gradient(90deg, #38BDF8, #818CF8);"></div>
+                        <div class="progress-bar-fill" style="width: @gpsPercent%; background: linear-gradient(90deg, #3b82f6, #8b5cf6);"></div>
                     </div>
                     <div style="color: var(--text-secondary); font-size: 0.8rem; margin-top: 0.3rem;">@gpsPercent.ToString("F1")%</div>
                 </div>
@@ -129,7 +163,7 @@
         </div>
 
         <!-- Heatmap -->
-        <div class="poi-card" style="margin-bottom: 1.5rem; height: 500px; padding: 1rem; display: flex; flex-direction: column;">
+        <div class="poi-card" style="margin-bottom: 1.5rem; height: 500px; padding: 1.5rem; display: flex; flex-direction: column;">
             <h3 style="margin-top: 0; margin-bottom: 0.5rem; font-weight: 700; font-size: 1.05rem;">🗺️ Heatmap Vị Trí Người Dùng</h3>
             <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1rem;">Phân bố vị trí người dùng (khu vực Vĩnh Khánh) - Dữ liệu Mẫu</p>
             <div id="heatmap-container" style="flex: 1; min-height: 350px; border-radius: 8px; overflow: hidden;"></div>

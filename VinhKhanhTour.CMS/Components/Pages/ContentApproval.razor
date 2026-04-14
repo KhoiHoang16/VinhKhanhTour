@@ -103,31 +103,37 @@
     }
 </div>
 
-@* === REJECT MODAL === *@
+@* === REJECT MODAL (2026 Glassmorphism Pill UI) === *@
 @if (showRejectModal && poiToReject != null)
 {
-    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 1000; animation: fadeIn 0.2s;">
-        <div class="form-container" style="max-width: 480px; width: 90%;">
-            <div style="text-align: center; margin-bottom: 1.5rem;">
-                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+    <div class="reject-overlay" @onclick="CloseRejectModal">
+        <div class="reject-modal" @onclick:stopPropagation="true">
+            <div class="reject-icon-wrap">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
             </div>
-            <h3 style="margin: 0 0 0.5rem 0; color: var(--text-primary); text-align: center;">Từ chối POI</h3>
-            <p style="color: var(--text-secondary); text-align: center; margin-bottom: 1.5rem;">
-                "<strong>@poiToReject.Name</strong>"
+
+            <h3 class="reject-title">Từ chối duyệt địa điểm</h3>
+            <p class="reject-subtitle">
+                Vui lòng cung cấp lý do để chủ quán <strong>"@poiToReject.Name"</strong> có thể khắc phục.
             </p>
 
-            <div class="form-group" style="margin-bottom: 1.5rem;">
-                <label class="form-label">📝 Lý do từ chối <span style="color: #ef4444;">*</span></label>
-                <textarea @bind="rejectNote" class="form-control" rows="4" placeholder="Nhập lý do từ chối để Chủ quán sửa lại... (bắt buộc)" style="resize: vertical;"></textarea>
+            <div class="reject-form-group">
+                <label class="reject-label">📝 Lý do từ chối <span style="color: #f87171;">*</span></label>
+                <textarea @bind="rejectNote" class="reject-textarea" rows="4" placeholder="VD: Hình ảnh biển hiệu bị mờ, vui lòng cập nhật lại..."></textarea>
                 @if (showRejectError)
                 {
-                    <div style="color: #ef4444; font-size: 0.85rem; margin-top: 0.5rem;">⚠ Vui lòng nhập lý do từ chối.</div>
+                    <div class="reject-field-error">⚠ Vui lòng nhập lý do từ chối.</div>
                 }
             </div>
 
-            <div style="display: flex; gap: 1rem;">
-                <button class="btn btn-secondary" style="flex: 1;" @onclick="CloseRejectModal">Hủy</button>
-                <button class="btn" style="flex: 1; background: #ef4444; color: white; border: none; font-weight: 700;" @onclick="ConfirmReject">
+            <div class="reject-actions">
+                <button class="reject-btn-cancel" @onclick="CloseRejectModal">Hủy</button>
+                <button class="reject-btn-confirm" @onclick="ConfirmReject">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
                     Xác nhận từ chối
                 </button>
             </div>
@@ -135,13 +141,124 @@
     </div>
 }
 
-@* === SUCCESS TOAST === *@
+@* === TOAST NOTIFICATION (Glassmorphism Float) === *@
 @if (!string.IsNullOrEmpty(toastMessage))
 {
-    <div style="position: fixed; bottom: 2rem; right: 2rem; background: @toastColor; color: white; padding: 1rem 1.5rem; border-radius: 12px; font-weight: 600; box-shadow: 0 8px 32px rgba(0,0,0,0.3); z-index: 2000; animation: fadeIn 0.3s; max-width: 400px;">
-        @toastMessage
+    <div class="glass-toast @(toastColor == "#22c55e" ? "toast-success" : "toast-danger")">
+        <div class="toast-icon">
+            @if (toastColor == "#22c55e")
+            {
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+            }
+            else
+            {
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+            }
+        </div>
+        <span class="toast-text">@toastMessage</span>
     </div>
 }
+
+<style>
+    /* === REJECT MODAL (Pill Glassmorphism) === */
+    .reject-overlay {
+        position: fixed; inset: 0;
+        background: rgba(15, 23, 42, 0.8);
+        backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+        display: flex; align-items: center; justify-content: center;
+        z-index: 1000; animation: fadeIn 0.25s ease;
+    }
+    .reject-modal {
+        background: rgba(30, 41, 59, 0.7);
+        backdrop-filter: blur(32px); -webkit-backdrop-filter: blur(32px);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 1.5rem; padding: 2rem 2rem 1.75rem;
+        width: 90%; max-width: 460px;
+        box-shadow: 0 24px 64px rgba(0,0,0,0.4);
+        animation: modalSlideUp 0.3s ease;
+    }
+    .reject-icon-wrap {
+        width: 56px; height: 56px; border-radius: 50%;
+        background: rgba(245, 158, 11, 0.12);
+        display: flex; align-items: center; justify-content: center;
+        margin: 0 auto 1.25rem;
+    }
+    .reject-title {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 1.2rem; font-weight: 700;
+        color: #f1f5f9; text-align: center; margin: 0 0 0.5rem;
+    }
+    .reject-subtitle {
+        color: #94a3b8; text-align: center;
+        font-size: 0.9rem; line-height: 1.5; margin: 0 0 1.5rem;
+    }
+    .reject-subtitle strong { color: #e2e8f0; }
+    .reject-form-group { margin-bottom: 1.5rem; }
+    .reject-label {
+        display: block; font-family: 'Plus Jakarta Sans', sans-serif;
+        font-weight: 600; color: #e2e8f0; font-size: 0.9rem; margin-bottom: 0.5rem;
+    }
+    .reject-textarea {
+        width: 100%; padding: 14px 18px;
+        background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 1rem; color: #f1f5f9; font-family: 'Inter', sans-serif;
+        font-size: 0.92rem; line-height: 1.5; resize: vertical; outline: none;
+        transition: all 0.3s;
+    }
+    .reject-textarea:focus {
+        border-color: #f59e0b; box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.1);
+        background: rgba(15, 23, 42, 0.7);
+    }
+    .reject-textarea::placeholder { color: rgba(255,255,255,0.25); }
+    .reject-field-error { color: #f87171; font-size: 0.82rem; margin-top: 0.5rem; }
+    .reject-actions { display: flex; gap: 0.75rem; }
+    .reject-btn-cancel {
+        flex: 1; padding: 12px 20px; border-radius: 50px;
+        background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+        color: #94a3b8; font-weight: 600; font-size: 0.92rem; cursor: pointer;
+        transition: all 0.3s;
+    }
+    .reject-btn-cancel:hover { background: rgba(255,255,255,0.1); color: #e2e8f0; }
+    .reject-btn-confirm {
+        flex: 1; padding: 12px 20px; border: none; border-radius: 50px;
+        background: linear-gradient(135deg, #f59e0b, #ef4444);
+        color: #fff; font-weight: 700; font-size: 0.92rem; cursor: pointer;
+        display: flex; align-items: center; justify-content: center; gap: 6px;
+        transition: all 0.3s; box-shadow: 0 4px 16px rgba(245, 158, 11, 0.25);
+    }
+    .reject-btn-confirm:hover {
+        transform: translateY(-2px); box-shadow: 0 8px 24px rgba(245, 158, 11, 0.35);
+    }
+
+    /* === TOAST (Glassmorphism Float) === */
+    .glass-toast {
+        position: fixed; bottom: 2rem; right: 2rem;
+        background: rgba(30, 41, 59, 0.75);
+        backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+        border: 1px solid rgba(255,255,255,0.1); border-radius: 50px;
+        padding: 0.85rem 1.5rem; display: flex; align-items: center; gap: 0.75rem;
+        box-shadow: 0 12px 40px rgba(0,0,0,0.35); z-index: 2000;
+        animation: toastSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); max-width: 420px;
+    }
+    .glass-toast.toast-success { border-color: rgba(16, 185, 129, 0.25); }
+    .glass-toast.toast-danger { border-color: rgba(245, 158, 11, 0.25); }
+    .toast-icon {
+        width: 36px; height: 36px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .toast-success .toast-icon { background: rgba(16, 185, 129, 0.15); }
+    .toast-danger .toast-icon { background: rgba(245, 158, 11, 0.15); }
+    .toast-text { color: #e2e8f0; font-weight: 600; font-size: 0.9rem; line-height: 1.4; }
+
+    @@keyframes modalSlideUp {
+        from { opacity: 0; transform: translateY(24px) scale(0.96); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @@keyframes toastSlideIn {
+        from { opacity: 0; transform: translateX(40px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+</style>
 
 @code {
     private List<Poi>? pendingPois;

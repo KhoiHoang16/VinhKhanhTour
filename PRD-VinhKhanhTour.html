@@ -1,0 +1,2003 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRD — Hệ Thống Du Lịch Ẩm Thực VinhKhanh Tour</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+    /* ============================================================
+       DESIGN SYSTEM — Cyberpunk Neo-Brutalism
+       Panels cut at angles. Hard shadows. Terminal buttons. Neon.
+    ============================================================ */
+    :root {
+        --ink:         #08080f;
+        --ink2:        #0e0e1c;
+        --ink3:        #171728;
+        --surface:     #1a1a2e;
+        --stroke:      #2a2a45;
+
+        --neon:        #ff6b2b;
+        --neon2:       #ff9a00;
+        --neon3:       #ffe066;
+        --cyan:        #00f0d4;
+        --violet:      #c084fc;
+        --emerald:     #34d399;
+        --rose:        #fb7185;
+
+        --text:        #eef0ff;
+        --text2:       #8b90b8;
+        --text3:       #3d4170;
+
+        --shadow-brutalist: 4px 4px 0px var(--neon);
+        --shadow-cyan:      4px 4px 0px var(--cyan);
+        --shadow-violet:    4px 4px 0px var(--violet);
+    }
+
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+
+    ::-webkit-scrollbar { width:4px; background:var(--ink); }
+    ::-webkit-scrollbar-thumb { background:var(--neon); border-radius:2px; }
+
+    body {
+        font-family: 'Space Grotesk', system-ui, sans-serif;
+        background: var(--ink);
+        color: var(--text);
+        line-height: 1.75;
+        font-size: 15px;
+        overflow-x: hidden;
+        -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Circuit board background ── */
+    body::before {
+        content:'';
+        position:fixed; inset:0; z-index:-2;
+        background-color: var(--ink);
+        background-image:
+            linear-gradient(rgba(255,107,43,.04) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,107,43,.04) 1px, transparent 1px);
+        background-size: 60px 60px;
+    }
+    body::after {
+        content:'';
+        position:fixed; inset:0; z-index:-1;
+        background:
+            radial-gradient(ellipse 700px 500px at 15% 20%, rgba(255,107,43,.09) 0%, transparent 70%),
+            radial-gradient(ellipse 600px 400px at 85% 70%, rgba(0,240,212,.06) 0%, transparent 70%);
+        pointer-events:none;
+    }
+
+    /* ============================================================
+       NAVBAR — Terminal strip
+    ============================================================ */
+    nav {
+        position:fixed; top:0; left:0; right:0; z-index:1000;
+        height:58px;
+        display:flex; align-items:center; justify-content:space-between;
+        padding:0 2rem;
+        background: rgba(8,8,15,.9);
+        border-bottom: 1px solid var(--neon);
+        box-shadow: 0 1px 20px rgba(255,107,43,.15);
+    }
+    nav .logo {
+        font-family:'Syne',sans-serif;
+        font-weight:800; font-size:1.05rem; letter-spacing:-.3px;
+        color: var(--neon);
+        text-shadow: 0 0 20px rgba(255,107,43,.5);
+        white-space:nowrap;
+    }
+    nav .nav-links { display:flex; gap:.2rem; list-style:none; overflow-x:auto; }
+    nav .nav-links::-webkit-scrollbar { display:none; }
+    nav .nav-links a {
+        font-family:'JetBrains Mono',monospace;
+        color:var(--text2); text-decoration:none;
+        font-size:.68rem; font-weight:500;
+        padding:.28rem .65rem; border-radius:4px;
+        white-space:nowrap; transition:all .18s;
+        border:1px solid transparent;
+    }
+    nav .nav-links a:hover {
+        color:var(--neon);
+        border-color: var(--neon);
+        background:rgba(255,107,43,.08);
+        text-shadow:0 0 8px rgba(255,107,43,.4);
+    }
+
+    /* ============================================================
+       HERO — Diagonal slash + Glitch title
+    ============================================================ */
+    .hero {
+        margin-top:58px;
+        min-height:540px;
+        display:flex; flex-direction:column; align-items:center; justify-content:center;
+        text-align:center; padding:6rem 2rem 5rem;
+        position:relative; overflow:hidden;
+        background: linear-gradient(165deg, var(--ink) 55%, var(--surface) 100%);
+    }
+    /* Angled slash divider at bottom */
+    .hero::after {
+        content:'';
+        position:absolute; bottom:-2px; left:0; right:0;
+        height:80px;
+        background: var(--ink);
+        clip-path: polygon(0 100%, 100% 100%, 100% 0);
+    }
+    /* Corner brackets */
+    .hero::before {
+        content:'';
+        position:absolute; inset:24px;
+        border: 1px solid rgba(255,107,43,.12);
+        pointer-events:none;
+        clip-path: polygon(
+            0 12px, 12px 0, calc(100% - 12px) 0, 100% 12px,
+            100% calc(100% - 12px), calc(100% - 12px) 100%,
+            12px 100%, 0 calc(100% - 12px)
+        );
+    }
+
+    .hero-pill {
+        display:inline-flex; align-items:center; gap:.5rem;
+        font-family:'JetBrains Mono',monospace;
+        font-size:.72rem; font-weight:700; letter-spacing:.08em;
+        color:var(--ink);
+        background:var(--neon);
+        padding:.35rem 1.1rem;
+        clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+        margin-bottom:2rem;
+        animation:fadeDown .5s ease both;
+    }
+
+    .hero h1 {
+        font-family:'Syne',sans-serif;
+        font-size: clamp(2.2rem, 6vw, 4rem);
+        font-weight:800; letter-spacing:-2px; line-height:1.05;
+        margin-bottom:1.4rem;
+        animation:fadeDown .6s .1s ease both;
+    }
+    .hero h1 .line1 { display:block; color:var(--text); }
+    .hero h1 .line2 {
+        display:block;
+        color: var(--neon);
+        text-shadow: 0 0 30px rgba(255,107,43,.4), 0 0 60px rgba(255,107,43,.2);
+        animation: glitch 5s infinite;
+    }
+
+    @keyframes glitch {
+        0%,94%,100%  { text-shadow: 0 0 30px rgba(255,107,43,.4); clip-path:none; }
+        95%  { text-shadow: -3px 0 var(--cyan), 3px 0 var(--violet); clip-path:polygon(0 20%,100% 20%,100% 40%,0 40%); }
+        96%  { text-shadow: 3px 0 var(--cyan);  clip-path:polygon(0 55%,100% 55%,100% 75%,0 75%); }
+        97%  { text-shadow: none; clip-path:none; }
+    }
+
+    .hero .subtitle {
+        font-size:.98rem; color:var(--text2);
+        max-width:650px; margin:0 auto 3rem;
+        animation:fadeDown .6s .2s ease both;
+    }
+    .hero .badges {
+        display:flex; justify-content:center; gap:.5rem; flex-wrap:wrap;
+        animation:fadeDown .6s .3s ease both;
+    }
+    /* CUT-CORNER badge — signature shape */
+    .hero .badge {
+        font-family:'JetBrains Mono',monospace;
+        font-size:.68rem; font-weight:600;
+        color: var(--text2);
+        background: var(--surface);
+        padding:.32rem .9rem;
+        border:1px solid var(--stroke);
+        clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%);
+        transition:all .2s; cursor:default;
+    }
+    .hero .badge:hover {
+        color:var(--neon);
+        border-color:var(--neon);
+        background:rgba(255,107,43,.1);
+        clip-path: polygon(0 0%, 100% 0%, 100% 100%, 0% 100%);
+        box-shadow: var(--shadow-brutalist);
+    }
+
+    @keyframes fadeDown { from{opacity:0;transform:translateY(-20px)} to{opacity:1;transform:none} }
+    @keyframes fadeUp   { from{opacity:0;transform:translateY(28px)}  to{opacity:1;transform:none} }
+
+    /* ============================================================
+       SECTIONS
+    ============================================================ */
+    .section-wrap {
+        border-bottom: 1px solid var(--stroke);
+    }
+    .section-wrap:nth-child(even) > section {
+        background: var(--ink2);
+    }
+    .section-wrap > section {
+        max-width:1160px; margin:0 auto; padding:5rem 2.5rem;
+    }
+
+    /* Scroll reveal */
+    .reveal { opacity:0; transform:translateY(30px); transition:opacity .6s ease, transform .6s ease; }
+    .reveal.visible { opacity:1; transform:none; }
+
+    /* ── Section header ── */
+    .section-header {
+        display:flex; align-items:flex-start; gap:1.2rem; margin-bottom:2.5rem;
+    }
+    .section-header .icon-wrap {
+        width:52px; height:52px; flex-shrink:0;
+        display:flex; align-items:center; justify-content:center; font-size:1.5rem;
+        background:var(--surface); border:1px solid var(--neon);
+        box-shadow: var(--shadow-brutalist);
+        clip-path: polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px);
+    }
+    .section-header-text { display:flex; flex-direction:column; gap:.2rem; }
+    .section-num {
+        font-family:'JetBrains Mono',monospace;
+        font-size:.65rem; font-weight:700; letter-spacing:.16em;
+        text-transform:uppercase; color:var(--neon);
+    }
+    .section-header h2 {
+        font-family:'Syne',sans-serif;
+        font-size:1.8rem; font-weight:800; letter-spacing:-1px; color:var(--text);
+    }
+
+    /* ============================================================
+       STAT CARDS — Meter style
+    ============================================================ */
+    .stats-row {
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(130px,1fr));
+        gap:1rem; margin:1.5rem 0;
+    }
+    .stat-card {
+        background:var(--surface);
+        border:1px solid var(--stroke);
+        padding:1.6rem 1rem 1.3rem;
+        text-align:center; position:relative; overflow:hidden;
+        clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
+        transition:all .25s;
+    }
+    .stat-card::before {
+        content:'';
+        position:absolute; top:0; left:0;
+        width:100%; height:100%;
+        background: linear-gradient(135deg, rgba(255,107,43,.08) 0%, transparent 60%);
+    }
+    .stat-card:hover {
+        border-color:var(--neon);
+        box-shadow:var(--shadow-brutalist);
+        transform:translate(-2px,-2px);
+    }
+    .stat-card .value {
+        font-family:'Syne',sans-serif;
+        font-size:2rem; font-weight:800; letter-spacing:-1px;
+        color:var(--neon);
+        text-shadow:0 0 20px rgba(255,107,43,.3);
+    }
+    .stat-card .label {
+        font-family:'JetBrains Mono',monospace;
+        font-size:.62rem; font-weight:600; text-transform:uppercase;
+        letter-spacing:.1em; color:var(--text3); margin-top:.4rem;
+    }
+
+    /* ============================================================
+       CARDS — Hard-shadow brutalist style
+    ============================================================ */
+    .card-grid {
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+        gap:1.2rem; margin:1.8rem 0;
+    }
+    .card {
+        background:var(--surface);
+        border:1px solid var(--stroke);
+        padding:1.6rem; position:relative;
+        transition:all .2s;
+        clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
+    }
+    .card::before {
+        content:'';
+        position:absolute; top:0; right:0;
+        width:16px; height:16px;
+        background:var(--neon);
+        clip-path:polygon(100% 0,100% 100%,0 0);
+    }
+    .card:hover {
+        border-color:var(--neon);
+        box-shadow:var(--shadow-brutalist);
+        transform:translate(-3px,-3px);
+    }
+    .card h3 { font-size:.95rem; font-weight:700; margin-bottom:.85rem; color:var(--text); }
+    .card p, .card li { font-size:.84rem; color:var(--text2); }
+    .card ul { list-style:none; padding:0; }
+    .card li {
+        padding:.3rem 0 .3rem 1.1rem; position:relative; border-bottom:1px solid var(--stroke);
+    }
+    .card li:last-child { border-bottom:none; }
+    .card li::before {
+        content:'//'; position:absolute; left:0;
+        font-family:'JetBrains Mono',monospace;
+        font-size:.65rem; color:var(--neon); top:.35rem;
+    }
+
+    /* ── ARCH GRID ── */
+    .arch-grid {
+        display:grid; grid-template-columns:repeat(3,1fr);
+        gap:1rem; margin:2rem 0;
+    }
+    .arch-module {
+        background:var(--surface); border:1px solid var(--stroke);
+        padding:1.4rem 1.1rem; text-align:center; transition:all .2s;
+        position:relative; overflow:hidden;
+    }
+    .arch-module::after {
+        content:'';
+        position:absolute; bottom:0; left:0; right:0; height:2px;
+        background:linear-gradient(90deg,transparent,var(--neon),transparent);
+        transform:scaleX(0); transition:transform .3s;
+    }
+    .arch-module:hover { border-color:var(--neon); box-shadow:var(--shadow-brutalist); transform:translate(-2px,-2px); }
+    .arch-module:hover::after { transform:scaleX(1); }
+    .arch-module .mod-icon { font-size:2rem; display:block; margin-bottom:.6rem; }
+    .arch-module .mod-name { font-weight:700; font-size:.88rem; color:var(--text); margin-bottom:.3rem; }
+    .arch-module .mod-desc { font-size:.72rem; color:var(--text2); line-height:1.5; }
+    .arch-module.reserved { opacity:.3; border-style:dashed; }
+    .arch-module.reserved:hover { transform:none; box-shadow:none; }
+
+    /* ============================================================
+       TABLES
+    ============================================================ */
+    .table-wrap {
+        overflow-x:auto; margin:1.4rem 0;
+        border:1px solid var(--stroke);
+    }
+    table { width:100%; border-collapse:collapse; font-size:.84rem; }
+    thead tr { background:rgba(255,107,43,.07); border-bottom:2px solid var(--neon); }
+    th {
+        padding:.8rem 1.1rem; text-align:left;
+        font-family:'JetBrains Mono',monospace;
+        font-size:.68rem; font-weight:700; text-transform:uppercase;
+        letter-spacing:.1em; color:var(--neon);
+    }
+    td {
+        padding:.75rem 1.1rem;
+        border-bottom:1px solid var(--stroke);
+        color:var(--text2); vertical-align:top;
+    }
+    tbody tr:last-child td { border-bottom:none; }
+    tbody tr:hover td { background:rgba(255,107,43,.04); color:var(--text); }
+
+    /* ============================================================
+       CODE
+    ============================================================ */
+    code {
+        font-family:'JetBrains Mono',monospace;
+        font-size:.78em;
+        background:rgba(0,0,0,.5);
+        border:1px solid var(--stroke);
+        color:var(--cyan);
+        padding:.14rem .42rem; border-radius:3px;
+    }
+
+    /* ============================================================
+       FLOW STEPS — Terminal command style >>
+    ============================================================ */
+    .flow { display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; margin:1.5rem 0; }
+    .flow-step {
+        font-family:'JetBrains Mono',monospace;
+        font-size:.75rem; font-weight:700;
+        display:inline-flex; align-items:center; gap:.4rem;
+        padding:.4rem 1rem;
+        background:var(--surface); border:1px solid var(--stroke);
+        color:var(--neon); white-space:nowrap;
+        clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);
+        position:relative; overflow:hidden;
+        transition:all .18s;
+    }
+    .flow-step::before { content:'$ '; color:var(--text3); }
+    .flow-step:hover { background:var(--neon); color:var(--ink); border-color:var(--neon); box-shadow:var(--shadow-brutalist); }
+    .flow-step:hover::before { color:var(--ink); }
+
+    .flow-step.alt     { color:var(--cyan);    border-color:var(--stroke); }
+    .flow-step.alt:hover { background:var(--cyan); color:var(--ink); border-color:var(--cyan); box-shadow:var(--shadow-cyan); }
+    .flow-step.success { color:var(--emerald); border-color:var(--stroke); }
+    .flow-step.success:hover { background:var(--emerald); color:var(--ink); border-color:var(--emerald); }
+    .flow-step.warning { color:var(--neon3);   border-color:var(--stroke); }
+    .flow-step.warning:hover { background:var(--neon3); color:var(--ink); border-color:var(--neon3); }
+    .flow-step.danger  { color:var(--rose);    border-color:var(--stroke); }
+    .flow-step.danger:hover { background:var(--rose); color:var(--ink); border-color:var(--rose); }
+
+    .flow-arrow { font-family:'JetBrains Mono',monospace; font-size:.9rem; color:var(--text3); }
+
+    /* ============================================================
+       TIER LIST
+    ============================================================ */
+    .tier-list { display:flex; flex-direction:column; gap:.8rem; margin:1.4rem 0; }
+    .tier-item {
+        display:flex; align-items:stretch;
+        border:1px solid var(--stroke); background:var(--surface);
+        position:relative; overflow:hidden;
+        transition:all .2s;
+    }
+    .tier-item::before {
+        content:'';
+        position:absolute; top:0; left:0; right:0; height:1px;
+        background:linear-gradient(90deg,var(--neon),transparent);
+    }
+    .tier-item:hover { border-color:var(--neon); box-shadow:var(--shadow-brutalist); transform:translate(-2px,-2px); }
+    .tier-label {
+        width:80px; flex-shrink:0;
+        display:flex; align-items:center; justify-content:center;
+        font-family:'Syne',sans-serif; font-weight:800; font-size:.9rem; color:#fff;
+    }
+    .tier-content { flex:1; padding:1rem 1.2rem; }
+    .tier-content strong { display:block; font-size:.9rem; color:var(--text); margin-bottom:.3rem; }
+    .tier-content span  { font-size:.82rem; color:var(--text2); }
+
+    /* ============================================================
+       TIMELINE
+    ============================================================ */
+    .timeline { position:relative; padding-left:2.4rem; margin:1.8rem 0; }
+    .timeline::before {
+        content:''; position:absolute; left:11px; top:0; bottom:0; width:1px;
+        background:repeating-linear-gradient(to bottom, var(--neon) 0, var(--neon) 6px, transparent 6px, transparent 12px);
+    }
+    .timeline-item { position:relative; margin-bottom:2rem; }
+    .timeline-item::before {
+        content:'▶';
+        position:absolute; left:-2.4rem; top:4px;
+        font-size:.6rem; color:var(--neon);
+        text-shadow:0 0 8px var(--neon);
+    }
+    .timeline-item h4 { font-size:.95rem; font-weight:700; color:var(--text); margin-bottom:.4rem; }
+    .timeline-item p  { font-size:.84rem; color:var(--text2); }
+
+    /* ============================================================
+       HIGHLIGHT BOXES
+    ============================================================ */
+    .highlight {
+        border-left:3px solid var(--neon);
+        background:rgba(255,107,43,.05);
+        padding:1.1rem 1.4rem; margin:1.4rem 0;
+        position:relative;
+    }
+    .highlight.info    { border-color:var(--cyan);    background:rgba(0,240,212,.05); }
+    .highlight.success { border-color:var(--emerald); background:rgba(52,211,153,.05); }
+    .highlight.danger  { border-color:var(--rose);    background:rgba(251,113,133,.05); }
+    .highlight strong { color:var(--text); font-weight:700; }
+    .highlight p, .highlight span { color:var(--text2); font-size:.88rem; }
+
+    /* ============================================================
+       SEQUENCE GROUP HEADERS
+    ============================================================ */
+    .seq-group-header {
+        display:flex; align-items:center; gap:.7rem;
+        margin:3rem 0 1.4rem;
+        padding:.8rem 1.4rem;
+        font-family:'JetBrains Mono',monospace;
+        font-size:.82rem; font-weight:700; letter-spacing:.05em;
+        position:relative;
+        clip-path:polygon(0 0,calc(100% - 16px) 0,100% 50%,calc(100% - 16px) 100%,0 100%);
+    }
+    .seq-group-header.blue   { background:rgba(0,240,212,.12);  color:var(--cyan);    }
+    .seq-group-header.green  { background:rgba(52,211,153,.12); color:var(--emerald); }
+    .seq-group-header.purple { background:rgba(192,132,252,.12);color:var(--violet);  }
+    .seq-group-header.red    { background:rgba(251,113,133,.12); color:var(--rose);   }
+
+    /* ============================================================
+       MERMAID
+    ============================================================ */
+    /* Mermaid — white card floating inside dark theme */
+    .mermaid-container {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-top: 3px solid var(--neon);
+        border-radius: 0 0 4px 4px;
+        padding: 2rem 1.5rem 1.5rem;
+        margin: .4rem 0 1.6rem;
+        overflow-x: auto;
+        box-shadow: 0 8px 32px rgba(0,0,0,.35), var(--shadow-brutalist);
+        position: relative;
+    }
+    /* small orange corner label */
+    .mermaid-container::before {
+        content: 'DIAGRAM';
+        position: absolute; top: 0; right: 0;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: .6rem; font-weight: 700; letter-spacing: .1em;
+        background: var(--neon); color: #fff;
+        padding: .15rem .55rem;
+        clip-path: polygon(6px 0,100% 0,100% 100%,0 100%);
+    }
+    .mermaid { text-align: center; }
+    .mermaid svg { max-width: 100%; height: auto; border-radius: 4px; }
+
+    /* Diagram title — chip above the white card */
+    .diagram-title {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: .7rem; font-weight: 700; text-transform: uppercase;
+        letter-spacing: .12em;
+        display: inline-flex; align-items: center; gap: .5rem;
+        margin: 2.2rem 0 0;
+        background: var(--neon);
+        color: #fff;
+        padding: .3rem .9rem .3rem .7rem;
+        clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 50%, calc(100% - 8px) 100%, 0 100%);
+    }
+    .diagram-title::before {
+        content: '◈';
+        font-size: .8rem;
+    }
+
+    /* h3 generic */
+    section > h3, section h3 {
+        font-size:1.05rem; font-weight:700; color:var(--text); margin:2rem 0 .9rem;
+    }
+    section > p { color:var(--text2); font-size:.9rem; margin-bottom:1rem; }
+    strong { color:var(--text); }
+
+    /* ============================================================
+       FOOTER
+    ============================================================ */
+    footer {
+        text-align:center; padding:4rem 2rem;
+        border-top:1px solid var(--neon);
+        background:var(--ink);
+        box-shadow:0 -10px 60px rgba(255,107,43,.08);
+        position:relative;
+    }
+    footer::before {
+        content:''; position:absolute; top:0; left:0; right:0; height:1px;
+        background:linear-gradient(90deg,transparent,var(--neon),var(--cyan),transparent);
+    }
+    .footer-logo {
+        font-family:'Syne',sans-serif;
+        font-size:1.4rem; font-weight:800; letter-spacing:-.5px;
+        color:var(--neon);
+        text-shadow:0 0 30px rgba(255,107,43,.4);
+        margin-bottom:1rem;
+    }
+    footer p { color:var(--text3); font-size:.82rem; margin-bottom:.4rem; }
+    footer strong { color:var(--text2); }
+
+    /* ============================================================
+       RESPONSIVE
+    ============================================================ */
+    @media(max-width:900px) { .arch-grid{grid-template-columns:repeat(2,1fr);} }
+    @media(max-width:680px) {
+        .hero h1{letter-spacing:-1px;}
+        .section-wrap > section{padding:3rem 1.2rem;}
+        .card-grid{grid-template-columns:1fr;}
+        .arch-grid{grid-template-columns:1fr;}
+        nav .nav-links{display:none;}
+        .stats-row{grid-template-columns:repeat(2,1fr);}
+    }
+    </style>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            securityLevel: 'loose',
+            flowchart: { curve: 'basis', useMaxWidth: true },
+            sequence: { mirrorActors: false, useMaxWidth: true, boxMargin: 10 }
+        });
+    </script>
+    <script>
+    document.addEventListener('DOMContentLoaded',()=>{
+        const obs = new IntersectionObserver(entries=>{
+            entries.forEach(e=>{ if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target);} });
+        },{ threshold:0.07 });
+        document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+    });
+    </script>
+</head>
+
+<body>
+
+    <!-- NAV -->
+    <nav>
+        <div class="logo">🍜 VinhKhanh Tour — PRD</div>
+        <ul class="nav-links">
+            <li><a href="#overview">Tổng quan</a></li>
+            <li><a href="#actors">Actors</a></li>
+            <li><a href="#mobile">Mobile App</a></li>
+            <li><a href="#cms">CMS</a></li>
+            <li><a href="#geofence">GPS/Geofence</a></li>
+            <li><a href="#audio">Audio TTS</a></li>
+            <li><a href="#auth">Auth</a></li>
+            <li><a href="#i18n">i18n</a></li>
+            <li><a href="#sync">Offline Sync</a></li>
+            <li><a href="#analytics">Analytics</a></li>
+            <li><a href="#patterns">Patterns</a></li>
+            <li><a href="#usecase">UseCase</a></li>
+            <li><a href="#sequence">Sequence</a></li>
+            <li><a href="#activity">Activity</a></li>
+        </ul>
+    </nav>
+
+    <!-- HERO -->
+    <div class="hero">
+        <h1>Hệ Thống Du Lịch Ẩm Thực VinhKhanh Tour</h1>
+        <p class="subtitle">Multi-platform full-stack: Ứng dụng mobile .NET MAUI + CMS Blazor Server, thuyết minh TTS đa ngôn ngữ, bản đồ tương tác và đồng bộ offline-first — khám phá ẩm thực đường phố Việt Nam.</p>
+        <div class="badges">
+            <span class="badge">.NET 9 MAUI (Android/iOS)</span>
+            <span class="badge">Blazor Server (CMS)</span>
+            <span class="badge">PostgreSQL + SQLite</span>
+            <span class="badge">Leaflet + OSRM Routing</span>
+            <span class="badge">Gemini AI Translation</span>
+            <span class="badge">TTS 11 Ngôn ngữ</span>
+            <span class="badge">BCrypt + Cookie Auth</span>
+            <span class="badge">Multi-Tenant Isolation</span>
+        </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="section-wrap"><section>
+        <div class="stats-row reveal">
+            <div class="stat-card">
+                <div class="value">3</div>
+                <div class="label">Sub-Projects</div>
+            </div>
+            <div class="stat-card">
+                <div class="value">16</div>
+                <div class="label">CMS Pages</div>
+            </div>
+            <div class="stat-card">
+                <div class="value">29</div>
+                <div class="label">Use Cases</div>
+            </div>
+            <div class="stat-card">
+                <div class="value">11</div>
+                <div class="label">Ngôn ngữ TTS</div>
+            </div>
+            <div class="stat-card">
+                <div class="value">3</div>
+                <div class="label">Actor Roles</div>
+            </div>
+            <div class="stat-card">
+                <div class="value">5</div>
+                <div class="label">API Controllers</div>
+            </div>
+            <div class="stat-card">
+                <div class="value">2</div>
+                <div class="label">Database Engines</div>
+            </div>
+            <div class="stat-card">
+                <div class="value">500K</div>
+                <div class="label">Phí đăng ký (VNĐ)</div>
+            </div>
+        </div>
+    </section>
+
+    </div><!-- /STATS -->
+
+    <!-- CH00: OVERVIEW -->
+    <div class="section-wrap"><section id="overview">
+        <div class="section-header">
+            <div class="icon-wrap" style="background:#fff3e0;color:var(--primary);">🏗️</div>
+            <div>
+                <div class="section-num">Chapter 00</div>
+                <h2>Kiến Trúc Tổng Quan Hệ Thống</h2>
+            </div>
+        </div>
+
+        <p style="margin-bottom:1rem;color:var(--text-secondary);">Hệ thống chia thành 3 sub-project: <strong>Mobile App</strong> (.NET MAUI), <strong>CMS Server</strong> (Blazor Server trên Render), và <strong>Shared Library</strong> (Models + Data). Multi-tenant bằng Global Query Filter trên <code>AgencyId</code>.</p>
+
+        <div class="arch-grid reveal">
+            <div class="arch-module">
+                <div class="mod-icon">📱</div>
+                <div class="mod-name">VinhKhanhTour (MAUI)</div>
+                <div class="mod-desc">Mobile App: Bản đồ, GPS Geofence, TTS, Offline SQLite</div>
+            </div>
+            <div class="arch-module">
+                <div class="mod-icon">🌐</div>
+                <div class="mod-name">VinhKhanhTour.CMS</div>
+                <div class="mod-desc">Blazor Server: POI CRUD, Audio, Translations, Analytics, QR</div>
+            </div>
+            <div class="arch-module">
+                <div class="mod-icon">📦</div>
+                <div class="mod-name">VinhKhanhTour.Shared</div>
+                <div class="mod-desc">Models, IPoiRepository, PoiRepository (SQLite), DbContext</div>
+            </div>
+            <div class="arch-module">
+                <div class="mod-icon">🐘</div>
+                <div class="mod-name">PostgreSQL (Render)</div>
+                <div class="mod-desc">Pois, Tours, UsageHistories, AppUsers, AppAuditLogs</div>
+            </div>
+            <div class="arch-module">
+                <div class="mod-icon">💾</div>
+                <div class="mod-name">SQLite (Mobile)</div>
+                <div class="mod-desc">Local cache: POIs, UsageHistory (offline-first)</div>
+            </div>
+            <div class="arch-module">
+                <div class="mod-icon">🤖</div>
+                <div class="mod-name">Google Gemini API</div>
+                <div class="mod-desc">Dịch tự động 10 ngôn ngữ: Name, Description, TTS Script</div>
+            </div>
+            <div class="arch-module reserved">
+                <div class="mod-icon">💳</div>
+                <div class="mod-name">Payment (reserved)</div>
+                <div class="mod-desc">Thanh toán thực tế, Subscriptions, Invoices</div>
+            </div>
+            <div class="arch-module reserved">
+                <div class="mod-icon">📧</div>
+                <div class="mod-name">Notification (reserved)</div>
+                <div class="mod-desc">Email xác nhận, SMS thông báo merchant mới</div>
+            </div>
+            <div class="arch-module reserved">
+                <div class="mod-icon">📊</div>
+                <div class="mod-name">Advanced Analytics (reserved)</div>
+                <div class="mod-desc">Revenue dashboard, Retention, Cohort analysis</div>
+            </div>
+        </div>
+
+        <h3 style="margin:1.5rem 0 .8rem;">Database Schema (PostgreSQL — CmsDbContext)</h3>
+        <div class="table-wrap reveal">
+            <table>
+                <thead>
+                    <tr><th>Table</th><th>Module</th><th>Mục đích</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>Pois</code></td><td>Content</td><td>Dữ liệu POI: tên (VI + 10 lang), mô tả, toạ độ, bán kính, audio URL, TTS script. Soft Delete (IsDeleted). Global Filter: AgencyId.</td></tr>
+                    <tr><td><code>Tours</code></td><td>Tour</td><td>Tour lộ trình: tên, mô tả, start/end point, route geometry, AgencyId.</td></tr>
+                    <tr><td><code>TourStops</code></td><td>Tour</td><td>Điểm dừng của Tour: PoiId, thứ tự (Order), khoảng cách tới route.</td></tr>
+                    <tr><td><code>UsageHistories</code></td><td>Analytics</td><td>Lịch sử nghe: PoiId, thời lượng, QR/GPS, GPS user, DeviceId, AgencyId.</td></tr>
+                    <tr><td><code>AppUsers</code></td><td>Auth</td><td>Tài khoản: Username (SĐT), PasswordHash (BCrypt), Role, AgencyId, ForcePasswordChange.</td></tr>
+                    <tr><td><code>AppAuditLogs</code></td><td>Admin</td><td>Nhật ký: Action (register_poi), Details (500000 VNĐ), Timestamp.</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    </div>
+
+    <!-- CH01: ACTORS -->
+    <div class="section-wrap"><section id="actors">
+        <div class="section-header">
+            <div class="icon-wrap" style="background:#e8f5e9;color:var(--success);">👥</div>
+            <div>
+                <div class="section-num">Chapter 01</div>
+                <h2>Actors & Phân quyền Multi-Tenant</h2>
+            </div>
+        </div>
+
+        <div class="card-grid reveal">
+            <div class="card">
+                <h3>🛡️ System Admin</h3>
+                <ul>
+                    <li>Đăng nhập qua <code>appsettings.json</code> (fallback) hoặc DB</li>
+                    <li>Truy cập <strong>toàn bộ</strong> dữ liệu (IsSystemAdmin = true → bypass Global Filter)</li>
+                    <li>Quản lý: POI, Audio, Translation, Tour, QR, Analytics, Users</li>
+                    <li>Dịch AI tự động (Gemini API)</li>
+                    <li>Xem doanh thu đăng ký, Reset mật khẩu Merchant</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3>🏪 Owner (Chủ quán)</h3>
+                <ul>
+                    <li>Tự đăng ký qua <code>/register</code> (công khai)</li>
+                    <li>Đăng nhập qua DB (BCrypt), chọn mật khẩu riêng</li>
+                    <li>Chỉ thấy dữ liệu thuộc <strong>AgencyId</strong> của mình</li>
+                    <li>Quản lý POI, Audio, xem Analytics riêng</li>
+                    <li>Bắt buộc đổi mật khẩu nếu Admin reset (<code>ForcePasswordChange</code>)</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3>🧳 Tourist (Du khách)</h3>
+                <ul>
+                    <li><strong>Không cần tài khoản</strong> — trải nghiệm hoàn toàn ẩn danh</li>
+                    <li>Sử dụng Mobile App: bản đồ, GPS geofence, nghe TTS tự động</li>
+                    <li>Quét QR Code: mở trang web <code>/listen/{id}</code> nghe audio</li>
+                    <li>Chọn 1 trong 11 ngôn ngữ, phát MP3 hoặc TTS fallback</li>
+                    <li>Đăng ký thành Owner qua form <code>/register</code></li>
+                </ul>
+            </div>
+        </div>
+
+        <h3 style="margin-top:1.5rem;">Ma trận Phân quyền</h3>
+        <div class="table-wrap reveal">
+            <table>
+                <thead>
+                    <tr><th>Feature</th><th>🛡️ Admin</th><th>🏪 Owner</th><th>🧳 Tourist</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Đăng nhập / Đăng xuất</td><td>✅</td><td>✅</td><td>❌</td></tr>
+                    <tr><td>Đăng ký tài khoản</td><td>❌</td><td>❌</td><td>✅</td></tr>
+                    <tr><td>Quản lý POI (CRUD)</td><td>✅ Toàn bộ</td><td>✅ Theo Agency</td><td>❌</td></tr>
+                    <tr><td>Quản lý Audio</td><td>✅</td><td>✅</td><td>❌</td></tr>
+                    <tr><td>Bản dịch + AI Gemini</td><td>✅</td><td>❌</td><td>❌</td></tr>
+                    <tr><td>Tour + OSRM Routing</td><td>✅</td><td>✅ (xem)</td><td>❌</td></tr>
+                    <tr><td>QR Code Generation</td><td>✅</td><td>✅</td><td>❌</td></tr>
+                    <tr><td>Listen App (Web)</td><td>❌</td><td>❌</td><td>✅</td></tr>
+                    <tr><td>Mobile App (MAUI)</td><td>❌</td><td>❌</td><td>✅</td></tr>
+                    <tr><td>Analytics Dashboard</td><td>✅ Toàn bộ</td><td>✅ Theo Agency</td><td>❌</td></tr>
+                    <tr><td>Doanh thu đăng ký</td><td>✅</td><td>❌</td><td>❌</td></tr>
+                    <tr><td>Quản lý Users + Reset PW</td><td>✅</td><td>❌</td><td>❌</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="highlight info">
+            <strong>Multi-Tenant Isolation:</strong> EF Core Global Query Filter trên <code>CmsDbContext</code> tự động filter mọi entity theo <code>AgencyId</code> từ Claims. Admin (<code>IsSystemAdmin = true</code>) bypass hoàn toàn. Trang công khai (<code>/listen</code>, <code>/register</code>) sử dụng <code>IgnoreQueryFilters()</code>.
+        </div>
+    </section>
+
+    </div>
+
+    <!-- CH02: MOBILE -->
+    <div class="section-wrap"><section id="mobile">
+        <div class="section-header">
+            <div class="icon-wrap" style="background:#e3f2fd;color:var(--info);">📱</div>
+            <div>
+                <div class="section-num">Chapter 02</div>
+                <h2>Mobile App — .NET MAUI (Android/iOS)</h2>
+            </div>
+        </div>
+
+        <p style="margin-bottom:1.5rem;color:var(--text-secondary);">Ứng dụng native đa nền tảng cho Tourist. Kiến trúc MVVM (CommunityToolkit.Mvvm), Offline-First, GPS Geofencing tự động, TTS đa ngôn ngữ.</p>
+
+        <div class="card-grid reveal">
+            <div class="card">
+                <h3>🏠 MainPage — Khám phá POI</h3>
+                <ul>
+                    <li>Load từ SQLite local → Hiển thị tức thì</li>
+                    <li>Background Sync: <code>GET /api/poi</code> → Add/Update/Delete orphan</li>
+                    <li>Search: Debounce 300ms, filter theo tên/mô tả</li>
+                    <li>Category: Seafood, BBQ, Noodle, Sushi</li>
+                    <li>POI Detail: Popup → Navigate Map / Play TTS</li>
+                    <li>GPS tracking liên tục → tính khoảng cách realtime</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3>🗺️ MapPage — Bản đồ + Geofence</h3>
+                <ul>
+                    <li>MAUI Maps Control (Google Maps / Apple Maps)</li>
+                    <li>Pins + Circles cho mỗi POI (bán kính geofence)</li>
+                    <li>GPS Polling 5s → tính Haversine distance</li>
+                    <li>POI trong bán kính → Circle Vàng → Auto TTS</li>
+                    <li>Play/Pause toggle, My Location button, Zoom controls</li>
+                    <li>Android Background Service cho GPS liên tục</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3>⚙️ SettingsPage — Cài đặt</h3>
+                <ul>
+                    <li>Chọn ngôn ngữ: 11 options (VI, EN, ES, FR, DE, ZH, JA, KO, RU, IT, PT)</li>
+                    <li>Lưu <code>Preferences</code>, reload AppShell</li>
+                    <li>Dark / Light theme toggle</li>
+                    <li>Tốc độ đọc TTS: 0.5x → 2.0x</li>
+                    <li>LocalizationResourceManager: 300+ chuỗi hardcoded</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3>🗣️ NarrationEngine — Thuyết minh</h3>
+                <ul>
+                    <li>Cooldown 2 phút/POI (bypass nếu Manual)</li>
+                    <li>Cascading Locale Search: mã 2 chữ → prefix → tên English → ID</li>
+                    <li>Ghi GPS + UsageHistory vào SQLite ngay</li>
+                    <li>Background: đẩy Analytics lên CMS (SemaphoreSlim)</li>
+                    <li>CancellationToken để hủy TTS cũ khi chuyển POI</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    </div>
+
+    <!-- CH03: CMS -->
+    <div class="section-wrap"><section id="cms">
+        <div class="section-header">
+            <div class="icon-wrap" style="background:#fce4ec;color:var(--danger);">🌐</div>
+            <div>
+                <div class="section-num">Chapter 03</div>
+                <h2>CMS Server — Blazor Server (16 Pages)</h2>
+            </div>
+        </div>
+
+        <div class="card-grid reveal">
+            <div class="card">
+                <h3>📍 Quản lý POI (CRUD)</h3>
+                <ul>
+                    <li><code>/</code> — Danh sách POI cards (AgencyId filter)</li>
+                    <li><code>/poi/new</code> — Form tạo mới (Tiếng Việt)</li>
+                    <li><code>/poi/edit/{id}</code> — Chỉnh sửa</li>
+                    <li>Leaflet Map Modal: click chọn toạ độ Lat/Lng</li>
+                    <li>Soft Delete: <code>IsDeleted = true</code></li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3>🎵 Quản lý Audio</h3>
+                <ul>
+                    <li><code>/audio</code> — Bảng tổng quan Audio VI/EN</li>
+                    <li>Inline edit link .mp3 cho mỗi POI</li>
+                    <li>Thống kê: Có/Chưa có Audio, TTS Script</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3>🌐 Bản dịch + AI</h3>
+                <ul>
+                    <li><code>/translations</code> — Ma trận 10 ngôn ngữ</li>
+                    <li>Sửa thủ công: inline form</li>
+                    <li>Dịch tự động: Gemini API → 30 trường/POI</li>
+                    <li>Ngôn ngữ: EN, FR, DE, ZH, JA, KO, ES, RU, IT, PT</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3>🗺️ Tour + OSRM</h3>
+                <ul>
+                    <li><code>/tours</code> — Danh sách Tour</li>
+                    <li><code>/tours/new</code> — Leaflet + OSRM routing</li>
+                    <li>Auto-detect POI trong bán kính 50m</li>
+                    <li>TourStops: drag & drop sắp xếp</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3>📱 QR Code + Listen App</h3>
+                <ul>
+                    <li><code>/qrcode</code> — Generate QR Base64 per POI</li>
+                    <li><code>/listen/{id}</code> — Trang public, IgnoreQueryFilters</li>
+                    <li>Splash → Tap → Play MP3 hoặc TTS fallback</li>
+                    <li>Dropdown 11 ngôn ngữ, equalizer animation</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3>📊 Analytics + Lịch sử</h3>
+                <ul>
+                    <li><code>/analytics</code> — Dashboard + Heatmap Leaflet</li>
+                    <li><code>/history</code> — Bảng chi tiết phân trang</li>
+                    <li>Lọc: QR/GPS, theo POI</li>
+                    <li>Doanh thu = Sum(AppAuditLog register_poi)</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    </div>
+
+    <!-- CH04: GEOFENCE -->
+    <div class="section-wrap"><section id="geofence">
+        <div class="section-header">
+            <div class="icon-wrap" style="background:#e3f2fd;color:var(--info);">📡</div>
+            <div>
+                <div class="section-num">Chapter 04</div>
+                <h2>GPS Geofencing + Auto Narration</h2>
+            </div>
+        </div>
+
+        <p style="margin-bottom:1.5rem;color:var(--text-secondary);">Hệ thống 3 giai đoạn xử lý GPS: lấy vị trí → phát hiện vùng → phát thuyết minh. Tối ưu pin và chống spam.</p>
+
+        <div class="timeline reveal">
+            <div class="timeline-item">
+                <h4>Giai đoạn 1 — GPS Polling (MapPage)</h4>
+                <p><code>DispatcherTimer</code> mỗi 5 giây → <code>GetLocationAsync(Best, 5s timeout)</code> → fallback <code>GetLastKnownLocationAsync()</code>. Quyền: <code>LocationWhenInUse</code>. Android 14+: Background Service.</p>
+            </div>
+            <div class="timeline-item">
+                <h4>Giai đoạn 2 — Geofence Detection</h4>
+                <p><code>Haversine distance</code> tới mỗi POI. Nếu ≤ <code>poi.Radius</code> (mét) → trigger. Ưu tiên: khoảng cách gần nhất + <code>poi.Priority</code> cao nhất.</p>
+            </div>
+            <div class="timeline-item">
+                <h4>Giai đoạn 3 — NarrationEngine</h4>
+                <p>Cooldown 2 phút / POI (bypass nếu manual click). <code>CancelCurrentNarration()</code> nếu chuyển POI. Cascading Locale → <code>TextToSpeech.SpeakAsync()</code>. Song song ghi UsageHistory + đẩy CMS.</p>
+            </div>
+        </div>
+
+        <div class="highlight reveal">
+            <strong>Circle Color States:</strong> Xám = chưa trigger, Vàng = đang phát thuyết minh, Cyan = được chọn từ list. Mỗi trạng thái ánh xạ qua <code>UpdateMapCirclesState()</code> với alpha transparency.
+        </div>
+    </section>
+
+    </div>
+
+    <!-- CH05: AUDIO TTS -->
+    <div class="section-wrap"><section id="audio">
+        <div class="section-header">
+            <div class="icon-wrap" style="background:#f3e5f5;color:#7b1fa2;">🎧</div>
+            <div>
+                <div class="section-num">Chapter 05</div>
+                <h2>Audio / TTS — Hybrid 2-Tier</h2>
+            </div>
+        </div>
+
+        <h3>2-Tier Hybrid Audio</h3>
+        <div class="tier-list reveal">
+            <div class="tier-item">
+                <div class="tier-label" style="background:#2e7d32;">Tier 1</div>
+                <div class="tier-content">
+                    <strong>Pre-recorded MP3 (0ms latency)</strong>
+                    <span>Mobile App: <code>Audio Element / MediaPlayer</code> phát file MP3. CMS Listen App: <code>HTMLAudioElement.play()</code>. Điều kiện: <code>AudioUrlVi</code> hoặc <code>AudioUrl{Lang}</code> không null.</span>
+                </div>
+            </div>
+            <div class="tier-item">
+                <div class="tier-label" style="background:#1565c0;">Tier 2</div>
+                <div class="tier-content">
+                    <strong>On-Device TTS (0ms, always available)</strong>
+                    <span>Mobile: <code>TextToSpeech.SpeakAsync(DisplayTtsScript, SpeechOptions)</code> — dùng giọng đọc hệ điều hành. Web: <code>SpeechSynthesisUtterance</code> (Browser API). Fallback cuối cùng, offline-ready.</span>
+                </div>
+            </div>
+        </div>
+
+        <h3 style="margin-top:1.5rem;">TTS Cascading Locale Algorithm</h3>
+        <div class="flow reveal">
+            <span class="flow-step">Lấy mã ngôn ngữ hiện tại</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-step alt">GetLocalesAsync()</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-step warning">1. Khớp mã 2 chữ (vi)</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-step">2. Khớp prefix (vi-VN)</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-step alt">3. Khớp tên English</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-step success">4. Fallback ID</span>
+        </div>
+    </section>
+
+    </div>
+
+    <!-- CH06: AUTH -->
+    <div class="section-wrap"><section id="auth">
+        <div class="section-header">
+            <div class="icon-wrap" style="background:#efebe9;color:#4e342e;">🛡️</div>
+            <div>
+                <div class="section-num">Chapter 06</div>
+                <h2>Authentication & Merchant Onboarding</h2>
+            </div>
+        </div>
+
+        <div class="card-grid reveal">
+            <div class="card">
+                <h3>🔐 Cookie Auth (CMS)</h3>
+                <ul>
+                    <li>Claims: Name, Role (admin/owner), AgencyId, ForcePasswordChange</li>
+                    <li>BCrypt.Net-Next: Hash & Verify mật khẩu</li>
+                    <li>Fallback: <code>AdminAccount</code> từ appsettings.json</li>
+                    <li>Cookie Scheme: <code>CookieAuthenticationDefaults</code></li>
+                    <li>Login path: <code>/login</code>, Logout: <code>/Account/logout</code></li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3>📝 Đăng ký Merchant</h3>
+                <ul>
+                    <li>Trang <code>/register</code> — public (không cần login)</li>
+                    <li>Form: Họ tên, SĐT, Địa chỉ, Email, Tên quán, Mật khẩu</li>
+                    <li>Atomic Transaction: <code>IDbContextTransaction</code></li>
+                    <li>Tạo: AgencyId → POI → AppUser → AuditLog</li>
+                    <li>Phí: 500,000 VNĐ (ghi vào AuditLog)</li>
+                    <li>Rollback toàn bộ nếu 1 bước fail</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3>🔄 Đổi mật khẩu + Force</h3>
+                <ul>
+                    <li><code>ForcePasswordChange = true</code> → ép redirect <code>/change-password</code></li>
+                    <li>MainLayout kiểm tra claim trên mỗi request</li>
+                    <li>Sau đổi PW: update hash + <code>ForcePasswordChange = false</code></li>
+                    <li>Tự động logout → Re-login với PW mới</li>
+                    <li>Admin có thể Reset PW bất kỳ user nào</li>
+                </ul>
+            </div>
+        </div>
+
+        <h3 style="margin-top:1.5rem;">Merchant Registration Flow</h3>
+        <div class="flow reveal">
+            <span class="flow-step">Tourist truy cập /register</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-step alt">Điền form + Validation</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-step warning">Kiểm tra SĐT trùng</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-step">BEGIN TRANSACTION</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-step alt">Tạo AgencyId + POI + User</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-step success">COMMIT → Hiển thị tài khoản</span>
+        </div>
+    </section>
+
+    </div>
+
+    <!-- CH07: i18n -->
+    <div class="section-wrap"><section id="i18n">
+        <div class="section-header">
+            <div class="icon-wrap" style="background:#e0f7fa;color:var(--accent);">🌐</div>
+            <div>
+                <div class="section-num">Chapter 07</div>
+                <h2>Đa Ngôn Ngữ — 11 Languages</h2>
+            </div>
+        </div>
+
+        <div class="card-grid reveal">
+            <div class="card">
+                <h3>📱 Mobile App (LocalizationResourceManager)</h3>
+                <ul>
+                    <li>300+ chuỗi UI hardcoded (ResourceManager pattern)</li>
+                    <li><code>SetCulture(CultureInfo)</code> → reload AppShell</li>
+                    <li>PropertyChanged event → UI tự re-bind</li>
+                    <li>Preferences: lưu ngôn ngữ vào disk</li>
+                    <li>POI: <code>DisplayName</code> / <code>DisplayDescription</code> / <code>DisplayTtsScript</code> tự chọn theo lang</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3>🌐 CMS (Gemini AI Translation)</h3>
+                <ul>
+                    <li><code>GeminiTranslationService</code>: API call 1 lần → 30 trường</li>
+                    <li>10 ngôn ngữ: EN, FR, DE, ZH, JA, KO, ES, RU, IT, PT</li>
+                    <li>Dịch: Name + Description + TTS Script</li>
+                    <li>Sửa thủ công: inline form trên <code>/translations</code></li>
+                    <li>Bảng trạng thái: ma trận ✅/❌ per POI per lang</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3>🎧 Listen App (Web TTS)</h3>
+                <ul>
+                    <li>Dropdown 11 ngôn ngữ trên trang <code>/listen/{id}</code></li>
+                    <li>Chuyển text UI + Audio source realtime</li>
+                    <li>MP3 file (Tier 1) → Browser SpeechSynthesis (Tier 2)</li>
+                    <li>Ngôn ngữ mặc định: Tiếng Việt</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="highlight success">
+            <strong>11 Ngôn ngữ hỗ trợ:</strong> 🇻🇳 Tiếng Việt, 🇬🇧 English, 🇪🇸 Español, 🇫🇷 Français, 🇩🇪 Deutsch, 🇨🇳 中文, 🇯🇵 日本語, 🇰🇷 한국어, 🇷🇺 Русский, 🇮🇹 Italiano, 🇵🇹 Português.
+        </div>
+    </section>
+
+    </div>
+
+    <!-- CH08: SYNC -->
+    <div class="section-wrap"><section id="sync">
+        <div class="section-header">
+            <div class="icon-wrap" style="background:#e8eaf6;color:#283593;">🔄</div>
+            <div>
+                <div class="section-num">Chapter 08</div>
+                <h2>Offline-First Sync (ApiService)</h2>
+            </div>
+        </div>
+
+        <p style="margin-bottom:1.5rem;color:var(--text-secondary);">Mobile App hoạt động Offline-First: hiển thị dữ liệu SQLite local tức thì, đồng bộ CMS Server ngầm. Analytics cũng đẩy ngầm, an toàn khi mất mạng.</p>
+
+        <h3>2 Chiều Đồng bộ</h3>
+        <div class="tier-list reveal">
+            <div class="tier-item">
+                <div class="tier-label" style="background:var(--info);">📥</div>
+                <div class="tier-content">
+                    <strong>POI Sync (Server → Local)</strong>
+                    <span><code>GET /api/poi</code> → so sánh từng POI → Add/Update local → Delete POI orphan (không còn trên server). Silent fail nếu offline.</span>
+                </div>
+            </div>
+            <div class="tier-item">
+                <div class="tier-label" style="background:var(--warning);color:#333;">📤</div>
+                <div class="tier-content">
+                    <strong>Analytics Sync (Local → Server)</strong>
+                    <span><code>POST /api/analytics/sync-usage</code> batch → nếu 200 OK → xoá records local đã sync. <code>SemaphoreSlim(1,1)</code> tránh trùng lặp. Timeout 60s, retry khi mở app lần sau.</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="highlight info">
+            <strong>Data Safety:</strong> UsageHistory luôn ghi vào SQLite local <strong>trước</strong>, sau đó mới đẩy CMS ngầm. Kể cả khi mất mạng 100%, dữ liệu vẫn an toàn trong SQLite và sẽ sync khi có mạng trở lại.
+        </div>
+    </section>
+
+    </div>
+
+    <!-- CH09: ANALYTICS -->
+    <div class="section-wrap"><section id="analytics">
+        <div class="section-header">
+            <div class="icon-wrap" style="background:#fff8e1;color:var(--warning);">📊</div>
+            <div>
+                <div class="section-num">Chapter 09</div>
+                <h2>Analytics & Heatmap</h2>
+            </div>
+        </div>
+
+        <div class="card-grid reveal">
+            <div class="card">
+                <h3>📈 Dashboard Tổng quan</h3>
+                <ul>
+                    <li>6 Stat Cards: Tổng lượt nghe, Thời gian, TB/POI, QR count, GPS count, Doanh thu</li>
+                    <li>Top 5 POI được nghe nhiều nhất</li>
+                    <li>So sánh QR vs GPS trigger</li>
+                    <li>Recent Activity: 10 lượt nghe gần nhất</li>
+                    <li>Doanh thu = Sum(register_poi AuditLog × 500K VNĐ)</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3>🗺️ Heatmap Vị trí</h3>
+                <ul>
+                    <li>Leaflet Heatmap JS (leaflet-heat)</li>
+                    <li>Points từ <code>UserLatitude/UserLongitude</code></li>
+                    <li>Fallback: toạ độ POI nếu GPS = 0</li>
+                    <li>Gradient: xanh → vàng → đỏ theo mật độ</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3>📋 Lịch sử Chi tiết</h3>
+                <ul>
+                    <li>Bảng phân trang: POI, Thời lượng, Source, Device, Timestamp</li>
+                    <li>Lọc theo: Tất cả / QR / GPS</li>
+                    <li>Lọc theo POI cụ thể</li>
+                    <li>AgencyId filter (Owner chỉ thấy data của mình)</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    </div>
+
+    <!-- CH10: PATTERNS -->
+    <div class="section-wrap"><section id="patterns">
+        <div class="section-header">
+            <div class="icon-wrap" style="background:#ede7f6;color:#4527a0;">⚡</div>
+            <div>
+                <div class="section-num">Summary</div>
+                <h2>Design Patterns & Key Constants</h2>
+            </div>
+        </div>
+
+        <h3>Architecture Patterns</h3>
+        <div class="table-wrap reveal">
+            <table>
+                <thead>
+                    <tr><th>Pattern</th><th>Implementation</th><th>Industry Reference</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><strong>Multi-Tenant Isolation</strong></td><td>EF Core Global Query Filter per AgencyId</td><td>Azure SaaS tenant isolation</td></tr>
+                    <tr><td><strong>Offline-First Sync</strong></td><td>SQLite local → Background REST sync → SemaphoreSlim</td><td>Firebase Offline persistence</td></tr>
+                    <tr><td><strong>MVVM Architecture</strong></td><td>CommunityToolkit.Mvvm: ObservableProperty, RelayCommand</td><td>.NET MAUI recommended pattern</td></tr>
+                    <tr><td><strong>Geofence Reconciliation</strong></td><td>GPS Polling 5s, Cooldown 2min, Priority-based</td><td>iOS CLLocationManager patterns</td></tr>
+                    <tr><td><strong>Cascading TTS Locale</strong></td><td>4-step search: code → prefix → name → ID</td><td>ICU locale fallback chain (Unicode CLDR)</td></tr>
+                    <tr><td><strong>Soft Delete + Audit</strong></td><td>IsDeleted flag + AppAuditLog tracking</td><td>Enterprise data governance</td></tr>
+                    <tr><td><strong>Atomic Registration</strong></td><td>IDbContextTransaction: Commit or Rollback</td><td>ACID transaction guarantees</td></tr>
+                    <tr><td><strong>Cookie Auth + BCrypt</strong></td><td>httpOnly Cookie, BCrypt.Net-Next hash</td><td>OWASP Session Management</td></tr>
+                    <tr><td><strong>AI-Powered Translation</strong></td><td>Gemini API: 1 call → 30 fields (10 langs × 3 fields)</td><td>Batch ML inference optimization</td></tr>
+                    <tr><td><strong>OSRM Route + POI Detection</strong></td><td>Leaflet polyline + 50m radius auto-detect</td><td>Uber trip planning algorithms</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3 style="margin-top:1.5rem;">Key Constants</h3>
+        <div class="table-wrap reveal">
+            <table>
+                <thead>
+                    <tr><th>Constant</th><th>Value</th><th>Location</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>GPS Polling Interval</td><td>5 seconds</td><td>MapPage.xaml.cs</td></tr>
+                    <tr><td>TTS Cooldown</td><td>2 minutes</td><td>NarrationEngine.cs</td></tr>
+                    <tr><td>Search Debounce</td><td>300ms</td><td>MainPageModel.cs</td></tr>
+                    <tr><td>Sync HTTP Timeout</td><td>60 seconds</td><td>ApiService.cs</td></tr>
+                    <tr><td>POI Geofence Default Radius</td><td>30m (configurable per POI)</td><td>Poi.Radius</td></tr>
+                    <tr><td>Tour Route Detection Radius</td><td>50 meters</td><td>TourForm.razor</td></tr>
+                    <tr><td>Registration Fee</td><td>500,000 VNĐ</td><td>MerchantRegistration.razor</td></tr>
+                    <tr><td>Password Min Length</td><td>3 characters</td><td>MerchantRegistrationRequest.cs</td></tr>
+                    <tr><td>Supported Languages</td><td>11 (vi, en, es, fr, de, zh, ja, ko, ru, it, pt)</td><td>SettingsPage.xaml.cs</td></tr>
+                    <tr><td>API Base URL</td><td>https://vinhkhanhtour.onrender.com</td><td>ApiService.cs</td></tr>
+                    <tr><td>Gemini Translation Fields</td><td>30 (10 langs × 3: Name, Desc, TTS)</td><td>TranslationManagement.razor</td></tr>
+                    <tr><td>Analytics SemaphoreSlim</td><td>max = 1 (single thread)</td><td>ApiService.cs</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    </div>
+
+    <!-- CH11: USE CASE DIAGRAM -->
+    <div class="section-wrap"><section id="usecase">
+        <div class="section-header">
+            <div class="icon-wrap" style="background:#e8f5e9;color:var(--success);">📐</div>
+            <div>
+                <div class="section-num">Chapter 11</div>
+                <h2>Sơ đồ Use Case — Toàn Hệ Thống</h2>
+            </div>
+        </div>
+
+        <p style="margin-bottom:1rem;color:var(--text-secondary);">Sơ đồ Use Case thể hiện tất cả chức năng của hệ thống VinhKhanhTour, phân theo 3 Actor chính: Tourist, Owner và Admin.</p>
+
+        <div class="mermaid-container reveal">
+            <pre class="mermaid">
+flowchart LR
+    subgraph Actors
+        T(["🧳 Tourist"])
+        O(["🏪 Owner"])
+        A(["🛡️ Admin"])
+    end
+
+    subgraph Mobile["📱 Mobile App"]
+        UC1["Khám phá danh sách POI"]
+        UC2["Xem bản đồ + Geofence"]
+        UC3["Nghe thuyết minh TTS"]
+        UC4["Đổi ngôn ngữ / Theme"]
+        UC5["Đồng bộ Offline"]
+    end
+
+    subgraph WebPublic["🌐 Web Public"]
+        UC6["Quét QR → Nghe audio"]
+        UC7["Đăng ký tài khoản Owner"]
+    end
+
+    subgraph CMS["📋 CMS Dashboard"]
+        UC8["Đăng nhập / Đăng xuất"]
+        UC9["Đổi mật khẩu"]
+        UC10["Quản lý POI - CRUD"]
+        UC11["Quản lý Audio"]
+        UC12["Quản lý Tour + OSRM"]
+        UC13["Tạo QR Code"]
+        UC14["Xem Analytics"]
+    end
+
+    subgraph AdminOnly["🔐 Admin Only"]
+        UC15["Dịch AI Gemini"]
+        UC16["Quản lý Users"]
+        UC17["Reset mật khẩu"]
+        UC18["Xem doanh thu"]
+    end
+
+    T --> UC1 & UC2 & UC3 & UC4 & UC5
+    T --> UC6 & UC7
+
+    O --> UC8 & UC9 & UC10 & UC11 & UC12 & UC13 & UC14
+
+    A --> UC8 & UC9 & UC10 & UC11 & UC12 & UC13 & UC14
+    A --> UC15 & UC16 & UC17 & UC18
+
+    style Actors fill:#FFF3E0,stroke:#E65100
+    style Mobile fill:#E3F2FD,stroke:#1565C0
+    style WebPublic fill:#E8F5E9,stroke:#2E7D32
+    style CMS fill:#F3E5F5,stroke:#7B1FA2
+    style AdminOnly fill:#FFEBEE,stroke:#C62828
+            </pre>
+        </div>
+    </section>
+
+    </div>
+
+    <!-- CH12: SEQUENCE DIAGRAMS -->
+    <div class="section-wrap"><section id="sequence">
+        <div class="section-header">
+            <div class="icon-wrap" style="background:#e3f2fd;color:var(--info);">🔄</div>
+            <div>
+                <div class="section-num">Chapter 12</div>
+                <h2>Sơ đồ Sequence — 18 Use Cases</h2>
+            </div>
+        </div>
+
+        <p style="margin-bottom:1.5rem;color:var(--text-secondary);">Sơ đồ Sequence mô tả chi tiết luồng tương tác giữa các thành phần trong hệ thống cho 18 phân hệ nghiệp vụ chính.</p>
+
+        <!-- ======================= MOBILE APP ======================= -->
+        <div class="seq-group-header blue">📱 Phân hệ Mobile App (UC1 - UC5)</div>
+
+        <!-- UC1 -->
+        <h3 class="diagram-title">UC1. Khám phá danh sách POI</h3>
+        <div class="mermaid-container reveal">
+            <pre class="mermaid">
+sequenceDiagram
+    actor T as Tourist
+    participant MP as MainPage
+    participant API as ApiService (Background)
+    participant Repo as Local SQLite
+
+    T->>MP: Mở ứng dụng (App khởi động)
+    MP->>Repo: GetAllPoisAsync()
+    Repo-->>MP: Trả về List POI Offline
+    MP-->>T: Hiển thị ngay danh sách UI
+    Note over MP,API: Đồng bộ nền (Không block UI)
+    MP->>API: Trigger Add/Update Sync
+    T->>MP: Nhập từ khoá "Phở" (Debounce 300ms)
+    MP->>Repo: Query Pois LIKE "%Phở%"
+    Repo-->>MP: Filtered POIs
+    MP-->>T: Cập nhật danh sách
+            </pre>
+        </div>
+
+        <!-- UC2 & UC3 -->
+        <h3 class="diagram-title">UC2 & UC3. Bản đồ & Geofencing tự động (TTS)</h3>
+        <div class="mermaid-container reveal">
+            <pre class="mermaid">
+sequenceDiagram
+    actor T as Tourist
+    participant MP as MapPage
+    participant GPS as Geolocation API
+    participant NE as NarrationEngine
+    participant TTS as OS TextToSpeech
+
+    T->>MP: Chuyển sang Tab Map
+    MP->>GPS: RequestPermission
+    GPS-->>MP: Granted
+    MP->>MP: Start Polling 5s Timer
+    loop Mỗi 5 giây
+        MP->>GPS: GetLocationAsync()
+        GPS-->>MP: Location (lat, lng)
+        MP->>MP: Tính Haversine distance các POI
+        alt POI nằm trong bán kính (Geofence Trigger)
+            MP->>MP: Đổi màu Circle = Vàng
+            MP->>NE: PlayPoiNarrationAsync(poi)
+            NE->>NE: Cooldown check (2 phút)
+            NE->>TTS: SpeakAsync(TtsScript, locale)
+            TTS-->>T: Phát âm thanh thuyết minh
+            NE->>NE: Ghi UsageHistory
+        else Ngoài bán kính
+            MP->>MP: Circle = Xám
+        end
+    end
+            </pre>
+        </div>
+
+        <!-- UC4 -->
+        <h3 class="diagram-title">UC4. Đổi ngôn ngữ / Theme</h3>
+        <div class="mermaid-container reveal">
+            <pre class="mermaid">
+sequenceDiagram
+    actor T as Tourist
+    participant SP as SettingsPage
+    participant LRM as LocalizationResourceManager
+    participant Pref as Preferences (OS)
+
+    T->>SP: Chọn ngôn ngữ "English"
+    SP->>Pref: Lưu CultureName = "en"
+    SP->>LRM: SetCulture(new CultureInfo("en"))
+    LRM->>LRM: Trigger PropertyChangedEvent
+    LRM-->>SP: UI Rebind Text
+    SP->>SP: AppShell.Current.GoToAsync("//MainPage")
+    SP-->>T: App hiển thị tiếng Anh
+            </pre>
+        </div>
+
+        <!-- UC5 -->
+        <h3 class="diagram-title">UC5. Đồng bộ Offline-First</h3>
+        <div class="mermaid-container reveal">
+            <pre class="mermaid">
+sequenceDiagram
+    participant API as ApiService
+    participant Repo as Local SQLite
+    participant CMS as CMS Server
+    participant Lock as SemaphoreSlim
+
+    Note over API,CMS: Phân hệ đồng bộ ngược (Local -> Server)
+    API->>Lock: WaitAsync(0)
+    alt Lấy được Lock
+        API->>Repo: GetUsageHistoryAsync()
+        Repo-->>API: List UsageHistory chưa sync
+        API->>CMS: POST /api/analytics/sync-usage (Batch)
+        alt Server 200 OK
+            CMS-->>API: Success Response
+            API->>Repo: Delete các records đã sync
+        else Network Error
+            API->>API: Giữ nguyên DB, Retry lần sau
+        end
+        API->>Lock: Release()
+    else Đang Sync
+        API->>API: Skip (Tránh gửi lặp)
+    end
+            </pre>
+        </div>
+
+        <!-- ======================= WEB PUBLIC ======================= -->
+        <div class="seq-group-header green">🌐 Phân hệ Web Public (UC6 - UC7)</div>
+
+        <!-- UC6 -->
+        <h3 class="diagram-title">UC6. Quét QR Code & Nghe Audio</h3>
+        <div class="mermaid-container reveal">
+            <pre class="mermaid">
+sequenceDiagram
+    actor T as Tourist
+    participant LA as ListenApp (/listen/{id})
+    participant DB as CmsDbContext
+    participant JS as Browser Audio API
+    participant TTS as Browser SpeechSynthesis
+
+    T->>T: Dùng Zalo/Camera quét mã QR tại quán
+    T->>LA: Truy cập URL
+    LA->>DB: Query POI (IgnoreQueryFilters)
+    DB-->>LA: Poi Entity
+    LA-->>T: Hiển thị giao diện Web App Splash
+    T->>LA: Tap mở khóa WebAudio
+    alt Co AudioUrlMp3 != null
+        LA->>JS: audioElement.play()
+        JS-->>T: Phát File gốc (Giọng đọc chuẩn)
+    else Fallback TTS
+        LA->>TTS: Utterance = new SpeechSynthesisUtterance()
+        TTS-->>T: Trình duyệt tự đọc
+    end
+            </pre>
+        </div>
+
+        <!-- UC7 -->
+        <h3 class="diagram-title">UC7. Đăng ký tài khoản Owner</h3>
+        <div class="mermaid-container reveal">
+            <pre class="mermaid">
+sequenceDiagram
+    actor O as Owner Potential
+    participant RP as MerchantRegistration Page
+    participant DB as CmsDbContext
+    participant BC as BCrypt Library
+    participant TX as Transaction Scope
+
+    O->>RP: Điền form (Tên quán, SĐT, Mật khẩu)
+    RP->>DB: Kiểm tra SĐT (Username)
+    alt Chưa tồn tại
+        RP->>TX: BeginTransactionAsync()
+        RP->>DB: Generate Max AgencyId + 1
+        RP->>DB: INSERT Poi (Tên quán đăng ký)
+        RP->>BC: HashPassword()
+        BC-->>RP: Trả về chuỗi Hash
+        RP->>DB: INSERT AppUser (SĐT, Role=Owner)
+        RP->>DB: INSERT AppAuditLog (Doanh thu 500k)
+        RP->>TX: CommitAsync()
+        RP-->>O: Màn hình "Đăng ký thành công"
+    else Đã tồn tại
+        RP-->>O: Màn hình "SĐT đã được sử dụng"
+    end
+            </pre>
+        </div>
+
+        <!-- ======================= CMS DASHBOARD ======================= -->
+        <div class="seq-group-header purple">📋 Phân hệ CMS Dashboard (UC8 - UC14)</div>
+
+        <!-- UC8 -->
+        <h3 class="diagram-title">UC8. Đăng nhập / Đăng xuất</h3>
+        <div class="mermaid-container reveal">
+            <pre class="mermaid">
+sequenceDiagram
+    actor U as Owner/Admin
+    participant Login as LoginPage
+    participant AC as AccountController
+    participant DB as DB
+    participant Auth as Cookie AuthScheme
+
+    U->>Login: Nhập Credentials
+    Login->>AC: POST /login
+    AC->>DB: Tìm AppUser
+    DB-->>AC: User Entity
+    AC->>AC: BCrypt Verify Hash
+    alt Hợp lệ
+        AC->>Auth: SignInAsync(Claims: Role, AgencyId)
+        Auth-->>U: Lấy HttpOnly Cookie, Redirect Dashboard
+    else Không hợp lệ
+        AC-->>U: Báo lỗi sai pass
+    end
+    Note over U,Auth: Tiến trình Đăng xuất
+    U->>AC: GET /logout
+    AC->>Auth: SignOutAsync()
+    Auth-->>U: Xóa Cookie, Redirect /login
+            </pre>
+        </div>
+
+        <!-- UC9 -->
+        <h3 class="diagram-title">UC9. Đổi mật khẩu</h3>
+        <div class="mermaid-container reveal">
+            <pre class="mermaid">
+sequenceDiagram
+    actor U as Logged User
+    participant CP as ChangePassword Page
+    participant DB as DB
+    participant BC as BCrypt
+
+    U->>CP: Nhập Pass cũ, Pass mới
+    CP->>DB: Lấy AppUser hiện tại
+    DB-->>CP: User Entity
+    CP->>BC: Verify(Pass cũ, User.PasswordHash)
+    alt Pass cũ đúng
+        CP->>BC: Hash(Pass mới)
+        BC-->>CP: New Hash
+        CP->>DB: Update User.PasswordHash, ForcePasswordChange=false
+        DB->>DB: SaveChanges()
+        CP-->>U: Mật khẩu cập nhật TC
+    else Sai Pass cũ
+        CP-->>U: Báo lỗi Validation
+    end
+            </pre>
+        </div>
+
+        <!-- UC10 -->
+        <h3 class="diagram-title">UC10. Quản lý POI (CRUD)</h3>
+        <div class="mermaid-container reveal">
+            <pre class="mermaid">
+sequenceDiagram
+    actor U as Owner
+    participant HP as Home Page
+    participant PF as PoiForm
+    participant Map as Leaflet JS Map
+    participant DB as EF Core (Global Filter)
+
+    U->>HP: Xem danh sách
+    HP->>DB: Lấy POI. Where AgencyId = x
+    DB-->>HP: List POI thuôc Owner
+    U->>PF: Thêm mới POI
+    U->>Map: Mở Modal Map
+    U->>Map: Click trỏ vị trí
+    Map-->>PF: JSInterop Trả về (Lat, Lng)
+    U->>PF: Điền Text, Submit
+    PF->>DB: Insert POI
+    DB->>DB: SaveChangesAsync()
+    PF-->>U: Quay về Home
+            </pre>
+        </div>
+
+        <!-- UC11 -->
+        <h3 class="diagram-title">UC11. Quản lý Audio</h3>
+        <div class="mermaid-container reveal">
+            <pre class="mermaid">
+sequenceDiagram
+    actor U as Owner/Admin
+    participant AM as AudioManagement Page
+    participant DB as DB
+
+    U->>AM: Xem danh sách trạng thái Audio
+    AM->>DB: Fetch POIs + Select(Id, Name, AudioUrl)
+    DB-->>AM: Projection List
+    U->>AM: Chèn URL MP3 của Cloud
+    AM->>DB: Update POI.AudioUrl
+    DB->>DB: SaveChangesAsync()
+    AM-->>U: Hiển thị Badge "Đã có Audio"
+            </pre>
+        </div>
+
+        <!-- UC12 -->
+        <h3 class="diagram-title">UC12. Quản lý Tour & OSRM</h3>
+        <div class="mermaid-container reveal">
+            <pre class="mermaid">
+sequenceDiagram
+    actor U as Admin
+    participant TF as TourForm
+    participant OSRM as OSRM public API
+    participant DB as DB
+
+    U->>TF: Click các điểm Waypoints trên Map
+    TF->>OSRM: GET /route/v1/driving/coords
+    OSRM-->>TF: Polyline Route Shape JSON
+    TF->>TF: Leaflet Decode & Vẽ Line
+    TF->>DB: Lấy tất cả POI hệ thống
+    DB-->>TF: List POI
+    TF->>TF: Phân tích 50m khoảng cách tới Polyline
+    TF-->>U: Đề xuất tự động thêm POI A, B vào Tour Route
+    U->>TF: Submit Lưu Tour
+    TF->>DB: Transaction: Save Tour + TourStops (drag&drop order)
+    DB-->>TF: Success
+            </pre>
+        </div>
+
+        <!-- UC13 -->
+        <h3 class="diagram-title">UC13. Tạo QR Code</h3>
+        <div class="mermaid-container reveal">
+            <pre class="mermaid">
+sequenceDiagram
+    actor U as Owner
+    participant QR as QrCodePage
+    participant JS as QrCreatorJS Library
+    participant DOM as Browser DOM
+
+    U->>QR: Truy cập trang Tạo QR
+    QR->>QR: Lấy POIs của Agency
+    loop Từng POI
+        QR->>JS: Nạp URL "https://.../listen/{poi.Id}"
+        JS->>JS: Render logic Canvas
+        JS-->>DOM: Trả về Base64 Tag IMG
+    end
+    QR-->>U: Hiển thị danh sách Mã QR sẵn sàng In ấn
+            </pre>
+        </div>
+
+        <!-- UC14 -->
+        <h3 class="diagram-title">UC14. Xem Analytics (Usage History)</h3>
+        <div class="mermaid-container reveal">
+            <pre class="mermaid">
+sequenceDiagram
+    actor U as Owner/Admin
+    participant AD as AnalyticsDashboard
+    participant DB as DB
+    participant Map as Leaflet HeatMap
+
+    U->>AD: Truy cập Dashboard
+    AD->>DB: Khởi chạy 5 Queries (Count, Sum, Top, Timeline)
+    DB-->>AD: Trả về Stats Metrics
+    AD->>DB: Select UserLat, UserLng From UsageHistory!0
+    DB-->>AD: Dữ liệu tọa độ
+    AD->>Map: Khởi tạo TileLayer & HeatLayer (Array[lat, lng])
+    Map-->>U: Hiển thị Biểu đồ Nhiệt & Dashboard Grid
+            </pre>
+        </div>
+
+        <!-- ======================= ADMIN ONLY ======================= -->
+        <div class="seq-group-header red">🔐 Phân hệ Admin Only (UC15 - UC18)</div>
+
+        <!-- UC15 -->
+        <h3 class="diagram-title">UC15. Dịch AI tự động (Gemini)</h3>
+        <div class="mermaid-container reveal">
+            <pre class="mermaid">
+sequenceDiagram
+    actor A as Admin
+    participant TM as TranslationManagement
+    participant GCP as Google Gemini API
+    participant DB as DB
+
+    A->>TM: Click "Dịch tự động AI" cho POI #1
+    TM->>DB: Lấy trường Tiếng Việt (Name, Desc, TTS)
+    DB-->>TM: Tuple(Vi)
+    TM->>GCP: POST Prompt JSON Prompt 10 ngôn ngữ
+    GCP-->>TM: Trả về Cấu trúc dữ liệu JSON đầy đủ
+    TM->>TM: Parse JSON & Gắn vào Entity Poi (En, Fr, De...)
+    TM->>DB: DbContext.Update(Poi)
+    DB->>DB: SaveChangesAsync()
+    TM-->>A: Refresh Bảng Matrix (10 cột hiện màu xanh)
+            </pre>
+        </div>
+
+        <!-- UC16 -->
+        <h3 class="diagram-title">UC16. Quản lý Users</h3>
+        <div class="mermaid-container reveal">
+            <pre class="mermaid">
+sequenceDiagram
+    actor A as Admin
+    participant UP as Users Page
+    participant DB as AppUsers Table
+
+    A->>UP: Mở trang danh sách
+    UP->>DB: Select Users Ignore Filter
+    DB-->>UP: List(ID, Roles, AgencyId)
+    UP-->>A: Render Grid Table
+            </pre>
+        </div>
+
+        <!-- UC17 -->
+        <h3 class="diagram-title">UC17. Reset Mật khẩu Merchant</h3>
+        <div class="mermaid-container reveal">
+            <pre class="mermaid">
+sequenceDiagram
+    actor A as Admin
+    participant UP as Users Page
+    participant BC as BCrypt Library
+    participant DB as CmsDbContext
+
+    A->>UP: Click action "Reset" cho User #5
+    UP->>BC: Hash("123456") (Mật khẩu mặc định)
+    BC-->>UP: Output New Hash
+    UP->>DB: Update PasswordHash = NewHash
+    UP->>DB: Update ForcePasswordChange = true
+    DB->>DB: SaveChanges()
+    UP-->>A: Thông báo Success
+    Note over A,DB: Merchant #5 Login sẽ bị ép đổi Pass
+            </pre>
+        </div>
+
+        <!-- UC18 -->
+        <h3 class="diagram-title">UC18. Xem phân tích Doanh thu</h3>
+        <div class="mermaid-container reveal">
+            <pre class="mermaid">
+sequenceDiagram
+    actor A as Admin
+    participant AD as AnalyticsDashboard
+    participant DB as AppAuditLogs
+
+    A->>AD: Refresh Doanh thu
+    AD->>DB: Select Sum(Revenue_Col) WHERE Action="Register_Poi"
+    DB-->>AD: Trả về Total Value (VD: 5,500,000 VNĐ)
+    AD-->>A: Vẽ biểu đồ ChartJS Bar Chart dòng tiền
+            </pre>
+        </div>
+    </section>
+
+    </div>
+
+    <!-- CH13: ACTIVITY DIAGRAMS -->
+    <div class="section-wrap"><section id="activity">
+        <div class="section-header">
+            <div class="icon-wrap" style="background:#f3e5f5;color:#7b1fa2;">📊</div>
+            <div>
+                <div class="section-num">Chapter 13</div>
+                <h2>Sơ đồ Activity — Luồng hoạt động</h2>
+            </div>
+        </div>
+
+        <p style="margin-bottom:1.5rem;color:var(--text-secondary);">Sơ đồ Activity mô tả luồng hoạt động theo bước, bao gồm các điểm quyết định (decision) và luồng song song.</p>
+
+        <!-- ACT 1: Login -->
+        <h3 class="diagram-title">1. Activity: Đăng nhập</h3>
+        <div class="mermaid-container reveal">
+            <pre class="mermaid">
+flowchart TD
+    A([Bắt đầu]) --> B[Nhập Username + Password]
+    B --> C{Username trong DB?}
+    C -->|Có| D[BCrypt.Verify]
+    D --> E{Mật khẩu đúng?}
+    E -->|Đúng| F[Tạo Cookie Claims]
+    F --> G{ForcePasswordChange?}
+    G -->|True| H[Redirect /change-password]
+    G -->|False| I[Redirect / Dashboard]
+    E -->|Sai| J{Kiểm tra Config Admin?}
+    C -->|Không| J
+    J -->|Khớp| K[Tạo Cookie Admin]
+    K --> I
+    J -->|Không khớp| L[Hiển thị lỗi]
+    L --> B
+    H --> M([Kết thúc])
+    I --> M
+    style A fill:#059669,color:#fff
+    style M fill:#DC2626,color:#fff
+    style F fill:#2563EB,color:#fff
+    style L fill:#DC2626,color:#fff
+            </pre>
+        </div>
+
+        <!-- ACT 2: Register -->
+        <h3 class="diagram-title">2. Activity: Đăng ký Merchant</h3>
+        <div class="mermaid-container reveal">
+            <pre class="mermaid">
+flowchart TD
+    A([Bắt đầu]) --> B[Điền Form đăng ký]
+    B --> C{Validation OK?}
+    C -->|Không| D[Hiển thị lỗi]
+    D --> B
+    C -->|OK| E{SĐT đã có?}
+    E -->|Đã có| F["Báo lỗi: SĐT trùng"]
+    F --> B
+    E -->|Chưa| G[BEGIN TRANSACTION]
+    G --> H[Tính AgencyId = Max + 1]
+    H --> I[Tạo POI mới]
+    I --> J[BCrypt Hash Password]
+    J --> K["Tạo AppUser (SĐT, Hash)"]
+    K --> L["Ghi AuditLog (500K VNĐ)"]
+    L --> M[SaveChanges]
+    M --> N{Thành công?}
+    N -->|Có| O[COMMIT]
+    O --> P["Hiển thị tài khoản"]
+    N -->|Không| Q[ROLLBACK]
+    Q --> R["Lỗi hệ thống"]
+    P --> S([Kết thúc])
+    R --> S
+    style A fill:#059669,color:#fff
+    style S fill:#DC2626,color:#fff
+    style G fill:#7C3AED,color:#fff
+    style O fill:#059669,color:#fff
+    style Q fill:#DC2626,color:#fff
+            </pre>
+        </div>
+
+        <!-- ACT 3: POI CRUD -->
+        <h3 class="diagram-title">3. Activity: Quản lý POI</h3>
+        <div class="mermaid-container reveal">
+            <pre class="mermaid">
+flowchart TD
+    A([Bắt đầu]) --> B[Load danh sách POI theo Agency]
+    B --> C{Chọn hành động?}
+    C -->|Thêm| D[Mở form /poi/new]
+    D --> E[Nhập thông tin POI]
+    E --> F{Ghim vị trí?}
+    F -->|Có| G[Mở Leaflet Map Modal]
+    G --> H[Click chọn toạ độ]
+    H --> I[Xác nhận]
+    I --> J[Submit → SaveChanges]
+    F -->|Không| J
+    J --> B
+    C -->|Sửa| K["Mở /poi/edit/{id}"]
+    K --> E
+    C -->|Xoá| L[Dialog xác nhận xoá]
+    L --> M{Xác nhận?}
+    M -->|Có| N["Soft Delete (IsDeleted=true)"]
+    N --> B
+    M -->|Không| B
+    B --> O([Kết thúc])
+    style A fill:#059669,color:#fff
+    style O fill:#DC2626,color:#fff
+    style G fill:#2563EB,color:#fff
+    style N fill:#DC2626,color:#fff
+            </pre>
+        </div>
+
+        <!-- ACT 4: Geofence -->
+        <h3 class="diagram-title">4. Activity: Bản đồ & Geofencing</h3>
+        <div class="mermaid-container reveal">
+            <pre class="mermaid">
+flowchart TD
+    A([Mở MapPage]) --> B[Load POIs từ SQLite]
+    B --> C[Vẽ Pins + Circles]
+    C --> D{Quyền GPS?}
+    D -->|Từ chối| E[Map tĩnh]
+    D -->|Được cấp| F[Polling GPS mỗi 5s]
+    F --> G[Lấy vị trí]
+    G --> H[Tính khoảng cách]
+    H --> I{POI trong bán kính?}
+    I -->|Không| J[Label: POI gần nhất]
+    J --> K[Circle = Xám]
+    K --> F
+    I -->|Có| L{isPlaying ON?}
+    L -->|Không| M[Không phát]
+    M --> F
+    L -->|Có| N{Cooldown 2 phút?}
+    N -->|Đang CD| F
+    N -->|Hết CD| O[Circle = Vàng]
+    O --> P[TextToSpeech.SpeakAsync]
+    P --> Q[Ghi UsageHistory]
+    Q --> R[Đẩy Analytics ngầm]
+    R --> F
+    E --> S([Kết thúc])
+    style A fill:#059669,color:#fff
+    style S fill:#DC2626,color:#fff
+    style P fill:#7C3AED,color:#fff
+    style O fill:#F59E0B,color:#000
+            </pre>
+        </div>
+
+        <!-- ACT 5: QR Listen -->
+        <h3 class="diagram-title">5. Activity: Quét QR & Nghe Audio</h3>
+        <div class="mermaid-container reveal">
+            <pre class="mermaid">
+flowchart TD
+    A([Tourist quét QR]) --> B[Mở /listen/ID]
+    B --> C["Query POI (IgnoreQueryFilters)"]
+    C --> D{POI tồn tại?}
+    D -->|Không| E["Không tìm thấy"]
+    E --> F([Kết thúc])
+    D -->|Có| G[Hiển thị Splash]
+    G --> H[Tourist tap màn hình]
+    H --> I{Có file MP3?}
+    I -->|Có| J[Phát MP3]
+    I -->|Không| K[Phát TTS]
+    J --> L[Ghi UsageHistory]
+    K --> L
+    L --> M{Đổi ngôn ngữ?}
+    M -->|Có| N[Cập nhật text]
+    N --> O[Chuyển Audio/TTS]
+    O --> M
+    M -->|Không| P{Play/Pause?}
+    P -->|Play| Q[Tiếp tục phát]
+    P -->|Pause| R[Tạm dừng]
+    P -->|Thoát| F
+    style A fill:#059669,color:#fff
+    style F fill:#DC2626,color:#fff
+    style J fill:#F59E0B,color:#000
+    style K fill:#7C3AED,color:#fff
+            </pre>
+        </div>
+
+        <!-- ACT 6: Offline Sync -->
+        <h3 class="diagram-title">6. Activity: Đồng bộ Offline-First</h3>
+        <div class="mermaid-container reveal">
+            <pre class="mermaid">
+flowchart TD
+    A([Trigger Sync]) --> B[SyncDatabaseAsync]
+    B --> C[GET /api/poi]
+    C --> D{Online?}
+    D -->|Có| E[So sánh POI]
+    E --> F[Add/Update local]
+    F --> G[Xoá orphan]
+    D -->|Không| H[Silent fail]
+    G --> I[SyncAnalyticsAsync]
+    H --> I
+    I --> J{SemaphoreSlim?}
+    J -->|Busy| K[Bỏ qua]
+    J -->|Available| L[Lấy UsageHistory]
+    L --> M{Có dữ liệu?}
+    M -->|Không| N[Xong]
+    M -->|Có| O[POST batch lên CMS]
+    O --> P{Server OK?}
+    P -->|200| Q[Xoá records đã sync]
+    P -->|Lỗi| R[Giữ - retry sau]
+    K --> S([Kết thúc])
+    N --> S
+    Q --> S
+    R --> S
+    style A fill:#059669,color:#fff
+    style S fill:#DC2626,color:#fff
+    style E fill:#1E40AF,color:#fff
+    style O fill:#D97706,color:#fff
+            </pre>
+        </div>
+    </section>
+
+    </div><!-- /last-section -->
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="footer-logo">🍜 VinhKhanh Tour</div>
+        <p><strong>Product Requirements Document</strong></p>
+        <p>Generated: April 2026 &nbsp;·&nbsp; .NET 9 &nbsp;·&nbsp; Blazor Server &nbsp;·&nbsp; .NET MAUI &nbsp;·&nbsp; PostgreSQL &nbsp;·&nbsp; SQLite &nbsp;·&nbsp; Gemini AI</p>
+        <p style="margin-top:.8rem;">© 2026 VinhKhanh Tour Team. All rights reserved.</p>
+    </footer>
+
+</body>
+</html>
