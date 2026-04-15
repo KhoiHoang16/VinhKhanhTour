@@ -45,6 +45,7 @@ namespace VinhKhanhTour
             builder.Services.AddTransient<VinhKhanhTour.Pages.MapPage>();
             builder.Services.AddTransient<VinhKhanhTour.Pages.LoginPage>();
             builder.Services.AddTransient<VinhKhanhTour.Pages.RegisterPage>();
+            builder.Services.AddTransient<VinhKhanhTour.Pages.SettingsPage>();
 
             VinhKhanhTour.Shared.Models.Poi.LocalizationService = new VinhKhanhTour.Services.AppLocalizationService();
 		VinhKhanhTour.Shared.Data.Constants.DatabasePath = Path.Combine(FileSystem.AppDataDirectory, VinhKhanhTour.Shared.Data.Constants.DatabaseFilename);

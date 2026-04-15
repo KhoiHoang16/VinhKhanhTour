@@ -2,16 +2,21 @@
 @attribute [Authorize(Roles = "Admin")]
 @using VinhKhanhTour.Shared.Models
 @using VinhKhanhTour.CMS.Data
+@using VinhKhanhTour.CMS.Services
 @using Microsoft.EntityFrameworkCore
 @inject IDbContextFactory<CmsDbContext> DbFactory
+@inject IEmailService EmailService
 
-<PageTitle>Quản lý tài khoản Chủ Quán</PageTitle>
+<PageTitle>Quản lý Người dùng & Trạng thái</PageTitle>
 
 <div class="d-flex justify-content-between align-items-center mb-4 mt-2">
-    <h3>Tài khoản Chủ quán</h3>
-    <button class="btn btn-outline-primary" @onclick="LoadUsers">
-        🔄 Làm mới
-    </button>
+    <h3>Quản lý Người dùng</h3>
+    <div class="d-flex gap-2">
+        <input type="text" class="form-control" placeholder="Tìm kiếm Email, Tên..." @bind="searchQuery" @bind:event="oninput" @onkeyup="HandleSearch" />
+        <button class="btn btn-outline-primary whitespace-nowrap" @onclick="LoadUsers">
+            🔄 Làm mới
+        </button>
+    </div>
 </div>
 
 @if (users == null)
@@ -26,7 +31,7 @@
 else if (!users.Any())
 {
     <div class="alert alert-info">
-        Chưa có tài khoản chủ quán nào trong hệ thống.
+        Không tìm thấy người dùng nào trong hệ thống.
     </div>
 }
 else
@@ -35,12 +40,11 @@ else
         <table class="table table-hover align-middle custom-table">
             <thead>
                 <tr>
-                    <th>ID</th>
-                    <th>Họ & Tên</th>
-                    <th>Tên đăng nhập / SĐT</th>
-                    <th>Email</th>
-                    <th>Ngày đăng ký</th>
                     <th>Trạng thái</th>
+                    <th>Người dùng</th>
+                    <th>Phân loại</th>
+                    <th>Hoạt động cuối</th>
+                    <th>Thiết bị / IP</th>
                     <th>Thao tác</th>
                 </tr>
             </thead>
@@ -48,31 +52,75 @@ else
                 @foreach (var user in users)
                 {
                     <tr>
-                        <td><strong>#@user.Id</strong></td>
-                        <td>@user.FullName</td>
                         <td>
-                            <div>@user.Username</div>
-                            @if (!string.IsNullOrEmpty(user.PhoneNumber) && user.PhoneNumber != user.Username)
+                            @if (user.IsOnline)
                             {
-                                <small class="text-muted">@user.PhoneNumber</small>
-                            }
-                        </td>
-                        <td>@user.Email</td>
-                        <td>@user.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
-                        <td>
-                            @if (user.ForcePasswordChange)
-                            {
-                                <span class="badge bg-warning text-dark">Chưa đổi mật khẩu</span>
+                                <div class="d-flex align-items-center">
+                                    <span class="status-dot online"></span>
+                                    <span class="text-success fw-bold ms-2">Online</span>
+                                </div>
                             }
                             else
                             {
-                                <span class="badge bg-success">Đang hoạt động</span>
+                                <div class="d-flex align-items-center">
+                                    <span class="status-dot offline"></span>
+                                    <span class="text-muted ms-2">Offline</span>
+                                </div>
                             }
                         </td>
                         <td>
-                            <button class="btn btn-sm btn-outline-warning" @onclick="() => ResetPassword(user)" title="Reset mật khẩu về 123">
-                                🔑 Reset Pass
-                            </button>
+                            <div class="fw-bold">@(string.IsNullOrEmpty(user.FullName) ? "Chưa cập nhật" : user.FullName)</div>
+                            <small class="text-muted">@user.Email</small>
+                            @if (!string.IsNullOrEmpty(user.DisplayName) && user.UserType != "Tourist")
+                            {
+                                <div class="badge bg-secondary mt-1">@user.DisplayName</div>
+                            }
+                        </td>
+                        <td>
+                            @if (user.UserType == "Tourist")
+                            {
+                                <span class="badge bg-info text-dark">Khách du lịch</span>
+                            }
+                            else if (user.Role == "Admin")
+                            {
+                                <span class="badge bg-danger">Hệ thống Admin</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-primary">Chủ quán (Agency)</span>
+                            }
+                        </td>
+                        <td>
+                            @if (user.LastActiveAt.HasValue)
+                            {
+                                <div class="fw-bold text-light">@GetTimeSince(user.LastActiveAt.Value)</div>
+                                <small class="text-muted">@user.LastActiveAt.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</small>
+                            }
+                            else
+                            {
+                                <span class="text-muted fst-italic">Chưa rõ</span>
+                            }
+                        </td>
+                        <td>
+                            <div class="text-truncate" style="max-width: 150px;" title="@user.LastActiveDevice">
+                                @(string.IsNullOrEmpty(user.LastActiveDevice) ? "N/A" : user.LastActiveDevice)
+                            </div>
+                            <small class="text-muted">@(string.IsNullOrEmpty(user.LastActiveIp) ? "N/A" : user.LastActiveIp)</small>
+                        </td>
+                        <td>
+                            @if (user.IsLocked)
+                            {
+                                <button class="btn btn-sm btn-success w-100 mb-1 fw-bold" @onclick="() => ToggleLock(user)">
+                                    🔓 Mở khóa
+                                </button>
+                            }
+                            else
+                            {
+                                <button class="btn btn-sm btn-outline-danger w-100 mb-1" @onclick="() => ToggleLock(user)"
+                                        disabled="@(user.Role == "Admin")" title="@(user.Role == "Admin" ? "Không thể khóa Admin" : "Khóa tài khoản")">
+                                    🔒 Khóa
+                                </button>
+                            }
                         </td>
                     </tr>
                 }
@@ -82,6 +130,9 @@ else
 }
 
 <style>
+    .whitespace-nowrap {
+        white-space: nowrap;
+    }
     .custom-table {
         background-color: rgba(30, 41, 59, 0.55);
         border-radius: 1.25rem;
@@ -109,46 +160,160 @@ else
     .custom-table tbody tr:hover td {
         background-color: rgba(16, 185, 129, 0.06);
     }
-    .badge {
-        font-weight: 600;
-        padding: 6px 12px;
-        border-radius: 20px;
-        font-size: 0.8rem;
+    .status-dot {
+        height: 12px;
+        width: 12px;
+        border-radius: 50%;
+        display: inline-block;
+        box-shadow: 0 0 8px rgba(0,0,0,0.5);
+    }
+    .status-dot.online {
+        background-color: #10b981; /* Green */
+        box-shadow: 0 0 10px #10b981;
+    }
+    .status-dot.offline {
+        background-color: #64748b; /* Gray */
     }
 </style>
 
 @code {
-    private List<AppUser>? users;
+    private List<UserViewModel>? users;
+    private string searchQuery = "";
 
     protected override async Task OnInitializedAsync()
     {
         await LoadUsers();
     }
 
-    private async Task LoadUsers()
+    private async Task HandleSearch(Microsoft.AspNetCore.Components.Web.KeyboardEventArgs e)
     {
-        users = null;
-        StateHasChanged();
-
-        using var dbContext = await DbFactory.CreateDbContextAsync();
-        users = await dbContext.AppUsers
-            .Where(u => u.Role != "Admin")
-            .OrderByDescending(u => u.CreatedAt)
-            .ToListAsync();
-            
-        StateHasChanged();
+        if (e.Key == "Enter")
+        {
+            await LoadUsers();
+        }
     }
 
-    private async Task ResetPassword(AppUser user)
+    private async Task LoadUsers()
     {
-        // Simple client side reset for admin
-        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword("123");
-        user.ForcePasswordChange = true;
+        using var context = await DbFactory.CreateDbContextAsync();
+
+        // 1. Phân loại AppUsers
+        var appUsersQuery = context.AppUsers.AsNoTracking().AsQueryable();
+        if (!string.IsNullOrWhiteSpace(searchQuery))
+        {
+            var search = searchQuery.ToLower();
+            appUsersQuery = appUsersQuery.Where(u => u.Username.ToLower().Contains(search) 
+                                                  || (u.Email != null && u.Email.ToLower().Contains(search)) 
+                                                  || (u.FullName != null && u.FullName.ToLower().Contains(search)));
+        }
+
+        var appUsers = await appUsersQuery.Select(u => new UserViewModel
+        {
+            Id = u.Id,
+            Email = u.Email ?? "",
+            DisplayName = u.Username,
+            FullName = u.FullName,
+            Role = u.Role,
+            UserType = "AppUser",
+            IsLocked = u.IsLocked,
+            LastActiveAt = u.LastActiveAt,
+            LastActiveIp = u.LastActiveIp,
+            LastActiveDevice = u.LastActiveDevice,
+            CreatedAt = u.CreatedAt
+        }).ToListAsync();
+
+        // 2. Phân loại Tourist
+        var touristsQuery = context.Tourists.AsNoTracking().AsQueryable();
+        if (!string.IsNullOrWhiteSpace(searchQuery))
+        {
+            var search = searchQuery.ToLower();
+            touristsQuery = touristsQuery.Where(t => t.Email.ToLower().Contains(search) 
+                                                  || (t.FullName != null && t.FullName.ToLower().Contains(search)));
+        }
+
+        var tourists = await touristsQuery.Select(t => new UserViewModel
+        {
+            Id = t.Id,
+            Email = t.Email,
+            DisplayName = t.FullName ?? t.Email,
+            FullName = t.FullName,
+            Role = "Tourist",
+            UserType = "Tourist",
+            IsLocked = t.IsLocked,
+            LastActiveAt = t.LastActiveAt,
+            LastActiveIp = t.LastActiveIp,
+            LastActiveDevice = t.LastActiveDevice,
+            CreatedAt = t.CreatedAt
+        }).ToListAsync();
+
+        // Combine and Sort
+        users = appUsers.Concat(tourists)
+            .OrderByDescending(u => u.IsOnline) // Online lên đầu
+            .ThenByDescending(u => u.LastActiveAt) // Mới truy cập lên sau
+            .ToList();
+    }
+
+    private async Task ToggleLock(UserViewModel user)
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
         
-        using var dbContext = await DbFactory.CreateDbContextAsync();
-        dbContext.AppUsers.Update(user);
-        await dbContext.SaveChangesAsync();
+        if (user.UserType == "Tourist")
+        {
+            var tourist = await context.Tourists.FindAsync(user.Id);
+            if (tourist != null)
+            {
+                tourist.IsLocked = !tourist.IsLocked;
+                user.IsLocked = tourist.IsLocked;
+                await context.SaveChangesAsync();
+
+                if (user.IsLocked && !string.IsNullOrEmpty(user.Email))
+                {
+                    await EmailService.SendAccountLockedEmailAsync(user.Email, user.FullName ?? "Người dùng");
+                }
+            }
+        }
+        else
+        {
+            var appUser = await context.AppUsers.FindAsync(user.Id);
+            if (appUser != null && appUser.Role != "Admin")
+            {
+                appUser.IsLocked = !appUser.IsLocked;
+                user.IsLocked = appUser.IsLocked;
+                await context.SaveChangesAsync();
+
+                if (user.IsLocked && !string.IsNullOrEmpty(user.Email))
+                {
+                    await EmailService.SendAccountLockedEmailAsync(user.Email, user.FullName ?? user.DisplayName);
+                }
+            }
+        }
+    }
+
+    private string GetTimeSince(DateTime utcDateTime)
+    {
+        var timeSpan = DateTime.UtcNow - utcDateTime;
+        if (timeSpan.TotalMinutes < 1) return "Vừa truy cập";
+        if (timeSpan.TotalMinutes < 60) return $"{(int)timeSpan.TotalMinutes} phút trước";
+        if (timeSpan.TotalHours < 24) return $"{(int)timeSpan.TotalHours} giờ trước";
+        if (timeSpan.TotalDays < 30) return $"{(int)timeSpan.TotalDays} ngày trước";
         
-        await LoadUsers();
+        return "> 1 tháng trước";
+    }
+
+    public class UserViewModel
+    {
+        public int Id { get; set; }
+        public string Email { get; set; } = string.Empty;
+        public string DisplayName { get; set; } = string.Empty;
+        public string? FullName { get; set; }
+        public string Role { get; set; } = string.Empty;
+        public string UserType { get; set; } = string.Empty;
+        public bool IsLocked { get; set; }
+        public DateTime? LastActiveAt { get; set; }
+        public string? LastActiveIp { get; set; }
+        public string? LastActiveDevice { get; set; }
+        public DateTime CreatedAt { get; set; }
+
+        public bool IsOnline => LastActiveAt.HasValue && LastActiveAt.Value > DateTime.UtcNow.AddMinutes(-5);
     }
 }

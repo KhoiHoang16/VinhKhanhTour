@@ -27,6 +27,8 @@ if (!string.IsNullOrEmpty(port))
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 builder.Services.AddControllers();
+builder.Services.AddMemoryCache();
+builder.Services.AddScoped<IEmailService, MockEmailService>();
 
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddAuthentication(Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme)
@@ -98,8 +100,7 @@ if (!string.IsNullOrEmpty(connectionString) && (connectionString.StartsWith("pos
         Username = userInfo.Length > 0 ? userInfo[0] : "",
         Password = userInfo.Length > 1 ? userInfo[1] : "",
         Database = uri.LocalPath.TrimStart('/'),
-        SslMode = Npgsql.SslMode.Require,
-        TrustServerCertificate = true
+        SslMode = Npgsql.SslMode.Require
     };
     connectionString = builderDb.ToString();
 }
@@ -154,7 +155,7 @@ using (var scope = app.Services.CreateScope())
             var maxId = db.Pois.IgnoreQueryFilters().Max(p => (int?)p.Id) ?? 0;
             if (maxId > 0)
             {
-                db.Database.ExecuteSqlRaw($"SELECT setval(pg_get_serial_sequence('\"Pois\"', 'Id'), {maxId});");
+                db.Database.ExecuteSqlRaw("SELECT setval(pg_get_serial_sequence('\"Pois\"', 'Id'), {0});", maxId);
             }
         }
     }
@@ -187,6 +188,7 @@ app.UseForwardedHeaders(new ForwardedHeadersOptions
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseMiddleware<VinhKhanhTour.CMS.Middleware.UserActivityMiddleware>();
 app.UseAntiforgery();
 
 app.MapStaticAssets();

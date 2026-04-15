@@ -38,11 +38,28 @@ namespace VinhKhanhTour.Shared.Models
         public string? AvatarUrl { get; set; }
 
         /// <summary>
-        /// Trạng thái tài khoản (dùng cho khóa tài khoản tương lai)
+        /// Trạng thái khóa tài khoản
         /// </summary>
-        public bool IsActive { get; set; } = true;
+        public bool IsLocked { get; set; } = false;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime LastLoginAt { get; set; } = DateTime.UtcNow;
+
+        /// <summary>
+        /// Thời điểm hoạt động cuối cùng
+        /// </summary>
+        public DateTime? LastActiveAt { get; set; }
+
+        /// <summary>
+        /// Địa chỉ IP cuối cùng truy cập
+        /// </summary>
+        [MaxLength(50)]
+        public string? LastActiveIp { get; set; }
+
+        /// <summary>
+        /// Tên thiết bị/Trình duyệt cuối cùng truy cập
+        /// </summary>
+        [MaxLength(200)]
+        public string? LastActiveDevice { get; set; }
     }
 }

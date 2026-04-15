@@ -36,7 +36,7 @@ namespace VinhKhanhTour.CMS.Controllers
             if (!VerifyPassword(request.Password, tourist.PasswordHash))
                 return Unauthorized(new { error = "Sai tài khoản hoặc mật khẩu." });
 
-            if (!tourist.IsActive)
+            if (tourist.IsLocked)
                 return StatusCode(403, new { error = "Tài khoản của bạn đã bị khóa." });
 
             tourist.LastLoginAt = DateTime.UtcNow;
@@ -62,7 +62,7 @@ namespace VinhKhanhTour.CMS.Controllers
                 PasswordHash = HashPassword(request.Password),
                 CreatedAt = DateTime.UtcNow,
                 LastLoginAt = DateTime.UtcNow,
-                IsActive = true
+                IsLocked = false
             };
 
             _context.Tourists.Add(newTourist);
@@ -124,7 +124,7 @@ namespace VinhKhanhTour.CMS.Controllers
                 return Unauthorized();
 
             var tourist = await _context.Tourists.FindAsync(touristId);
-            if (tourist == null || !tourist.IsActive)
+            if (tourist == null || tourist.IsLocked)
                 return NotFound(new { error = "Tài khoản không tồn tại hoặc đã bị khóa." });
 
             var purchaseCount = await _context.DevicePurchases

@@ -3,9 +3,11 @@ namespace VinhKhanhTour.Pages;
 public partial class SettingsPage : ContentPage
 {
     private bool _isInitializing = true;
+    private readonly Services.ApiService _apiService;
 
-    public SettingsPage()
+    public SettingsPage(Services.ApiService apiService)
     {
+        _apiService = apiService;
         InitializeComponent();
         
         // Khởi tạo trạng thái ban đầu của Switch dựa trên Theme hiện tại
@@ -29,6 +31,47 @@ public partial class SettingsPage : ContentPage
         };
 
         _isInitializing = false;
+    }
+
+    protected override async void OnAppearing()
+    {
+        base.OnAppearing();
+        await LoadUserProfile();
+    }
+
+    private async Task LoadUserProfile()
+    {
+        try
+        {
+            var profile = await _apiService.GetTouristProfileAsync();
+            if (profile != null)
+            {
+                UserNameLabel.Text = profile.FullName ?? "Người dùng";
+                UserEmailLabel.Text = profile.Email;
+            }
+            else
+            {
+                UserNameLabel.Text = "Khách tham quan";
+                UserEmailLabel.Text = "Chưa đăng nhập";
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error loading profile: {ex.Message}");
+            UserNameLabel.Text = "Lỗi tải thông tin";
+        }
+    }
+
+    private async void OnLogoutClicked(object sender, EventArgs e)
+    {
+        bool confirm = await DisplayAlert("Xác nhận", "Bạn có chắc chắn muốn đăng xuất không?", "Đăng xuất", "Hủy");
+        if (confirm)
+        {
+            SecureStorage.Default.Remove("jwt_token");
+            
+            // Quay lại màn hình đăng nhập (Xóa stack điều hướng)
+            await Shell.Current.GoToAsync("//login");
+        }
     }
 
     private void OnLanguageChanged(object sender, EventArgs e)

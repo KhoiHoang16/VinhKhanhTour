@@ -114,5 +114,42 @@ namespace VinhKhanhTour.Services
                 _syncLock.Release();
             }
         }
+        public async Task<TouristProfile?> GetTouristProfileAsync()
+        {
+            try
+            {
+                var token = await SecureStorage.Default.GetAsync("jwt_token");
+                if (string.IsNullOrEmpty(token)) return null;
+
+                var request = new HttpRequestMessage(HttpMethod.Get, "/api/auth/me");
+                request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+                var response = await _httpClient.SendAsync(request);
+                if (response.IsSuccessStatusCode)
+                {
+                    var data = await response.Content.ReadFromJsonAsync<TouristProfileResponse>();
+                    return data?.Tourist;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[Profile Error] Failed to fetch profile: {ex.Message}");
+            }
+            return null;
+        }
+
+        public class TouristProfileResponse
+        {
+            public TouristProfile? Tourist { get; set; }
+            public int TotalPurchases { get; set; }
+        }
+
+        public class TouristProfile
+        {
+            public int Id { get; set; }
+            public string Email { get; set; } = string.Empty;
+            public string? FullName { get; set; }
+            public string? AvatarUrl { get; set; }
+        }
     }
 }
