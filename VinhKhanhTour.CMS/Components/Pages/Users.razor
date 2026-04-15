@@ -314,6 +314,6 @@ else
         public string? LastActiveDevice { get; set; }
         public DateTime CreatedAt { get; set; }
 
-        public bool IsOnline => LastActiveAt.HasValue && LastActiveAt.Value > DateTime.UtcNow.AddMinutes(-5);
+        public bool IsOnline => LastActiveAt.HasValue && LastActiveAt.Value > DateTime.UtcNow.AddSeconds(-15);
     }
 }

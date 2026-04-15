@@ -92,8 +92,8 @@ namespace VinhKhanhTour.CMS.Middleware
                             }
                         }
 
-                        // Set cache để 3 phút sau mới update tiếp
-                        _cache.Set(cacheKey, true, TimeSpan.FromMinutes(3));
+                        // Set cache để 5 giây sau mới update tiếp
+                        _cache.Set(cacheKey, true, TimeSpan.FromSeconds(5));
                     }
                 }
             }

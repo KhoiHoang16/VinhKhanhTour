@@ -40,6 +40,9 @@ namespace VinhKhanhTour.CMS.Controllers
                 return StatusCode(403, new { error = "Tài khoản của bạn đã bị khóa." });
 
             tourist.LastLoginAt = DateTime.UtcNow;
+            tourist.LastActiveAt = DateTime.UtcNow;
+            tourist.LastActiveIp = Request.HttpContext.Connection.RemoteIpAddress?.ToString();
+            tourist.LastActiveDevice = Request.Headers["User-Agent"].ToString();
             await _context.SaveChangesAsync();
 
             var token = GenerateJwtToken(tourist);
@@ -62,7 +65,10 @@ namespace VinhKhanhTour.CMS.Controllers
                 PasswordHash = HashPassword(request.Password),
                 CreatedAt = DateTime.UtcNow,
                 LastLoginAt = DateTime.UtcNow,
-                IsLocked = false
+                IsLocked = false,
+                LastActiveAt = DateTime.UtcNow,
+                LastActiveIp = Request.HttpContext.Connection.RemoteIpAddress?.ToString(),
+                LastActiveDevice = Request.Headers["User-Agent"].ToString()
             };
 
             _context.Tourists.Add(newTourist);

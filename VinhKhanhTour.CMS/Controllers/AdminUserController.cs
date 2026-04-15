@@ -149,7 +149,7 @@ namespace VinhKhanhTour.CMS.Controllers
         public string? LastActiveDevice { get; set; }
         public DateTime CreatedAt { get; set; }
 
-        // IsOnline nếu hoạt động trong vòng 5 phút đổ lại
-        public bool IsOnline => LastActiveAt.HasValue && LastActiveAt.Value > DateTime.UtcNow.AddMinutes(-5);
+        // IsOnline nếu hoạt động trong vòng 15 giây đổ lại (vì Throttling đang set 5 giây)
+        public bool IsOnline => LastActiveAt.HasValue && LastActiveAt.Value > DateTime.UtcNow.AddSeconds(-15);
     }
 }
