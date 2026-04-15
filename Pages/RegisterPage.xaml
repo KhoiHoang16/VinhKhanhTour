@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="VinhKhanhTour.Pages.RegisterPage"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{AppThemeBinding Light={StaticResource LightBackground}, Dark={StaticResource DarkBackground}}">
+
+    <Grid>
+        <!-- Background Image -->
+        <Image Source="vinh_khanh_food_street_banner.jpg" 
+               Aspect="AspectFill" 
+               Opacity="0.4"/>
+               
+        <!-- Gradient Overlay -->
+        <BoxView>
+            <BoxView.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Color="#40000000" Offset="0.0" />
+                    <GradientStop Color="#C0000000" Offset="1.0" />
+                </LinearGradientBrush>
+            </BoxView.Background>
+        </BoxView>
+
+        <ScrollView>
+            <VerticalStackLayout Spacing="30" 
+                                 Padding="30,60,30,40"
+                                 VerticalOptions="Center" 
+                                 HorizontalOptions="Center"
+                                 MaximumWidthRequest="500">
+                
+                <!-- Header -->
+                <VerticalStackLayout Spacing="10" HorizontalOptions="Center">
+                    <Label Text="📝" FontSize="50" HorizontalOptions="Center" />
+                    <Label Text="Đăng ký tài khoản" 
+                           FontSize="28" 
+                           FontAttributes="Bold" 
+                           TextColor="White" 
+                           HorizontalOptions="Center" />
+                    <Label Text="Gia nhập cộng đồng ẩm thực Vĩnh Khánh" 
+                           FontSize="14" 
+                           TextColor="#E0E0E0" 
+                           HorizontalOptions="Center" />
+                </VerticalStackLayout>
+
+                <!-- Glassmorphism Container -->
+                <Border StrokeShape="RoundRectangle 24" 
+                        StrokeThickness="1" 
+                        Stroke="#30FFFFFF"
+                        BackgroundColor="#20FFFFFF"
+                        Padding="24,30">
+                    <Border.Shadow>
+                        <Shadow Brush="Black" Opacity="0.3" Offset="0,10" Radius="20" />
+                    </Border.Shadow>
+
+                    <VerticalStackLayout Spacing="20">
+                        
+                        <!-- Full Name Field -->
+                        <VerticalStackLayout Spacing="8">
+                            <Label Text="Họ &amp; Tên" TextColor="#E0E0E0" FontSize="14" FontAttributes="Bold" />
+                            <Border StrokeShape="RoundRectangle 12" 
+                                    StrokeThickness="1"
+                                    Stroke="#50FFFFFF"
+                                    BackgroundColor="#10FFFFFF"
+                                    HeightRequest="50"
+                                    Padding="16,0">
+                                <Grid ColumnDefinitions="Auto, *">
+                                    <Label Grid.Column="0" Text="👤" VerticalOptions="Center" Margin="0,0,10,0"/>
+                                    <Entry Grid.Column="1" 
+                                           x:Name="FullNameEntry"
+                                           Placeholder="Nhập họ và tên" 
+                                           PlaceholderColor="#A0A0A0"
+                                           TextColor="White"
+                                           VerticalOptions="Center" />
+                                </Grid>
+                            </Border>
+                        </VerticalStackLayout>
+
+                        <!-- Email Field -->
+                        <VerticalStackLayout Spacing="8">
+                            <Label Text="Email" TextColor="#E0E0E0" FontSize="14" FontAttributes="Bold" />
+                            <Border StrokeShape="RoundRectangle 12" 
+                                    StrokeThickness="1"
+                                    Stroke="#50FFFFFF"
+                                    BackgroundColor="#10FFFFFF"
+                                    HeightRequest="50"
+                                    Padding="16,0">
+                                <Grid ColumnDefinitions="Auto, *">
+                                    <Label Grid.Column="0" Text="✉️" VerticalOptions="Center" Margin="0,0,10,0"/>
+                                    <Entry Grid.Column="1" 
+                                           x:Name="EmailEntry"
+                                           Placeholder="Nhập email của bạn" 
+                                           PlaceholderColor="#A0A0A0"
+                                           TextColor="White"
+                                           Keyboard="Email"
+                                           VerticalOptions="Center" />
+                                </Grid>
+                            </Border>
+                        </VerticalStackLayout>
+
+                        <!-- Password Field -->
+                        <VerticalStackLayout Spacing="8">
+                            <Label Text="Mật khẩu" TextColor="#E0E0E0" FontSize="14" FontAttributes="Bold" />
+                            <Border StrokeShape="RoundRectangle 12" 
+                                    StrokeThickness="1"
+                                    Stroke="#50FFFFFF"
+                                    BackgroundColor="#10FFFFFF"
+                                    HeightRequest="50"
+                                    Padding="16,0">
+                                <Grid ColumnDefinitions="Auto, *, Auto">
+                                    <Label Grid.Column="0" Text="🔒" VerticalOptions="Center" Margin="0,0,10,0"/>
+                                    <Entry Grid.Column="1" 
+                                           x:Name="PasswordEntry"
+                                           Placeholder="Nhập mật khẩu" 
+                                           PlaceholderColor="#A0A0A0"
+                                           TextColor="White"
+                                           IsPassword="True"
+                                           VerticalOptions="Center" />
+                                    <!-- Toggle Visibility -->
+                                    <Label Grid.Column="2" 
+                                           x:Name="EyeIcon"
+                                           Text="👁️" 
+                                           FontSize="18"
+                                           VerticalOptions="Center" 
+                                           HorizontalOptions="End">
+                                        <Label.GestureRecognizers>
+                                            <TapGestureRecognizer Tapped="OnTogglePasswordVisibility" />
+                                        </Label.GestureRecognizers>
+                                    </Label>
+                                </Grid>
+                            </Border>
+                        </VerticalStackLayout>
+
+                        <!-- Confirm Password Field -->
+                        <VerticalStackLayout Spacing="8">
+                            <Label Text="Xác nhận mật khẩu" TextColor="#E0E0E0" FontSize="14" FontAttributes="Bold" />
+                            <Border StrokeShape="RoundRectangle 12" 
+                                    StrokeThickness="1"
+                                    Stroke="#50FFFFFF"
+                                    BackgroundColor="#10FFFFFF"
+                                    HeightRequest="50"
+                                    Padding="16,0">
+                                <Grid ColumnDefinitions="Auto, *, Auto">
+                                    <Label Grid.Column="0" Text="✅" VerticalOptions="Center" Margin="0,0,10,0"/>
+                                    <Entry Grid.Column="1" 
+                                           x:Name="ConfirmPasswordEntry"
+                                           Placeholder="Nhập lại mật khẩu" 
+                                           PlaceholderColor="#A0A0A0"
+                                           TextColor="White"
+                                           IsPassword="True"
+                                           VerticalOptions="Center" />
+                                    <!-- Toggle Visibility -->
+                                    <Label Grid.Column="2" 
+                                           x:Name="ConfirmEyeIcon"
+                                           Text="👁️" 
+                                           FontSize="18"
+                                           VerticalOptions="Center" 
+                                           HorizontalOptions="End">
+                                        <Label.GestureRecognizers>
+                                            <TapGestureRecognizer Tapped="OnToggleConfirmPasswordVisibility" />
+                                        </Label.GestureRecognizers>
+                                    </Label>
+                                </Grid>
+                            </Border>
+                        </VerticalStackLayout>
+
+                        <!-- Activity Indicator (Loading) -->
+                        <ActivityIndicator x:Name="LoadingSpinner" 
+                                           IsRunning="False" 
+                                           IsVisible="False" 
+                                           Color="{StaticResource Primary}" 
+                                           HorizontalOptions="Center" />
+
+                        <!-- Register Button -->
+                        <Button x:Name="RegisterBtn"
+                                Text="Tạo tài khoản" 
+                                FontAttributes="Bold"
+                                FontSize="16"
+                                TextColor="White"
+                                BackgroundColor="{StaticResource Primary}"
+                                CornerRadius="25"
+                                HeightRequest="50"
+                                Margin="0,15,0,0"
+                                Clicked="OnRegisterClicked" />
+                                
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Footer Back to Login -->
+                <HorizontalStackLayout HorizontalOptions="Center" Spacing="5">
+                    <Label Text="Bạn đã có tài khoản?" TextColor="#E0E0E0" FontSize="14" />
+                    <Label Text="Đăng nhập" 
+                           TextColor="{StaticResource Primary}" 
+                           FontSize="14" 
+                           FontAttributes="Bold">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnBackToLoginTapped" />
+                        </Label.GestureRecognizers>
+                    </Label>
+                </HorizontalStackLayout>
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
+</ContentPage>

@@ -43,6 +43,8 @@ namespace VinhKhanhTour
             // Register MapPage & Engines
             builder.Services.AddSingleton<VinhKhanhTour.Services.NarrationEngine>();
             builder.Services.AddTransient<VinhKhanhTour.Pages.MapPage>();
+            builder.Services.AddTransient<VinhKhanhTour.Pages.LoginPage>();
+            builder.Services.AddTransient<VinhKhanhTour.Pages.RegisterPage>();
 
             VinhKhanhTour.Shared.Models.Poi.LocalizationService = new VinhKhanhTour.Services.AppLocalizationService();
 		VinhKhanhTour.Shared.Data.Constants.DatabasePath = Path.Combine(FileSystem.AppDataDirectory, VinhKhanhTour.Shared.Data.Constants.DatabaseFilename);

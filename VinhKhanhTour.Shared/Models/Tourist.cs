@@ -12,37 +12,30 @@ namespace VinhKhanhTour.Shared.Models
         public int Id { get; set; }
 
         /// <summary>
-        /// Firebase UID — mã định danh duy nhất từ Firebase Authentication
+        /// Mật khẩu đã được mã hóa (Hashed)
         /// </summary>
         [Required]
-        [MaxLength(128)]
-        public string SocialId { get; set; } = string.Empty;
+        [MaxLength(256)]
+        public string PasswordHash { get; set; } = string.Empty;
 
         /// <summary>
-        /// Email từ tài khoản Google/Apple
+        /// Email của người dùng di động
         /// </summary>
         [Required]
         [MaxLength(256)]
         public string Email { get; set; } = string.Empty;
 
         /// <summary>
-        /// Tên hiển thị từ tài khoản Social
+        /// Tên hiển thị
         /// </summary>
         [MaxLength(200)]
         public string? FullName { get; set; }
 
         /// <summary>
-        /// URL ảnh đại diện từ Google/Apple
+        /// URL ảnh đại diện
         /// </summary>
         [MaxLength(500)]
         public string? AvatarUrl { get; set; }
-
-        /// <summary>
-        /// Nhà cung cấp xác thực: "google" | "apple"
-        /// </summary>
-        [Required]
-        [MaxLength(20)]
-        public string AuthProvider { get; set; } = "google";
 
         /// <summary>
         /// Trạng thái tài khoản (dùng cho khóa tài khoản tương lai)

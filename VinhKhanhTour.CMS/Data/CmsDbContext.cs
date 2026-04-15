@@ -91,8 +91,7 @@ namespace VinhKhanhTour.CMS.Data
             // Tourist
             modelBuilder.Entity<Tourist>().HasKey(t => t.Id);
             modelBuilder.Entity<Tourist>().Property(t => t.Id).ValueGeneratedOnAdd();
-            modelBuilder.Entity<Tourist>().HasIndex(t => t.SocialId).IsUnique();
-            modelBuilder.Entity<Tourist>().HasIndex(t => t.Email);
+            modelBuilder.Entity<Tourist>().HasIndex(t => t.Email).IsUnique();
 
             // DevicePurchase
             modelBuilder.Entity<DevicePurchase>().HasKey(d => d.Id);

@@ -10,6 +10,8 @@ namespace VinhKhanhTour
         {
             InitializeComponent();
             Routing.RegisterRoute("map", typeof(Pages.MapPage));
+            Routing.RegisterRoute("login", typeof(Pages.LoginPage));
+            Routing.RegisterRoute("register", typeof(Pages.RegisterPage));
 
             var currentTheme = Application.Current!.RequestedTheme;
             // ThemeSegmentedControl removed to fix Android 16 OS crash

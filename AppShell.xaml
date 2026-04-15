@@ -8,7 +8,22 @@
     Shell.FlyoutBehavior="Disabled"
     Title="VinhKhanhTour">
 
-    <TabBar>
+    <!-- Auth Flow (Start screen) -->
+    <ShellContent 
+        ContentTemplate="{DataTemplate pages:LoginPage}" 
+        Route="login" 
+        Shell.FlyoutItemIsVisible="False"
+        Shell.TabBarIsVisible="False"
+        Shell.NavBarIsVisible="False" />
+
+    <ShellContent 
+        ContentTemplate="{DataTemplate pages:RegisterPage}" 
+        Route="register" 
+        Shell.FlyoutItemIsVisible="False"
+        Shell.TabBarIsVisible="False"
+        Shell.NavBarIsVisible="False" />
+
+    <TabBar Route="main_app">
         <Tab Title="{local:Translate 'Trang chủ'}" Icon="{StaticResource IconDashboard}">
             <ShellContent ContentTemplate="{DataTemplate pages:MainPage}" Route="main" />
         </Tab>

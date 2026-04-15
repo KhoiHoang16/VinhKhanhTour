@@ -1,4 +1,4 @@
-﻿namespace VinhKhanhTour
+namespace VinhKhanhTour
 {
     public partial class App : Application
     {
