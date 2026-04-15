@@ -12,6 +12,9 @@
     </PackageReference>
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
     <PackageReference Include="QRCoder" Version="1.7.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.3" />
+    <!-- Bỏ comment khi có Firebase Admin credentials -->
+    <!-- <PackageReference Include="FirebaseAdmin" Version="3.2.0" /> -->
   </ItemGroup>
 
   <PropertyGroup>

@@ -32,6 +32,7 @@ namespace VinhKhanhTour.CMS.Data
         public DbSet<AppUser> AppUsers { get; set; }
         public DbSet<AppNotification> AppNotifications { get; set; }
         public DbSet<DevicePurchase> DevicePurchases { get; set; }
+        public DbSet<Tourist> Tourists { get; set; }
 
         // EXTREMELY IMPORTANT: Properties must be evaluated dynamically per DbContext instance query, NOT baked into OnModelCreating
         private int? CurrentAgencyId => _currentUserService?.AgencyId ?? -1;
@@ -87,11 +88,25 @@ namespace VinhKhanhTour.CMS.Data
             modelBuilder.Entity<AppNotification>().Property(n => n.Id).ValueGeneratedOnAdd();
             modelBuilder.Entity<AppNotification>().HasIndex(n => n.RecipientAgencyId);
 
+            // Tourist
+            modelBuilder.Entity<Tourist>().HasKey(t => t.Id);
+            modelBuilder.Entity<Tourist>().Property(t => t.Id).ValueGeneratedOnAdd();
+            modelBuilder.Entity<Tourist>().HasIndex(t => t.SocialId).IsUnique();
+            modelBuilder.Entity<Tourist>().HasIndex(t => t.Email);
+
             // DevicePurchase
             modelBuilder.Entity<DevicePurchase>().HasKey(d => d.Id);
             modelBuilder.Entity<DevicePurchase>().Property(d => d.Id).ValueGeneratedOnAdd();
             modelBuilder.Entity<DevicePurchase>().HasIndex(d => new { d.DeviceId, d.PoiId });
             modelBuilder.Entity<DevicePurchase>().HasIndex(d => d.RecoveryContact);
+            modelBuilder.Entity<DevicePurchase>().HasIndex(d => d.TouristId);
+
+            // Relationship: Tourist → nhiều DevicePurchase
+            modelBuilder.Entity<DevicePurchase>()
+                .HasOne<Tourist>()
+                .WithMany()
+                .HasForeignKey(d => d.TouristId)
+                .OnDelete(DeleteBehavior.SetNull);
 
             // -------------------------------------------------------------
             // GLOBAL QUERY FILTERS & INDEXES FOR AGENCY ISOLATION

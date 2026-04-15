@@ -67,3 +67,7 @@ crash_log.txt
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Firebase Admin SDK credentials
+firebase-admin.json
+**/firebase-admin.json

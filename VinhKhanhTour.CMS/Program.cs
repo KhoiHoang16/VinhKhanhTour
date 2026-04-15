@@ -5,6 +5,9 @@ using VinhKhanhTour.Shared.Models;
 using VinhKhanhTour.Shared.Services;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using VinhKhanhTour.CMS.Data;
 
 // Workaround for SIGSEGV 139 on Render/Linux during file watching
@@ -33,8 +36,48 @@ builder.Services.AddAuthentication(Microsoft.AspNetCore.Authentication.Cookies.C
         options.LoginPath = "/login";
         options.AccessDeniedPath = "/Error";
         options.ExpireTimeSpan = TimeSpan.FromDays(7);
+    })
+    // JWT Bearer scheme cho Mobile Tourist Authentication
+    .AddJwtBearer("TouristJwt", options =>
+    {
+        var jwtSecretKey = builder.Configuration["Jwt:SecretKey"]
+            ?? Environment.GetEnvironmentVariable("JWT_SECRET_KEY")
+            ?? "VinhKhanhTour-Default-Dev-Key-Change-In-Production-Min32Chars!";
+
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"] ?? "VinhKhanhTour",
+            ValidAudience = builder.Configuration["Jwt:Audience"] ?? "VinhKhanhTourMobileApp",
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecretKey))
+        };
+
+        // Không redirect khi API trả 401 — thay vì redirect về /login
+        options.Events = new JwtBearerEvents
+        {
+            OnChallenge = context =>
+            {
+                // Prevent redirect, return 401 JSON instead
+                context.HandleResponse();
+                context.Response.StatusCode = 401;
+                context.Response.ContentType = "application/json";
+                return context.Response.WriteAsync("{\"error\": \"Unauthorized. Token không hợp lệ hoặc đã hết hạn.\"}");
+            }
+        };
     });
-builder.Services.AddAuthorization();
+
+// Authorization Policies
+builder.Services.AddAuthorization(options =>
+{
+    // Policy cho Tourist API — yêu cầu JWT với claim UserType = Tourist
+    options.AddPolicy("TouristOnly", policy =>
+        policy.AddAuthenticationSchemes("TouristJwt")
+              .RequireAuthenticatedUser()
+              .RequireClaim("UserType", "Tourist"));
+});
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
@@ -78,6 +121,10 @@ builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddHttpClient("MoMo");
 builder.Services.AddSingleton<MoMoPaymentService>();
 builder.Services.AddSingleton<VNPayPaymentService>();
+
+// Tourist Auth Services
+builder.Services.AddScoped<IFirebaseAuthService, MockFirebaseAuthService>(); // ⚠️ Swap sang FirebaseAuthService khi có credentials
+builder.Services.AddScoped<ITouristTokenService, TouristTokenService>();
 
 VinhKhanhTour.Shared.Models.Poi.LocalizationService = new VinhKhanhTour.CMS.Services.CmsLocalizationService();
 
