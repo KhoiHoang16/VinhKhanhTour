@@ -138,6 +138,34 @@ namespace VinhKhanhTour.Services
             return null;
         }
 
+        public async Task<bool> SendHeartbeatAsync()
+        {
+            try
+            {
+                var token = await SecureStorage.Default.GetAsync("jwt_token");
+                if (string.IsNullOrEmpty(token)) return true; // Trả về true nếu chưa login để không kick user
+
+                var request = new HttpRequestMessage(HttpMethod.Get, "/api/auth/heartbeat");
+                request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+                var response = await _httpClient.SendAsync(request);
+                
+                // Nếu bị lock hoặc mất quyền, server sẽ trả về 401 Unauthorized
+                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    return false;
+                }
+                
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[Heartbeat Error] Failed to send heartbeat: {ex.Message}");
+                // Nếu rớt mạng thông thường thì không kick user
+                return true;
+            }
+        }
+
         public class TouristProfileResponse
         {
             public TouristProfile? Tourist { get; set; }

@@ -176,6 +176,15 @@ namespace VinhKhanhTour.CMS.Controllers
 
             return Ok(new { purchases, total = purchases.Count });
         }
+
+        [HttpGet("heartbeat")]
+        [Microsoft.AspNetCore.Authorization.Authorize(Policy = "TouristOnly")]
+        public IActionResult Heartbeat()
+        {
+            // Middleware UserActivity sẽ tự động hứng request này, cập nhật Database và block nếu IsLocked = true.
+            // Nếu không bị khóa, nó chạy vào hàm này và trả về 200 OK cực kỳ nhẹ nhàng.
+            return Ok(new { status = "alive" });
+        }
     }
 
     public class LoginRequest
