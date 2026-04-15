@@ -193,6 +193,7 @@ app.UseAntiforgery();
 
 app.MapStaticAssets();
 app.MapControllers();
+app.MapGet("/api/heartbeat-ping", () => Results.Ok(new { status = "alive" }));
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 

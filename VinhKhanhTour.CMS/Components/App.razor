@@ -21,6 +21,13 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
     <script src="js/mapInterop.js"></script>
+    <script>
+        // Real-Time Activity Tracking cho Agency / Admin thông qua Web App
+        setInterval(() => {
+            fetch('/api/heartbeat-ping', { method: 'GET' })
+                .catch(err => console.debug('Heartbeat ping failed:', err));
+        }, 5000);
+    </script>
 </body>
 
 </html>

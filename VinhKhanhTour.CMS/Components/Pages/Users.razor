@@ -79,7 +79,7 @@ else
                         <td>
                             @if (user.UserType == "Tourist")
                             {
-                                <span class="badge bg-info text-dark">Khách du lịch</span>
+                                <span class="badge bg-info text-light">Khách du lịch</span>
                             }
                             else if (user.Role == "Admin")
                             {
@@ -173,6 +173,12 @@ else
     }
     .status-dot.offline {
         background-color: #64748b; /* Gray */
+    }
+    .custom-table .text-muted {
+        color: #94a3b8 !important; /* Xám sáng để dễ nhìn trên nền tối */
+    }
+    .custom-table .fw-bold {
+        color: #f1f5f9 !important; /* Trắng sáng cho các tiêu đề/tên */
     }
 </style>
 
