@@ -352,10 +352,10 @@
     {
         try
         {
-            // CMS đang chạy dạng Blazor Server, thay vì tự gọi HttpClient vòng lại Endpoint của chính mình 
-            // (gây lỗi Invalid URI vì thiếu BaseAddress), ta tiêm thẳng Tracker từ Memory Cache.
-            
-            var sessions = Tracker.GetActiveSessions(300); // 5 phút
+            // Bạn hỏi tại sao tắt tab đi nó vẫn online? Vì tôi đang set 300s (5 phút) ở đây.
+            // Giải pháp: Khi người dùng tắt tab, Ping ngầm 15s/lần bị ngừng lại.
+            // Chỉ cần set lại ngưỡng 30 giây: Ai không có tín hiệu ping trong 30s lập tức bị xóa!
+            var sessions = Tracker.GetActiveSessions(30); 
             
             // Map từ Services.UserSessionDto sang local Dto
             _activeUsers = sessions.Select(s => new UserSessionDto
