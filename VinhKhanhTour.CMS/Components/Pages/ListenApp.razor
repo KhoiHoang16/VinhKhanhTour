@@ -661,7 +661,7 @@
         };
 
         sendPing(); // Ping ngay lần đầu
-        _pingInterval = setInterval(sendPing, 15000); // Ping lại mỗi 15 giây
+        _pingInterval = setInterval(sendPing, 2000); // Ping lại mỗi 2 giây (vì timeout cực mỏng là 5s)
     }
 
     async function getDeviceFingerprint() {

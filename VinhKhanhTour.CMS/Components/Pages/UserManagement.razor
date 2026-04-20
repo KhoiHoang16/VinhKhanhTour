@@ -10,7 +10,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h2 class="text-white fw-bold mb-1">Theo dõi hoạt động</h2>
-            <p class="text-secondary mb-0">Giám sát người dùng và khách ẩn danh theo thời gian thực (Cập nhật mỗi 15s)</p>
+            <p class="text-secondary mb-0">Giám sát người dùng và khách ẩn danh theo thời gian thực (Cập nhật mỗi 3s)</p>
         </div>
         <div class="d-flex align-items-center">
             <div class="badge-glass me-3">
@@ -321,7 +321,7 @@
     private void StartPolling()
     {
         // Thiết lập bộ đếm cực nhẹ thay vì dùng System.Timers.Timer cũ dễ lỗi
-        _timer = new PeriodicTimer(TimeSpan.FromSeconds(15));
+        _timer = new PeriodicTimer(TimeSpan.FromSeconds(3));
         
         // Chạy bất đồng bộ ngầm mà không chặn luồng chính (Fire-and-forget)
         _ = PollDataAsync();
@@ -355,7 +355,7 @@
             // Bạn hỏi tại sao tắt tab đi nó vẫn online? Vì tôi đang set 300s (5 phút) ở đây.
             // Giải pháp: Khi người dùng tắt tab, Ping ngầm 15s/lần bị ngừng lại.
             // Chỉ cần set lại ngưỡng 30 giây: Ai không có tín hiệu ping trong 30s lập tức bị xóa!
-            var sessions = Tracker.GetActiveSessions(5) 
+            var sessions = Tracker.GetActiveSessions(5); 
             
             // Map từ Services.UserSessionDto sang local Dto
             _activeUsers = sessions.Select(s => new UserSessionDto
