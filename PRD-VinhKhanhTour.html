@@ -584,16 +584,16 @@
     <!-- HERO -->
     <div class="hero">
         <h1>Hệ Thống Du Lịch Ẩm Thực VinhKhanh Tour</h1>
-        <p class="subtitle">Multi-platform full-stack: Ứng dụng mobile .NET MAUI + CMS Blazor Server, thuyết minh TTS đa ngôn ngữ, bản đồ tương tác và đồng bộ offline-first — khám phá ẩm thực đường phố Việt Nam.</p>
+        <p class="subtitle">Multi-platform full-stack: Ứng dụng mobile (.NET MAUI) + CMS Blazor Server, thuyết minh âm thanh đa ngôn ngữ, và kiến trúc <strong>Real-time Tracking & Auth Secure</strong> — khám phá ẩm thực đường phố Việt Nam.</p>
         <div class="badges">
             <span class="badge">.NET 9 MAUI (Android/iOS)</span>
             <span class="badge">Blazor Server (CMS)</span>
+            <span class="badge">Minimal API Backend</span>
             <span class="badge">PostgreSQL + SQLite</span>
-            <span class="badge">Leaflet + OSRM Routing</span>
-            <span class="badge">Gemini AI Translation</span>
-            <span class="badge">TTS 11 Ngôn ngữ</span>
-            <span class="badge">BCrypt + Cookie Auth</span>
-            <span class="badge">Multi-Tenant Isolation</span>
+            <span class="badge">Leaflet + OSRM</span>
+            <span class="badge">JWT Token Auth</span>
+            <span class="badge">Live Kick-out Guard</span>
+            <span class="badge">Throttling Heartbeat</span>
         </div>
     </div>
 
@@ -647,28 +647,28 @@
             </div>
         </div>
 
-        <p style="margin-bottom:1rem;color:var(--text-secondary);">Hệ thống chia thành 3 sub-project: <strong>Mobile App</strong> (.NET MAUI), <strong>CMS Server</strong> (Blazor Server trên Render), và <strong>Shared Library</strong> (Models + Data). Multi-tenant bằng Global Query Filter trên <code>AgencyId</code>.</p>
+        <p style="margin-bottom:1rem;color:var(--text-secondary);">Hệ thống nguyên khối tinh gọn chia làm 4 layer độc lập: <strong>Mobile App</strong> (.NET MAUI), <strong>CMS Server</strong> (Blazor InteractiveServer), <strong>Shared Data</strong> (Dùng chung), và <strong>Minimal API</strong>.</p>
 
         <div class="arch-grid reveal">
             <div class="arch-module">
                 <div class="mod-icon">📱</div>
                 <div class="mod-name">VinhKhanhTour (MAUI)</div>
-                <div class="mod-desc">Mobile App: Bản đồ, GPS Geofence, TTS, Offline SQLite</div>
+                <div class="mod-desc">Mobile App: Xác thực JWT, SecureStorage, Heartbeat Tracking, Geofence, Giao diện Glassmorphism</div>
             </div>
             <div class="arch-module">
                 <div class="mod-icon">🌐</div>
                 <div class="mod-name">VinhKhanhTour.CMS</div>
-                <div class="mod-desc">Blazor Server: POI CRUD, Audio, Translations, Analytics, QR, Approval, Payment Demo</div>
+                <div class="mod-desc">Blazor Server: Cookie Auth, Dashboard Analytics, Quản lý Approval, Dịch vụ AI & Web Heartbeat Ping</div>
             </div>
             <div class="arch-module">
                 <div class="mod-icon">📦</div>
                 <div class="mod-name">VinhKhanhTour.Shared</div>
-                <div class="mod-desc">Models, IPoiRepository, PoiRepository (SQLite), Interfaces (IMustHaveAgency, ISoftDelete)</div>
+                <div class="mod-desc">Models: AppUser, Tourist, UsageHistory, Poi... Repository, DTOs & Interfaces đồng bộ</div>
             </div>
             <div class="arch-module">
                 <div class="mod-icon">🔌</div>
                 <div class="mod-name">VinhKhanhTour.Api</div>
-                <div class="mod-desc">Minimal API: Cung cấp endpoint đồng bộ độc lập cho Mobile App</div>
+                <div class="mod-desc">Minimal API: Cấp JWT Auth, POI CRUD API, UserActivityMiddleware (Bảo mật Kick-out)</div>
             </div>
             <div class="arch-module">
                 <div class="mod-icon">🐘</div>
@@ -709,15 +709,14 @@
                     <tr><th>Table</th><th>Module</th><th>Mục đích</th></tr>
                 </thead>
                 <tbody>
-                    <tr><td><code>Pois</code></td><td>Content</td><td>Dữ liệu POI: tên (VI + 10 lang), mô tả, toạ độ, bán kính, audio URL, TTS script. ApprovalStatus (Pending/Approved/Rejected), AdminNote. Soft Delete, Global Filter AgencyId.</td></tr>
-                    <tr><td><code>Tours</code></td><td>Tour</td><td>Tour lộ trình: tên, mô tả, start/end point, route geometry, AgencyId. Soft Delete.</td></tr>
-                    <tr><td><code>TourStops</code></td><td>Tour</td><td>Điểm dừng của Tour: PoiId, thứ tự (Order), khoảng cách tới route. Cascade Delete.</td></tr>
-                    <tr><td><code>UsageHistories</code></td><td>Analytics</td><td>Lịch sử nghe: PoiId, thời lượng, QR/GPS, GPS user (Lat/Lng), DeviceId, AgencyId.</td></tr>
-                    <tr><td><code>UserRoutes</code></td><td>Analytics</td><td>Lộ trình di chuyển user: tọa độ GPS, timestamp.</td></tr>
-                    <tr><td><code>AppUsers</code></td><td>Auth</td><td>Tài khoản: Username (SĐT), PasswordHash (BCrypt), Role (Admin/Owner), AgencyId, ForcePasswordChange.</td></tr>
-                    <tr><td><code>AppAuditLogs</code></td><td>Admin</td><td>Nhật ký: Action (register_poi), Details (500000 VNĐ), Timestamp.</td></tr>
-                    <tr><td><code>AppNotifications</code></td><td>Notification</td><td>Thông báo nội bộ: RecipientAgencyId, PoiId, Title, Message, IsRead, CreatedAt.</td></tr>
-                    <tr><td><code>DevicePurchases</code></td><td>Payment</td><td>Mua quyền nghe audio: DeviceId, PoiId, RecoveryContact, PurchasedAt. QR Audio Paywall.</td></tr>
+                    <tr><td><code>Pois</code></td><td>Content</td><td>Dữ liệu POI đa ngôn ngữ (10 lang), tuyến Audio, toạ độ, bán kính, TTS script. Soft Delete & Global Multi-Tenant Filter bằng AgencyId.</td></tr>
+                    <tr><td><code>Tours / TourStops</code></td><td>Routing</td><td>Định tuyến đường đi (Start/End), các điểm dừng (Order). Liên kết OSRM.</td></tr>
+                    <tr><td><code>Tourists</code></td><td>Auth (Mobile)</td><td>Du khách đăng nhập App bằng Email/Mật Khẩu. Chứa Heartbeat GPS, Trạng thái <code>IsLocked</code> chống truy cập trái phép. Trả về JWT Token.</td></tr>
+                    <tr><td><code>UsageHistories</code></td><td>Analytics</td><td>Lịch trình phát Audio/Map GPS, theo dõi thời lượng và Device ID.</td></tr>
+                    <tr><td><code>AppUsers</code></td><td>Auth (CMS)</td><td>Quản trị viên/Chủ quán. Đăng nhập CMS (Cookie Auth). Track Heartbeat ping & Throttling.</td></tr>
+                    <tr><td><code>AppAuditLogs</code></td><td>Admin</td><td>Ghi chép log xử lý hệ thống (VD: Admin thanh toán POI).</td></tr>
+                    <tr><td><code>AppNotifications</code></td><td>Push</td><td>Push Notifications nội bộ trong CMS (Duyệt/từ chối hệ thống Content POI).</td></tr>
+                    <tr><td><code>DevicePurchases</code></td><td>Monetize</td><td>Merchant Sandbox Payment qua MoMo/VNPay giả lập cho audio đặc quyền.</td></tr>
                 </tbody>
             </table>
         </div>
@@ -748,25 +747,22 @@
                 </ul>
             </div>
             <div class="card">
-                <h3>🏪 Owner (Chủ quán)</h3>
+                <h3>🏪 Owner (Agency / Chủ Quán)</h3>
                 <ul>
-                    <li>Tự đăng ký qua <code>/register</code> (công khai, 3-step wizard)</li>
-                    <li>Đăng nhập qua DB (BCrypt), chọn mật khẩu riêng</li>
-                    <li>Chỉ thấy dữ liệu thuộc <strong>AgencyId</strong> của mình</li>
-                    <li>Quản lý POI, Audio, xem Analytics riêng (không thấy Doanh thu, Tour)</li>
-                    <li>Nhận thông báo duyệt/từ chối POI qua 🔔 Bell icon</li>
-                    <li>Xem lý do từ chối + Gửi duyệt lại (Resubmit)</li>
-                    <li>Bắt buộc đổi mật khẩu nếu Admin reset (<code>ForcePasswordChange</code>)</li>
+                    <li>Sử dụng Blazor Server Web Dashboard (Cookie Auth).</li>
+                    <li>Sở hữu Dữ liệu cá thể hoá thông qua <strong>Global Query Filter</strong> theo <code>AgencyId</code>. Không xem được doanh thu hay POI của nơi khác.</li>
+                    <li>Hệ thống <strong>CMS JS Heartbeat</strong> âm thầm ghi nhận thời điểm Online mà không phá vỡ liên kết Server WebSocket.</li>
+                    <li>Trình Quản lý POI duyệt/từ chối 1 vòng với hộp chuông Notification xịn xò.</li>
                 </ul>
             </div>
             <div class="card">
-                <h3>🧳 Tourist (Du khách)</h3>
+                <h3>🧳 Tourist (Du khách Toàn Cầu)</h3>
                 <ul>
-                    <li><strong>Không cần tài khoản</strong> — trải nghiệm hoàn toàn ẩn danh</li>
-                    <li>Sử dụng Mobile App: bản đồ, GPS geofence, nghe TTS tự động</li>
-                    <li>Quét QR Code: mở trang web <code>/listen/{id}</code> nghe audio</li>
-                    <li>Chọn 1 trong 11 ngôn ngữ, phát MP3 hoặc TTS fallback</li>
-                    <li>Đăng ký thành Owner qua form <code>/register</code></li>
+                    <li>Sử dụng Mobile App (.NET MAUI) với thiết kế Dark <strong>Glassmorphism Premium</strong>.</li>
+                    <li><strong>Xác thực Bảo Mật (JWT):</strong> Hành khách bắt buộc Đăng ký/ Đăng nhập tài khoản qua Email để dùng App, lưu Token bằng MAUI SecureStorage.</li>
+                    <li>Tự động kích hoạt cơ chế <strong>Heartbeat Timer 5s</strong>: App tự "thở" nhịp tim lên Server bằng HTTP khi đang mở Foreground.</li>
+                    <li><strong>Live Kick-out:</strong> Bị văng thẳng ra màn hình Đăng Nhập kèm Xoá sạch JWT nếu bị Admin cắm cờ `IsLocked`.</li>
+                    <li>Toàn quyền xài GPS bản đồ, TTS đa tuyến dịch thuật tự động.</li>
                 </ul>
             </div>
         </div>
@@ -801,6 +797,36 @@
         </div>
     </section>
 
+    </div>
+
+    <!-- CH 01.5: Security & Heartbeat Tracking -->
+    <div class="section-wrap"><section id="security-heartbeat">
+        <div class="section-header">
+            <div class="icon-wrap" style="background:#fce4ec;color:var(--rose);">🛡️</div>
+            <div>
+                <div class="section-num">Chapter 01.5 (NEW)</div>
+                <h2>Hệ Thống Tracking Nhịp Tim & Live Kick-out (Bảo Mật)</h2>
+            </div>
+        </div>
+
+        <p style="color:var(--text2); margin-bottom: 2rem;">VinhKhanh Tour sở hữu kết cấu <strong>Middleware Security Đánh Chặn (Intercept) thời gian siêu thực</strong> — kết nối chặt chẽ giữa 3 đầu Frontend MAUI, Blazor Server, và API.</p>
+
+        <div class="card-grid reveal">
+            <div class="card">
+                <h3>❤️ 5-Second Heartbeat Pulse</h3>
+                <p>Khác với việc log trạng thái truyền thống chỉ khi submit form, ứng dụng Mobile liên tục truyền một sóng âm (GET request) cực nhẹ về <strong>/api/auth/heartbeat</strong>. Bộ lọc MemoryCache Throttle Server tự động ghìm luồng để không làm tắc nghẽn PostgreSQL mà vẫn ghi xuất cực chuẩn xác thuộc tính <code>LastActiveAt</code> của từng người.</p>
+            </div>
+             <div class="card">
+                <h3>⛓️ Web CMS Ping Hook</h3>
+                <p>Với Admin và Chủ quán sử dụng Blazor Server (công nghệ WebSockets không truyền HTTP định kì), hệ thống được "cấy ghép" bằng một Javascript Worker đơn giản ở layout gốc trỏ về <strong>/api/heartbeat-ping</strong>, ép buộc luồng đứt gãy phải hiện hình cho UserActivityMiddleware đếm nhịp!</p>
+            </div>
+            <div class="card">
+                <h3>⚔️ Live Kick-out Guard (Trục xuất Tức thì)</h3>
+                <p>Admin chỉ cần bấm "Khóa tài khoản" trong CMS. Ở ngay mili-giây tiếp theo (Max ping 5s), Heartbeat của người bị phạt đập vào Firewall. Server nhả HTTP_401 (Unauthorized). Logic Application Lifecycle của Điện Thoại bắt lấy lỗi này, huỷ lập tức Storage JWT, giết bộ đếm và <strong>thổi bay User về giao diện Đăng nhập kính mờ</strong>!</p>
+            </div>
+        </div>
+        
+    </section>
     </div>
 
     <!-- CH02: MOBILE -->
@@ -1306,38 +1332,42 @@ flowchart LR
         UC2["Xem bản đồ + Geofence"]
         UC3["Nghe thuyết minh TTS"]
         UC4["Đổi ngôn ngữ / Theme"]
-        UC5["Đồng bộ Offline"]
+        UC5["Đăng ký / Đăng nhập JWT"]
+        UC21["Nhịp tim (Heartbeat)"]
     end
 
     subgraph WebPublic["🌐 Web Public"]
         UC6["Quét QR → Nghe audio"]
-        UC7["Đăng ký tài khoản Owner"]
+        UC7["Đăng ký Merchant"]
     end
 
     subgraph CMS["📋 CMS Dashboard"]
         UC8["Đăng nhập / Đăng xuất"]
         UC9["Đổi mật khẩu"]
-        UC10["Quản lý POI - CRUD"]
+        UC10["Quản lý POI (CRUD)"]
+        UC10b["Theo dõi thái duyệt"]
         UC11["Quản lý Audio"]
-        UC12["Quản lý Tour + OSRM"]
+        UC12["Quản lý Tour"]
         UC13["Tạo QR Code"]
-        UC14["Xem Analytics"]
+        UC14["Analytics & Heatmap"]
+        UC22["Web Heartbeat Ping"]
     end
 
     subgraph AdminOnly["🔐 Admin Only"]
         UC15["Dịch AI Gemini"]
-        UC16["Quản lý Users"]
-        UC17["Reset mật khẩu"]
+        UC16["Quản lý Users & Reset Pass"]
+        UC19["Phê duyệt / Từ chối POI"]
+        UC20["Khóa tài khoản (Kick-out)"]
         UC18["Xem doanh thu"]
     end
 
-    T --> UC1 & UC2 & UC3 & UC4 & UC5
+    T --> UC1 & UC2 & UC3 & UC4 & UC5 & UC21
     T --> UC6 & UC7
 
-    O --> UC8 & UC9 & UC10 & UC11 & UC12 & UC13 & UC14
+    O --> UC8 & UC9 & UC10 & UC10b & UC11 & UC12 & UC13 & UC14 & UC22
 
-    A --> UC8 & UC9 & UC10 & UC11 & UC12 & UC13 & UC14
-    A --> UC15 & UC16 & UC17 & UC18
+    A --> UC8 & UC9 & UC10 & UC11 & UC12 & UC13 & UC14 & UC22
+    A --> UC15 & UC16 & UC18 & UC19 & UC20
 
     style Actors fill:#FFF3E0,stroke:#E65100
     style Mobile fill:#E3F2FD,stroke:#1565C0
@@ -1356,14 +1386,14 @@ flowchart LR
             <div class="icon-wrap" style="background:#e3f2fd;color:var(--info);">🔄</div>
             <div>
                 <div class="section-num">Chapter 12</div>
-                <h2>Sơ đồ Sequence — 18 Use Cases</h2>
+                <h2>Sơ đồ Sequence — 22+ Use Cases</h2>
             </div>
         </div>
 
-        <p style="margin-bottom:1.5rem;color:var(--text-secondary);">Sơ đồ Sequence mô tả chi tiết luồng tương tác giữa các thành phần trong hệ thống cho 18 phân hệ nghiệp vụ chính.</p>
+        <p style="margin-bottom:1.5rem;color:var(--text-secondary);">Sơ đồ Sequence mô tả chi tiết luồng tương tác giữa các thành phần trong hệ thống cho toàn bộ các phân hệ nghiệp vụ chính.</p>
 
         <!-- ======================= MOBILE APP ======================= -->
-        <div class="seq-group-header blue">📱 Phân hệ Mobile App (UC1 - UC5)</div>
+        <div class="seq-group-header blue">📱 Phân hệ Mobile App (UC1 - UC5, UC21, UC25)</div>
 
         <!-- UC1 -->
         <h3 class="diagram-title">UC1. Khám phá danh sách POI</h3>
@@ -1470,6 +1500,50 @@ sequenceDiagram
             </pre>
         </div>
 
+        <!-- UC21 (Moved) -->
+        <h3 class="diagram-title">UC21. Tourist Mobile Authentication (JWT)</h3>
+        <div class="mermaid-container reveal">
+            <pre class="mermaid">
+sequenceDiagram
+    actor U as Tourist
+    participant P as Register/Login Page
+    participant API as MobileAuthController
+    participant ST as SecureStorage
+    
+    U->>P: Nhập Thông tin (Email/Pass)
+    P->>API: POST /api/auth/register (hoặc login)
+    API->>API: Validate & Hash / Verify Pass
+    API->>API: Generate JWT (Identity + Claims)
+    API-->>P: Status 200 + { Token, UserInfo }
+    P->>ST: Save Token (Key: "auth_token")
+    P-->>U: Chuyển hướng vào trang Dashboard
+            </pre>
+        </div>
+
+        <!-- UC25 (Moved) -->
+        <h3 class="diagram-title">UC25. Tourist Registration (Sign-up)</h3>
+        <div class="mermaid-container reveal">
+            <pre class="mermaid">
+sequenceDiagram
+    actor T as Tourist
+    participant App as Mobile App
+    participant FB as Firebase Auth
+    participant API as MobileAuthController
+    participant DB as Database
+    
+    T->>App: Nhập Email/SĐT + Pass
+    App->>FB: CreateUserWithEmailAndPassword
+    FB-->>App: Firebase UID + ID Token
+    App->>API: POST /api/auth/register (Firebase UID, Name, Email)
+    API->>DB: INSERT INTO Tourists (UID, Name, Email)
+    DB-->>API: New Record ID
+    API->>API: Generate JWT (VinhKhanh Identity)
+    API-->>App: Status 201 + JWT Token
+    App->>App: Lưu JWT vào SecureStorage
+    App-->>T: Đăng ký thành công -> Vào Home
+            </pre>
+        </div>
+
         <!-- ======================= WEB PUBLIC ======================= -->
         <div class="seq-group-header green">🌐 Phân hệ Web Public (UC6 - UC7)</div>
 
@@ -1548,7 +1622,7 @@ sequenceDiagram
         </div>
 
         <!-- ======================= CMS DASHBOARD ======================= -->
-        <div class="seq-group-header purple">📋 Phân hệ CMS Dashboard (UC8 - UC14)</div>
+        <div class="seq-group-header purple">📋 Phân hệ CMS Dashboard (UC8 - UC14, UC10b)</div>
 
         <!-- UC8 -->
         <h3 class="diagram-title">UC8. Đăng nhập / Đăng xuất</h3>
@@ -1631,6 +1705,31 @@ sequenceDiagram
     U->>HP: Xem lý do từ chối (Admin Note)
     U->>PF: Sửa POI theo góp ý
     U->>HP: Click "Gửi duyệt lại" → Status = Pending
+            </pre>
+        </div>
+
+        <!-- UC10b (Moved) -->
+        <h3 class="diagram-title">UC10b. Merchant Dashboard - Theo dõi trạng thái Duyệt</h3>
+        <div class="mermaid-container reveal">
+            <pre class="mermaid">
+sequenceDiagram
+    actor O as Owner
+    participant HP as Home Page (CMS)
+    participant API as PoiController
+    participant DB as Database
+    
+    O->>HP: Mở Dashboard
+    HP->>API: GET /api/poi/my-pois
+    API->>DB: Select POIs Where AgencyId = x
+    DB-->>API: List (Name, Status, AdminNote)
+    API-->>HP: DTO List
+    alt Trạng thái Rejected
+        HP-->>O: Hiển thị Badge "Bị từ chối" + Tooltip (Lý do)
+    else Trạng thái Pending
+        HP-->>O: Hiển thị Badge "Chờ duyệt"
+    else Trạng thái Approved
+        HP-->>O: Hiển thị Badge "Đã duyệt" (Public)
+    end
             </pre>
         </div>
 
@@ -1719,7 +1818,7 @@ sequenceDiagram
         </div>
 
         <!-- ======================= ADMIN ONLY ======================= -->
-        <div class="seq-group-header red">🔐 Phân hệ Admin Only (UC15 - UC20)</div>
+        <div class="seq-group-header red">🔐 Phân hệ Admin Only (UC15 - UC20, UC23)</div>
 
         <!-- UC15 remains the same below -->
 
@@ -1869,6 +1968,64 @@ sequenceDiagram
     Note over T,DB: Recovery: nhập Email/SĐT → tìm purchase cũ
             </pre>
         </div>
+
+        <!-- UC23 (Moved) -->
+        <h3 class="diagram-title">UC23. Admin Control - Khóa/Mở khóa tài khoản</h3>
+        <div class="mermaid-container reveal">
+            <pre class="mermaid">
+sequenceDiagram
+    actor A as Admin
+    participant UP as Users Page (CMS)
+    participant API as AdminUserController
+    participant DB as Database
+    
+    A->>UP: Click "Khóa/Mở" User #123
+    UP->>API: POST /api/admin/users/toggle-lock/123
+    API->>DB: UPDATE AppUsers SET IsLocked = !IsLocked
+    DB-->>API: Success (New Status)
+    API-->>UP: Status 200 (Updated)
+    UP-->>A: UI cập nhật Switch/Icon trạng thái
+    Note over A,DB: Hệ thống Middleware sẽ phát hiện IsLocked trong vòng 5s
+            </pre>
+        </div>
+
+        <!-- ======================= SYSTEMS ======================= -->
+        <div class="seq-group-header gray">💎 Hệ thống Tracking & Security (Cross-platform)</div>
+
+        <!-- UC22 (Moved) -->
+        <h3 class="diagram-title">UC22. Real-time Monitoring & Security (Heartbeat & Kick-out)</h3>
+        <div class="mermaid-container reveal">
+            <pre class="mermaid">
+sequenceDiagram
+    actor A as Admin
+    actor T as Tourist / Owner
+    participant App as Mobile App / CMS
+    participant MW as UserActivityMiddleware
+    participant DB as Database
+    
+    Note over App, MW: Luồng Tracking Nhịp Tim (Mỗi 5 giây)
+    loop 5s định kỳ
+        App->>MW: GET /api/auth/heartbeat (gửi kèm Token)
+        MW->>MW: Extract UserId from JWT/Cookie
+        MW->>DB: Check User.IsLocked
+        alt Tài khoản Hợp lệ
+            DB-->>MW: IsLocked = False
+            MW->>DB: Update LastActiveAt, IP, Device
+            MW-->>App: HTTP 200 (OK)
+        else Tài khoản BỊ KHÓA
+            DB-->>MW: IsLocked = True
+            MW-->>App: HTTP 401 (Unauthorized)
+            App->>App: Wipe SecureStorage / Cookies
+            App-->>T: Tự động Redirect về trang Login
+        end
+    end
+
+    Note over A, DB: Luồng Kích hoạt Kick-out
+    A->>App: (CMS) Bấm nút "Khóa tài khoản"
+    App->>DB: UPDATE Users SET IsLocked = True
+    DB-->>A: Thành công (Dưới 5s, User sẽ bị văng)
+            </pre>
+        </div>
     </section>
 
     </div>
@@ -1885,101 +2042,11 @@ sequenceDiagram
 
         <p style="margin-bottom:1.5rem;color:var(--text-secondary);">Sơ đồ Activity mô tả luồng hoạt động theo bước, bao gồm các điểm quyết định (decision) và luồng song song.</p>
 
-        <!-- ACT 1: Login -->
-        <h3 class="diagram-title">1. Activity: Đăng nhập</h3>
-        <div class="mermaid-container reveal">
-            <pre class="mermaid">
-flowchart TD
-    A([Bắt đầu]) --> B[Nhập Username + Password]
-    B --> C{Username trong DB?}
-    C -->|Có| D[BCrypt.Verify]
-    D --> E{Mật khẩu đúng?}
-    E -->|Đúng| F[Tạo Cookie Claims]
-    F --> G{ForcePasswordChange?}
-    G -->|True| H[Redirect /change-password]
-    G -->|False| I[Redirect / Dashboard]
-    E -->|Sai| J{Kiểm tra Config Admin?}
-    C -->|Không| J
-    J -->|Khớp| K[Tạo Cookie Admin]
-    K --> I
-    J -->|Không khớp| L[Hiển thị lỗi]
-    L --> B
-    H --> M([Kết thúc])
-    I --> M
-    style A fill:#059669,color:#fff
-    style M fill:#DC2626,color:#fff
-    style F fill:#2563EB,color:#fff
-    style L fill:#DC2626,color:#fff
-            </pre>
-        </div>
-
-        <!-- ACT 2: Register -->
-        <h3 class="diagram-title">2. Activity: Đăng ký Merchant</h3>
-        <div class="mermaid-container reveal">
-            <pre class="mermaid">
-flowchart TD
-    A([Bắt đầu]) --> B[Điền Form đăng ký]
-    B --> C{Validation OK?}
-    C -->|Không| D[Hiển thị lỗi]
-    D --> B
-    C -->|OK| E{SĐT đã có?}
-    E -->|Đã có| F["Báo lỗi: SĐT trùng"]
-    F --> B
-    E -->|Chưa| G[BEGIN TRANSACTION]
-    G --> H[Tính AgencyId = Max + 1]
-    H --> I[Tạo POI mới]
-    I --> J[BCrypt Hash Password]
-    J --> K["Tạo AppUser (SĐT, Hash)"]
-    K --> L["Ghi AuditLog (500K VNĐ)"]
-    L --> M[SaveChanges]
-    M --> N{Thành công?}
-    N -->|Có| O[COMMIT]
-    O --> P["Hiển thị tài khoản"]
-    N -->|Không| Q[ROLLBACK]
-    Q --> R["Lỗi hệ thống"]
-    P --> S([Kết thúc])
-    R --> S
-    style A fill:#059669,color:#fff
-    style S fill:#DC2626,color:#fff
-    style G fill:#7C3AED,color:#fff
-    style O fill:#059669,color:#fff
-    style Q fill:#DC2626,color:#fff
-            </pre>
-        </div>
-
-        <!-- ACT 3: POI CRUD -->
-        <h3 class="diagram-title">3. Activity: Quản lý POI</h3>
-        <div class="mermaid-container reveal">
-            <pre class="mermaid">
-flowchart TD
-    A([Bắt đầu]) --> B[Load danh sách POI theo Agency]
-    B --> C{Chọn hành động?}
-    C -->|Thêm| D[Mở form /poi/new]
-    D --> E[Nhập thông tin POI]
-    E --> F{Ghim vị trí?}
-    F -->|Có| G[Mở Leaflet Map Modal]
-    G --> H[Click chọn toạ độ]
-    H --> I[Xác nhận]
-    I --> J[Submit → SaveChanges]
-    F -->|Không| J
-    J --> B
-    C -->|Sửa| K["Mở /poi/edit/{id}"]
-    K --> E
-    C -->|Xoá| L[Dialog xác nhận xoá]
-    L --> M{Xác nhận?}
-    M -->|Có| N["Soft Delete (IsDeleted=true)"]
-    N --> B
-    M -->|Không| B
-    B --> O([Kết thúc])
-    style A fill:#059669,color:#fff
-    style O fill:#DC2626,color:#fff
-    style G fill:#2563EB,color:#fff
-    style N fill:#DC2626,color:#fff
-            </pre>
-        </div>
+        <!-- ======================= MOBILE ACT ======================= -->
+        <div class="seq-group-header blue">📱 Phân hệ Mobile App</div>
 
         <!-- ACT 4: Geofence -->
-        <h3 class="diagram-title">4. Activity: Bản đồ & Geofencing</h3>
+        <h3 class="diagram-title">1. Activity: Bản đồ & Geofencing</h3>
         <div class="mermaid-container reveal">
             <pre class="mermaid">
 flowchart TD
@@ -2012,7 +2079,100 @@ flowchart TD
             </pre>
         </div>
 
-        <!-- ACT 5: QR Listen + Paywall -->
+        <!-- ACT 6: Offline Sync -->
+        <h3 class="diagram-title">2. Activity: Đồng bộ Offline-First</h3>
+        <div class="mermaid-container reveal">
+            <pre class="mermaid">
+flowchart TD
+    A([Trigger Sync]) --> B[SyncDatabaseAsync]
+    B --> C[GET /api/poi]
+    C --> D{Online?}
+    D -->|Có| E[So sánh POI]
+    E --> F[Add/Update local]
+    F --> G[Xoá orphan]
+    D -->|Không| H[Silent fail]
+    G --> I[SyncAnalyticsAsync]
+    H --> I
+    I --> J{SemaphoreSlim?}
+    J -->|Busy| K[Bỏ qua]
+    J -->|Available| L[Lấy UsageHistory]
+    L --> M{Có dữ liệu?}
+    M -->|Không| N[Xong]
+    M -->|Có| O[POST batch lên CMS]
+    O --> P{Server OK?}
+    P -->|200| Q[Xoá records đã sync]
+    P -->|Lỗi| R[Giữ - retry sau]
+    K --> S([Kết thúc])
+    N --> S
+    Q --> S
+    R --> S
+    style A fill:#059669,color:#fff
+    style S fill:#DC2626,color:#fff
+    style E fill:#1E40AF,color:#fff
+    style O fill:#D97706,color:#fff
+            </pre>
+        </div>
+
+        <!-- ACT 9: Tourist Auth (Moved) -->
+        <h3 class="diagram-title">3. Activity: Đăng nhập/Đăng ký Tourist (JWT)</h3>
+        <div class="mermaid-container reveal">
+            <pre class="mermaid">
+flowchart TD
+    A([Khởi động App]) --> B{Đã có Token?}
+    B -->|Có| C[Gọi Heartbeat /api/auth/heartbeat]
+    C --> D{Response 200?}
+    D -->|Có| E[Vào Home]
+    D -->|401/Locked| F[Xóa Token -> Màn hình Đăng nhập]
+    B -->|Không| F
+    F --> G[Chọn Đăng nhập/Đăng ký]
+    G --> H[Xác thực Firebase]
+    H --> I[Sync với API Server]
+    I --> J[Nhận JWT & Lưu SecureStorage]
+    J --> E
+    style A fill:#059669,color:#fff
+    style E fill:#059669,color:#fff
+    style F fill:#E11D48,color:#fff
+            </pre>
+        </div>
+
+        <!-- ======================= WEB ACT ======================= -->
+        <div class="seq-group-header green">🌐 Phân hệ Web Public</div>
+
+        <!-- ACT 2: Register Merchant -->
+        <h3 class="diagram-title">4. Activity: Đăng ký Merchant</h3>
+        <div class="mermaid-container reveal">
+            <pre class="mermaid">
+flowchart TD
+    A([Bắt đầu]) --> B[Điền Form đăng ký]
+    B --> C{Validation OK?}
+    C -->|Không| D[Hiển thị lỗi]
+    D --> B
+    C -->|OK| E{SĐT đã có?}
+    E -->|Đã có| F["Báo lỗi: SĐT trùng"]
+    F --> B
+    E -->|Chưa| G[BEGIN TRANSACTION]
+    G --> H[Tính AgencyId = Max + 1]
+    H --> I[Tạo POI mới]
+    I --> J[BCrypt Hash Password]
+    J --> K["Tạo AppUser (SĐT, Hash)"]
+    K --> L["Ghi AuditLog (500K VNĐ)"]
+    L --> M[SaveChanges]
+    M --> N{Thành công?}
+    N -->|Có| O[COMMIT]
+    O --> P["Hiển thị tài khoản"]
+    N -->|Không| Q[ROLLBACK]
+    Q --> R["Lỗi hệ thống"]
+    P --> S([Kết thúc])
+    R --> S
+    style A fill:#059669,color:#fff
+    style S fill:#DC2626,color:#fff
+    style G fill:#7C3AED,color:#fff
+    style O fill:#059669,color:#fff
+    style Q fill:#DC2626,color:#fff
+            </pre>
+        </div>
+
+        <!-- ACT 5: QR Listen -->
         <h3 class="diagram-title">5. Activity: Quét QR & Paywall Audio</h3>
         <div class="mermaid-container reveal">
             <pre class="mermaid">
@@ -2056,42 +2216,73 @@ flowchart TD
             </pre>
         </div>
 
-        <!-- ACT 6: Offline Sync remains same -->
-        <h3 class="diagram-title">6. Activity: Đồng bộ Offline-First</h3>
+        <!-- ======================= CMS ACT ======================= -->
+        <div class="seq-group-header purple">📋 Phân hệ CMS Dashboard</div>
+
+        <!-- ACT 1: Login -->
+        <h3 class="diagram-title">6. Activity: Đăng nhập</h3>
         <div class="mermaid-container reveal">
             <pre class="mermaid">
 flowchart TD
-    A([Trigger Sync]) --> B[SyncDatabaseAsync]
-    B --> C[GET /api/poi]
-    C --> D{Online?}
-    D -->|Có| E[So sánh POI]
-    E --> F[Add/Update local]
-    F --> G[Xoá orphan]
-    D -->|Không| H[Silent fail]
-    G --> I[SyncAnalyticsAsync]
-    H --> I
-    I --> J{SemaphoreSlim?}
-    J -->|Busy| K[Bỏ qua]
-    J -->|Available| L[Lấy UsageHistory]
-    L --> M{Có dữ liệu?}
-    M -->|Không| N[Xong]
-    M -->|Có| O[POST batch lên CMS]
-    O --> P{Server OK?}
-    P -->|200| Q[Xoá records đã sync]
-    P -->|Lỗi| R[Giữ - retry sau]
-    K --> S([Kết thúc])
-    N --> S
-    Q --> S
-    R --> S
+    A([Bắt đầu]) --> B[Nhập Username + Password]
+    B --> C{Username trong DB?}
+    C -->|Có| D[BCrypt.Verify]
+    D --> E{Mật khẩu đúng?}
+    E -->|Đúng| F[Tạo Cookie Claims]
+    F --> G{ForcePasswordChange?}
+    G -->|True| H[Redirect /change-password]
+    G -->|False| I[Redirect / Dashboard]
+    E -->|Sai| J{Kiểm tra Config Admin?}
+    C -->|Không| J
+    J -->|Khớp| K[Tạo Cookie Admin]
+    K --> I
+    J -->|Không khớp| L[Hiển thị lỗi]
+    L --> B
+    H --> M([Kết thúc])
+    I --> M
     style A fill:#059669,color:#fff
-    style S fill:#DC2626,color:#fff
-    style E fill:#1E40AF,color:#fff
-    style O fill:#D97706,color:#fff
+    style M fill:#DC2626,color:#fff
+    style F fill:#2563EB,color:#fff
+    style L fill:#DC2626,color:#fff
             </pre>
         </div>
 
+        <!-- ACT 3: POI CRUD -->
+        <h3 class="diagram-title">7. Activity: Quản lý POI</h3>
+        <div class="mermaid-container reveal">
+            <pre class="mermaid">
+flowchart TD
+    A([Bắt đầu]) --> B[Load danh sách POI theo Agency]
+    B --> C{Chọn hành động?}
+    C -->|Thêm| D[Mở form /poi/new]
+    D --> E[Nhập thông tin POI]
+    E --> F{Ghim vị trí?}
+    F -->|Có| G[Mở Leaflet Map Modal]
+    G --> H[Click chọn toạ độ]
+    H --> I[Xác nhận]
+    I --> J[Submit → SaveChanges]
+    F -->|Không| J
+    J --> B
+    C -->|Sửa| K["Mở /poi/edit/{id}"]
+    K --> E
+    C -->|Xoá| L[Dialog xác nhận xoá]
+    L --> M{Xác nhận?}
+    M -->|Có| N["Soft Delete (IsDeleted=true)"]
+    N --> B
+    M -->|Không| B
+    B --> O([Kết thúc])
+    style A fill:#059669,color:#fff
+    style O fill:#DC2626,color:#fff
+    style G fill:#2563EB,color:#fff
+    style N fill:#DC2626,color:#fff
+            </pre>
+        </div>
+
+        <!-- ======================= ADMIN ACT ======================= -->
+        <div class="seq-group-header red">🔐 Phân hệ Admin Only</div>
+
         <!-- ACT 7: POI Approval -->
-        <h3 class="diagram-title">7. Activity: Phê duyệt POI</h3>
+        <h3 class="diagram-title">8. Activity: Phê duyệt POI</h3>
         <div class="mermaid-container reveal">
             <pre class="mermaid">
 flowchart TD
@@ -2116,6 +2307,100 @@ flowchart TD
     style I fill:#DC2626,color:#fff
     style G fill:#7C3AED,color:#fff
     style J fill:#F59E0B,color:#000
+            </pre>
+        </div>
+
+        <!-- ACT 10: Gemini (Moved) -->
+        <h3 class="diagram-title">9. Activity: Dịch thuật Đa ngôn ngữ (Gemini AI)</h3>
+        <div class="mermaid-container reveal">
+            <pre class="mermaid">
+flowchart TD
+    A([Admin chọn Dịch AI]) --> B[Lấy dữ liệu gốc Tiếng Việt]
+    B --> C[Tạo Prompt chuyên biệt]
+    C --> D[Gọi Google Gemini Pro API]
+    D --> E{Kết quả hợp lệ?}
+    E -->|Không| F[Báo lỗi/Thử lại]
+    E -->|Có| G[Parse JSON 11 ngôn ngữ]
+    G --> H[Batch Update các bản ghi POI]
+    H --> I[Cập nhật trạng thái 'Đã dịch']
+    I --> J([Xong])
+    style A fill:#059669,color:#fff
+    style J fill:#059669,color:#fff
+    style D fill:#7C3AED,color:#fff
+            </pre>
+        </div>
+
+        <!-- ACT 12: Admin Locking (Moved) -->
+        <h3 class="diagram-title">10. Activity: Quản lý Khóa tài khoản (Admin)</h3>
+        <div class="mermaid-container reveal">
+            <pre class="mermaid">
+flowchart TD
+    A([Admin mở danh sách Users]) --> B[Chọn User cần xử lý]
+    B --> C{Trạng thái hiện tại?}
+    C -->|Đang hoạt động| D[Nhấn Khóa]
+    C -->|Đang bị khóa| E[Nhấn Mở khóa]
+    D --> F[API: Set IsLocked = True]
+    E --> G[API: Set IsLocked = False]
+    F --> H[Cập nhật DB]
+    G --> H
+    H --> I[Refresh UI Admin]
+    I --> J{Trong vòng 5s?}
+    J --> K[Heartbeat của User gửi lên]
+    K --> L{Middleware check DB}
+    L -->|IsLocked == True| M[Trả về 401 -> User bị văng]
+    L -->|IsLocked == False| N[Trả về 200 -> User tiếp tục]
+    style A fill:#059669,color:#fff
+    style M fill:#E11D48,color:#fff
+            </pre>
+        </div>
+
+        <!-- ======================= SYSTEMS ACT ======================= -->
+        <div class="seq-group-header gray">💎 Hệ thống Tracking & Security</div>
+
+        <!-- ACT 8: Security Middleware -->
+        <h3 class="diagram-title">11. Activity: Security Middleware Engine</h3>
+        <div class="mermaid-container reveal">
+            <pre class="mermaid">
+flowchart TD
+    A([Request gửi tới]) --> B{Có Auth Token/Cookie?}
+    B -->|Không| C[Bỏ qua - Theo dõi ẩn danh]
+    B -->|Có| D[Giải mã Identity ID]
+    D --> E{MemoryCache: 5s chưa?}
+    E -->|Chưa| F[Tiếp tục Request]
+    E -->|Rồi| G[Query DB: User Status]
+    G --> H{IsLocked == True?}
+    H -->|Có| I[Trả về 401 Unauthorized]
+    I --> J[App bắt lỗi -> Redirect Login]
+    H -->|Không| K[Update LastActiveAt]
+    K --> L[Lưu MemoryCache 5s]
+    L --> F
+    F --> M([Kết thúc])
+    J --> M
+    style A fill:#059669,color:#fff
+    style M fill:#DC2626,color:#fff
+    style I fill:#E11D48,color:#fff
+    style G fill:#7C3AED,color:#fff
+            </pre>
+        </div>
+
+        <!-- ACT 11: Heartbeat (Moved) -->
+        <h3 class="diagram-title">12. Activity: Vòng đời Heartbeat (Mobile & Web)</h3>
+        <div class="mermaid-container reveal">
+            <pre class="mermaid">
+flowchart TD
+    A([Màn hình Resumed/Mở]) --> B[Khởi tạo Timer 5 giây]
+    B --> C[Gửi Request Heartbeat]
+    C --> D{Server trả về?}
+    D -->|200 OK| E[Cập nhật UI Online]
+    D -->|401 Unauthorized| F[Stop Timer]
+    F --> G[Xóa Session/Token]
+    G --> H[Chuyển về màn hình Login]
+    E --> I{User còn active?}
+    I -->|Có| C
+    I -->|Không/Thoát| J([Dừng Timer])
+    style A fill:#059669,color:#fff
+    style H fill:#E11D48,color:#fff
+    style D fill:#7C3AED,color:#fff
             </pre>
         </div>
     </section>

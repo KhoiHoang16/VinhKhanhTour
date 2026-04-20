@@ -640,15 +640,42 @@
     // FingerprintJS dùng 40+ tín hiệu: canvas, WebGL, GPU, fonts, screen, audio...
     
     var _cachedFingerprint = null;
+    var _pingInterval = null;
+
+    function startGuestTracking(deviceId) {
+        if (_pingInterval) return; // Đã tracking rồi
+        
+        const pingData = {
+            id: 0,
+            userType: 'Guest',
+            identifier: deviceId,
+            displayName: 'Khách vãng lai'
+        };
+
+        const sendPing = () => {
+            fetch('/api/tracking/ping', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(pingData)
+            }).catch(e => console.log('[Ping Error]', e));
+        };
+
+        sendPing(); // Ping ngay lần đầu
+        _pingInterval = setInterval(sendPing, 15000); // Ping lại mỗi 15 giây
+    }
 
     async function getDeviceFingerprint() {
         // Return cached result if available
-        if (_cachedFingerprint) return _cachedFingerprint;
+        if (_cachedFingerprint) {
+            startGuestTracking(_cachedFingerprint);
+            return _cachedFingerprint;
+        }
 
         // Try localStorage first (instant)
         var stored = localStorage.getItem('vkt_device_id');
         if (stored) {
             _cachedFingerprint = stored;
+            startGuestTracking(stored);
             return stored;
         }
 
@@ -672,6 +699,7 @@
             
             localStorage.setItem('vkt_device_id', deviceId);
             _cachedFingerprint = deviceId;
+            startGuestTracking(deviceId);
             return deviceId;
         } catch (e) {
             console.warn('[Fingerprint] FingerprintJS failed, using fallback:', e);
@@ -694,6 +722,7 @@
             var deviceId = platform + '_' + Math.abs(hash).toString(36).substring(0, 8);
             localStorage.setItem('vkt_device_id', deviceId);
             _cachedFingerprint = deviceId;
+            startGuestTracking(deviceId);
             return deviceId;
         }
     }

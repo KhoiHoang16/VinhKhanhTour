@@ -117,6 +117,7 @@ builder.Services.AddScoped<IAppAnalyticsService, AppAnalyticsService>();
 builder.Services.AddScoped<GeminiTranslationService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+builder.Services.AddSingleton<VinhKhanhTour.CMS.Services.ActiveSessionTracker>();
 
 // Payment Services
 builder.Services.AddHttpClient("MoMo");

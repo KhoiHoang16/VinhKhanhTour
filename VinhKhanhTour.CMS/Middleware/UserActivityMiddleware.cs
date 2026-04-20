@@ -6,6 +6,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.EntityFrameworkCore;
 using VinhKhanhTour.CMS.Data;
 using Microsoft.Extensions.DependencyInjection;
+using VinhKhanhTour.CMS.Services;
 
 namespace VinhKhanhTour.CMS.Middleware
 {
@@ -13,11 +14,13 @@ namespace VinhKhanhTour.CMS.Middleware
     {
         private readonly RequestDelegate _next;
         private readonly IMemoryCache _cache;
+        private readonly ActiveSessionTracker _tracker;
 
-        public UserActivityMiddleware(RequestDelegate next, IMemoryCache cache)
+        public UserActivityMiddleware(RequestDelegate next, IMemoryCache cache, ActiveSessionTracker tracker)
         {
             _next = next;
             _cache = cache;
+            _tracker = tracker;
         }
 
         public async Task InvokeAsync(HttpContext context, IServiceScopeFactory scopeFactory)
@@ -95,6 +98,21 @@ namespace VinhKhanhTour.CMS.Middleware
                         // Set cache để 5 giây sau mới update tiếp
                         _cache.Set(cacheKey, true, TimeSpan.FromSeconds(5));
                     }
+
+                    // 3. Update Real-time Tracker (In-Memory, siêu nhẹ nên gọi liên tục được)
+                    var ipForTracker = context.Connection.RemoteIpAddress?.ToString() ?? "Unknown IP";
+                    var deviceForTracker = context.Request.Headers["User-Agent"].ToString();
+                    var nameForTracker = context.User.Identity?.Name ?? $"User {userId}";
+                    
+                    _tracker.Ping(new Services.UserSessionDto
+                    {
+                        Id = userId,
+                        UserType = userType,
+                        Identifier = userId.ToString(),
+                        DisplayName = nameForTracker,
+                        IpAddress = ipForTracker,
+                        UserAgent = deviceForTracker
+                    });
                 }
             }
 
