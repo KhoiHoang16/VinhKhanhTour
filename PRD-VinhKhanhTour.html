@@ -1334,11 +1334,13 @@ flowchart LR
         UC4["Đổi ngôn ngữ / Theme"]
         UC5["Đăng ký / Đăng nhập JWT"]
         UC21["Nhịp tim (Heartbeat)"]
+        UC27["Geofencing Giao thoa POI"]
     end
 
     subgraph WebPublic["🌐 Web Public"]
         UC6["Quét QR → Nghe audio"]
         UC7["Đăng ký Merchant"]
+        UC28["Hàng đợi Queue Audio"]
     end
 
     subgraph CMS["📋 CMS Dashboard"]
@@ -1351,6 +1353,7 @@ flowchart LR
         UC13["Tạo QR Code"]
         UC14["Analytics & Heatmap"]
         UC22["Web Heartbeat Ping"]
+        UC26["Theo dõi đếm Khách Online"]
     end
 
     subgraph AdminOnly["🔐 Admin Only"]
@@ -1361,12 +1364,12 @@ flowchart LR
         UC18["Xem doanh thu"]
     end
 
-    T --> UC1 & UC2 & UC3 & UC4 & UC5 & UC21
-    T --> UC6 & UC7
+    T --> UC1 & UC2 & UC3 & UC4 & UC5 & UC21 & UC27
+    T --> UC6 & UC7 & UC28
 
-    O --> UC8 & UC9 & UC10 & UC10b & UC11 & UC12 & UC13 & UC14 & UC22
+    O --> UC8 & UC9 & UC10 & UC10b & UC11 & UC12 & UC13 & UC14 & UC22 & UC26
 
-    A --> UC8 & UC9 & UC10 & UC11 & UC12 & UC13 & UC14 & UC22
+    A --> UC8 & UC9 & UC10 & UC11 & UC12 & UC13 & UC14 & UC22 & UC26
     A --> UC15 & UC16 & UC18 & UC19 & UC20
 
     style Actors fill:#FFF3E0,stroke:#E65100
@@ -2030,6 +2033,105 @@ sequenceDiagram
 
     </div>
 
+    <!-- ======================= ADVANCED MODULES ======================= -->
+    <div class="section-wrap"><section id="advanced-sequences">
+        <div class="section-header">
+            <div class="icon-wrap" style="background:#e0f7fa;color:#00838f;">🚀</div>
+            <div>
+                <div class="section-num">Chapter 12.5</div>
+                <h2>Sơ đồ Sequence — Các Tính năng Nâng cao (V2)</h2>
+            </div>
+        </div>
+
+        <!-- UC26 -->
+        <h3 class="diagram-title">UC26. Quản lý Visitor (Gán đếm Online Real-time)</h3>
+        <div class="mermaid-container reveal">
+            <pre class="mermaid">
+sequenceDiagram
+    autonumber
+    actor V as Visitor (Thiết bị)
+    participant M as UserActivityMiddleware
+    participant T as ActiveSessionTracker
+    participant D as Database (SQL/PostGIS)
+    participant C as CMS Dashboard (UserManagement)
+
+    V->>M: Gửi HTTP Request (Mở App/Scan QR)
+    M-->>M: Phân tích IP, User-Agent, Session Token
+    M->>T: Gọi hàm Ping(UserSessionDto)
+    T-->>T: Cập nhật In-memory (Lưu trạng thái Online)
+    M->>D: Update [LastActiveAt] (Bất đồng bộ)
+    M-->>V: Trả về giao diện/dữ liệu cho Visitor
+    
+    Loop Cứ mỗi 3 giây
+        C->>T: Gọi hàm GetActiveSessions()
+        T-->>C: Trả về danh sách Visitor có Tín hiệu < 5 phút
+        C-->>C: Cập nhật giao diện: [Số người đang Online]
+    End
+            </pre>
+        </div>
+
+        <!-- UC27 -->
+        <h3 class="diagram-title">UC27. Xử lý Geofencing khi Visitor đứng giữa 2 POI (Giao thoa)</h3>
+        <div class="mermaid-container reveal">
+            <pre class="mermaid">
+sequenceDiagram
+    autonumber
+    actor V as Visitor (Khách)
+    participant MP as MaoPage (MAUI)
+    participant GPS as Geolocation API (OS)
+    participant SQLite as Local Database
+    participant NE as NarrationEngine
+
+    V->>MP: Di chuyển vào vùng giao thoa của 2 POI (A và B)
+    loop Định kỳ mỗi 5s
+        MP->>GPS: Yêu cầu lấy GetLocationAsync()
+        GPS-->>MP: Trả về Hiện tại {Lat, Long}
+        MP->>SQLite: Lấy danh sách POI (A, B)
+        SQLite-->>MP: Trả về Tọa độ & Bán kính (Radius) của A, B
+        MP->>MP: Tính khoảng cách Haversine từ Vị trí đến A và B
+        
+        Note over MP,NE: Logic Xử lý Cạnh tranh Giao thoa
+        alt Cả A và B đều thỏa mãn (Distance < Radius)
+            MP->>MP: So sánh thuật toán (VD: Chọn POI gần nhất hoặc ưu tiên POI chưa được phát)
+            MP->>NE: Gửi tín hiệu Play PoiNarrationAsync(POI_Nearest)
+            NE->>NE: Kiểm tra Cooldown
+            NE-->>V: Phát File Audio/TTS của Quán gần nhất
+        end
+    end
+            </pre>
+        </div>
+
+        <!-- UC28 -->
+        <h3 class="diagram-title">UC28. Hàng đợi Queue Audio (Chống nghẽn máy chủ)</h3>
+        <div class="mermaid-container reveal">
+            <pre class="mermaid">
+sequenceDiagram
+    autonumber
+    actor P as Đám đông (Nhiều Thiết bị tại POI)
+    participant LB as CMS Controller (Load Limiter)
+    participant Q as Audio QueueInfo (In-Memory)
+    participant S as MP3/TTS Audio Player
+
+    P->>LB: GET /api/audio/queue-stream (Cùng lúc 100+ requests)
+    LB->>Q: Kiểm tra Load/Giới hạn kết nối ActiveListeners
+    alt Vượt quá giới hạn (Max Concurrent > 3)
+        Q-->>P: Status isReady = false, position = X
+        P-->>P: UI ListenApp hiện Banner "Bạn đang ở vị trí X hàng đợi..."
+    else Hạ tầng vẫn trong khả năng xử lý
+        Q->>S: Cho phép mở Slot luồng Audio
+        S-->>P: Phát âm thanh và chạy vòng lặp Ping mỗi 15s giữ Slot
+    end
+    
+    Note over P, S: Lắng nghe Event
+    P->>S: Khách ấn Dừng (Pause) hoặc hết Audio (Ended)
+    S->>LB: POST /api/audio/release-stream
+    LB->>Q: Xóa Slot, nhường luồng (Slot) cho thiết bị vị trí số 1 đang chờ
+            </pre>
+        </div>
+    </section>
+
+    </div>
+
     <!-- CH13: ACTIVITY DIAGRAMS -->
     <div class="section-wrap"><section id="activity">
         <div class="section-header">
@@ -2401,6 +2503,75 @@ flowchart TD
     style A fill:#059669,color:#fff
     style H fill:#E11D48,color:#fff
     style D fill:#7C3AED,color:#fff
+            </pre>
+        </div>
+        <!-- ======================= ADVANCED ACTIVITY ======================= -->
+        <div class="seq-group-header gray">🚀 Các Tính năng Nâng cao (UC26, UC27, UC28)</div>
+        
+        <!-- ACT 13: Online Tracking -->
+        <h3 class="diagram-title">13. Activity: Theo dõi đếm Khách Online</h3>
+        <div class="mermaid-container reveal">
+            <pre class="mermaid">
+flowchart TD
+    A([User tương tác App/Web]) --> B{Middleware bắt Request}
+    B --> C[Phân tích Token / IP Device]
+    C --> D[ActiveSessionTracker.Ping]
+    D --> E[Lưu session vào ConcurrentDictionary]
+    E --> F[Background: Update LastActiveAt DB]
+    
+    G([Admin mở Trang số liệu]) --> H[Hệ thống lặp quét Dashboard 3s]
+    H --> I[Lọc Session trong vòng 5 phút cuối]
+    I --> J[Trả về đếm số lượng (Count)]
+    J --> K[Giao diện Live Reload]
+    K --> H
+    style A fill:#059669,color:#fff
+    style G fill:#2563EB,color:#fff
+            </pre>
+        </div>
+
+        <!-- ACT 14: Intersection -->
+        <h3 class="diagram-title">14. Activity: Xét duyệt Geofence 2 POI (Cạnh tranh)</h3>
+        <div class="mermaid-container reveal">
+            <pre class="mermaid">
+flowchart TD
+    A([Thiết bị Di chuyển lấy GPS]) --> B(Tính khoảng cách Local SQLite)
+    B --> C{Số vùng thỏa Radius?}
+    C -->|0| D[Không chạy gì cả]
+    C -->|1 POI| E[Kích hoạt Audio duy nhất]
+    C -->|> 1 POI (Giao thoa)| F[So sánh khoảng cách Nearest]
+    F --> G{Đã từng chạy chưa?}
+    G -->|Từng chạy| H[Dò POI ưu tiên thứ 2]
+    G -->|Chưa chạy| I[Gửi POI #1 vào Engine]
+    H --> I
+    I --> J[Tắt vòng lặp, chạy TextToSpeech]
+    J --> K([Tiếp tục dò 5s])
+    style A fill:#059669,color:#fff
+    style K fill:#DC2626,color:#fff
+            </pre>
+        </div>
+
+        <!-- ACT 15: Audio Queue -->
+        <h3 class="diagram-title">15. Activity: Băng chuyền Hàng đợi Audio</h3>
+        <div class="mermaid-container reveal">
+            <pre class="mermaid">
+flowchart TD
+    A([Quét QR nghe Audio]) --> B[JS Xin phép Queue-Stream]
+    B --> C{Slot Active < 3?}
+    C -->|Chưa Đầy| D[Cấp Slot Active = True]
+    D --> E[Trình duyệt bắt đầu phát Nhạc]
+    E --> F[Vòng lặp JS ping 15s/lần giữ slot]
+    C -->|Đã Đầy Luồng| G[Thêm IP vào WaitQueue]
+    G --> H[Trả về Position vị trí X chờ]
+    H --> I[UI văng Banner Đen đếm lùi]
+    I --> J[Vòng lặp JS Delay 3s hóng lại]
+    J --> B
+    
+    F --> K([Nhấn tắt Audio])
+    K --> L[JS Gửi Release-Stream POST API]
+    L --> M[Server Giải phóng Slot Concurrent]
+    style A fill:#059669,color:#fff
+    style I fill:#DC2626,color:#fff
+    style E fill:#F59E0B,color:#000
             </pre>
         </div>
     </section>

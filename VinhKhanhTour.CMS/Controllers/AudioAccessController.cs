@@ -321,6 +321,57 @@ namespace VinhKhanhTour.CMS.Controllers
             });
         }
 
+        [HttpGet("queue-stream")]
+        public IActionResult RequestAudioStreamQueue([FromQuery] int poiId, [FromQuery] string deviceId)
+        {
+            var q = PoiQueues.GetOrAdd(poiId, _ => new PoiAudioQueueInfo());
+            
+            // Dọn dẹp listener hết hạn (sau 30s không ping liên tục)
+            var now = DateTime.UtcNow;
+            var expired = q.ActiveListeners.Where(kvp => kvp.Value < now).Select(kvp => kvp.Key).ToList();
+            foreach(var key in expired) q.ActiveListeners.TryRemove(key, out _);
+
+            int MAX_CONCURRENT = 3; // Giả lập web server chịu tải định mức nhỏ: tối đa 3 luồng cùng lúc/POI để demo
+            
+            // 1. Nếu thiết bị đã nằm trong danh sách đang nghe -> Cho phép và gia hạn thời gian
+            if (q.ActiveListeners.ContainsKey(deviceId))
+            {
+                q.ActiveListeners[deviceId] = now.AddSeconds(30);
+                return Ok(new { isReady = true, position = 0 });
+            }
+
+            // 2. Chỗ còn trống? -> Xét duyệt cho nghe luôn ngay lập tức
+            if (q.ActiveListeners.Count < MAX_CONCURRENT)
+            {
+                // Xóa khỏi hàng đợi nếu nãy giờ đang chờ
+                q.WaitQueue = new System.Collections.Concurrent.ConcurrentQueue<string>(q.WaitQueue.Where(x => x != deviceId));
+                
+                q.ActiveListeners.TryAdd(deviceId, now.AddSeconds(30));
+                return Ok(new { isReady = true, position = 0 });
+            }
+
+            // 3. Đã đầy luồng (Tránh nghẽn băng thông), đưa khách vào hàng đợi
+            if (!q.WaitQueue.Contains(deviceId))
+            {
+                q.WaitQueue.Enqueue(deviceId);
+            }
+            
+            // Tính số thứ tự hiện tại trong hàng chờ
+            int position = q.WaitQueue.ToList().IndexOf(deviceId) + 1;
+            
+            return Ok(new { isReady = false, position = position });
+        }
+
+        [HttpPost("release-stream")]
+        public IActionResult ReleaseStream([FromQuery] int poiId, [FromQuery] string deviceId)
+        {
+            if (PoiQueues.TryGetValue(poiId, out var q))
+            {
+                q.ActiveListeners.TryRemove(deviceId, out _);
+            }
+            return Ok();
+        }
+
         // ===== PRIVATE HELPERS =====
 
         private async Task RecordPurchase(string deviceId, int poiId, string method,
@@ -352,10 +403,19 @@ namespace VinhKhanhTour.CMS.Controllers
             Console.WriteLine($"[AudioAccess] ✅ Unlocked POI#{poiId} for device {deviceId[..8]}... via {method}");
         }
 
-        // In-memory pending payments (cho VNPay flow)
-        // Trong production, nên dùng DB hoặc Redis
+        // In-memory pending payments
         private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, PendingPaymentInfo>
             PendingPayments = new();
+
+        // Audio Queue Tracking
+        private static readonly System.Collections.Concurrent.ConcurrentDictionary<int, PoiAudioQueueInfo> 
+            PoiQueues = new();
+
+        public class PoiAudioQueueInfo
+        {
+            public System.Collections.Concurrent.ConcurrentDictionary<string, DateTime> ActiveListeners = new();
+            public System.Collections.Concurrent.ConcurrentQueue<string> WaitQueue = new();
+        }
     }
 
     // ===== DTOs =====

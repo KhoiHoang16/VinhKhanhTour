@@ -145,6 +145,12 @@
                         </div>
                         <span id="playStateText">@GetUiString("Paused")</span>
                     </div>
+
+                    <div id="queueBanner" class="queue-banner">
+                        <div class="queue-spinner"></div>
+                        <p>@GetUiString("QueueDesc")</p>
+                        <p>@GetUiString("QueuePos"): <strong id="queuePosText">...</strong></p>
+                    </div>
                     
                     <audio id="audioElement" 
                            src="@GetAudioUrl()" 
@@ -485,6 +491,20 @@
         50% { height: 25px; }
     }
 
+    /* Queue Override CSS */
+    .audio-player-card { position: relative; overflow: hidden; }
+    .queue-banner {
+        position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.92); backdrop-filter: blur(8px); z-index: 200;
+        display: none; flex-direction: column; align-items: center; justify-content: center;
+        color: white; padding: 15px; text-align: center; border-radius: 15px;
+    }
+    .queue-banner.visible { display: flex; animation: fadeIn 0.3s; }
+    .queue-spinner { border: 3px solid rgba(255,140,0,0.3); border-top-color: #FF8C00; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 12px;}
+    .queue-banner p { margin: 5px 0; font-size: 0.95rem; color: #ddd; }
+    .queue-banner strong { font-size: 1.2rem; color: #FF8C00; }
+
+
     .controls {
         display: flex;
         justify-content: center;
@@ -527,6 +547,10 @@
     var audioEl = null;
     var ttsText = "";
     var ttsSynthesis = window.speechSynthesis;
+    
+    function setPoiId(id) {
+        window.vktPoiId = id;
+    }
     var usingNativeAudio = true;
     var ttsLang = "vi-VN";
 
@@ -565,8 +589,8 @@
         if (audioEl && !audioEl.dataset.initialized) {
             audioEl.dataset.initialized = "true";
             audioEl.addEventListener('play', () => updateDomState(true));
-            audioEl.addEventListener('pause', () => updateDomState(false));
-            audioEl.addEventListener('ended', () => updateDomState(false));
+            audioEl.addEventListener('pause', () => { updateDomState(false); releaseQueueSlot(); });
+            audioEl.addEventListener('ended', () => { updateDomState(false); releaseQueueSlot(); });
         }
         
         // If it was already playing TTS before language change, stop it
@@ -598,16 +622,62 @@
     }
 
     function doPlayAudio() {
-        if (!usingNativeAudio && ttsText) {
-            if (ttsSynthesis.speaking) return;
-            var utterance = new SpeechSynthesisUtterance(ttsText);
-            utterance.lang = ttsLang;
-            utterance.onstart = () => updateDomState(true);
-            utterance.onend = () => updateDomState(false);
-            ttsSynthesis.speak(utterance);
-        } else if (audioEl) {
-            audioEl.play().catch(e => console.log('Audio error: ' + e));
-        }
+        // --- XỬ LÝ QUEUE CHỐNG TẢI TRƯỚC KHI PLAY ---
+        getDeviceFingerprint().then(deviceId => {
+            var poiId = window.vktPoiId || 1; 
+            fetch(`/api/audio/queue-stream?poiId=${poiId}&deviceId=${deviceId}`)
+            .then(r => r.json())
+            .then(data => {
+                var queueBanner = document.getElementById('queueBanner');
+                if (!data.isReady) {
+                    if (queueBanner) queueBanner.classList.add('visible');
+                    var posText = document.getElementById('queuePosText');
+                    if (posText) posText.innerText = data.position;
+                    updateDomState(false);
+                    // Chờ 3s và thử lại do hệ thống đang mở giới hạn 3 người nghe cùng lúc
+                    setTimeout(doPlayAudio, 3000);
+                    return;
+                }
+                
+                if (queueBanner) queueBanner.classList.remove('visible');
+                
+                // Múi giờ rảnh rỗi -> Cho Play Audio
+                if (!usingNativeAudio && ttsText) {
+                    if (ttsSynthesis.speaking) return;
+                    var utterance = new SpeechSynthesisUtterance(ttsText);
+                    utterance.lang = ttsLang;
+                    utterance.onstart = () => updateDomState(true);
+                    utterance.onend = () => { updateDomState(false); releaseQueueSlot(); };
+                    ttsSynthesis.speak(utterance);
+                    _pingAudioInterval();
+                } else if (audioEl) {
+                    audioEl.play().catch(e => console.log('Audio error: ' + e));
+                    _pingAudioInterval();
+                }
+            }).catch(e => console.error('Queue API lỗi:', e));
+        });
+    }
+
+    var _pingQueueInterval = null;
+    function _pingAudioInterval() {
+        if (_pingQueueInterval) clearInterval(_pingQueueInterval);
+        _pingQueueInterval = setInterval(async () => {
+             var isPlaying = (audioEl && !audioEl.paused) || ttsSynthesis.speaking;
+             if (isPlaying) {
+                 var deviceId = await getDeviceFingerprint() || 'unknown';
+                 var poiId = window.vktPoiId || 1; 
+                 fetch(`/api/audio/queue-stream?poiId=${poiId}&deviceId=${deviceId}`);
+             } else {
+                 clearInterval(_pingQueueInterval);
+             }
+        }, 15000);
+    }
+    
+    async function releaseQueueSlot() {
+        var deviceId = await getDeviceFingerprint() || 'unknown';
+        var poiId = window.vktPoiId || 1; 
+        fetch(`/api/audio/release-stream?poiId=${poiId}&deviceId=${deviceId}`, {method: 'POST'}).catch(e=>{});
+        if (_pingQueueInterval) clearInterval(_pingQueueInterval);
     }
 
     function toggleAudio() {
@@ -779,6 +849,7 @@
     {
         if (firstRender && poi != null)
         {
+            await JSRuntime.InvokeVoidAsync("setPoiId", Id);
             // Đợi script load xong trước khi gọi JS
             await Task.Delay(300);
 
@@ -958,6 +1029,8 @@
             "TapSubtext" => isVi ? "để nghe giới thiệu về quán" : "to listen to the audio guide for",
             "Playing" => isVi ? "Đang phát..." : "Playing...",
             "Paused" => isVi ? "Đã tạm dừng" : "Paused",
+            "QueueDesc" => isVi ? "Máy chủ Audio đang quá tải do nhiều Khách truy cập cùng lúc." : "Audio server is currently full due to high traffic.",
+            "QueuePos" => isVi ? "Vị trí của bạn trong hàng chờ" : "Your position in Queue",
             _ => key
         };
     }
