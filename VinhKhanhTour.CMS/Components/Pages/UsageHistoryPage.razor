@@ -26,19 +26,19 @@
         <div class="stat-grid">
             <div class="stat-card">
                 <h3 class="stat-label">Tổng lượt nghe</h3>
-                <p class="stat-value">@allHistory.Count</p>
+                <p class="stat-value">@filteredHistory.Count</p>
             </div>
             <div class="stat-card">
                 <h3 class="stat-label">Qua QR Code</h3>
-                <p class="stat-value" style="-webkit-text-fill-color: var(--success); color: var(--success);">@allHistory.Count(h => h.IsQrTriggered)</p>
+                <p class="stat-value" style="-webkit-text-fill-color: var(--success); color: var(--success);">@filteredHistory.Count(h => h.IsQrTriggered)</p>
             </div>
             <div class="stat-card">
                 <h3 class="stat-label">Qua GPS</h3>
-                <p class="stat-value" style="-webkit-text-fill-color: var(--info); color: var(--info);">@allHistory.Count(h => !h.IsQrTriggered)</p>
+                <p class="stat-value" style="-webkit-text-fill-color: var(--info); color: var(--info);">@filteredHistory.Count(h => !h.IsQrTriggered)</p>
             </div>
             <div class="stat-card">
                 <h3 class="stat-label">Thiết bị</h3>
-                <p class="stat-value" style="-webkit-text-fill-color: var(--warning); color: var(--warning);">@allHistory.Select(h => h.DeviceId).Distinct().Count()</p>
+                <p class="stat-value" style="-webkit-text-fill-color: var(--warning); color: var(--warning);">@filteredHistory.Select(h => h.DeviceId).Distinct().Count()</p>
             </div>
         </div>
 
@@ -49,7 +49,7 @@
                 <option value="qr">📱 QR Code</option>
                 <option value="gps">📍 GPS</option>
             </select>
-            <select @bind="filterPoi">
+            <select @bind="filterPoi" class="filter-select">
                 <option value="0">Tất cả Địa điểm</option>
                 @foreach (var kv in poiDict)
                 {
@@ -58,10 +58,37 @@
             </select>
             <button class="btn btn-secondary" style="padding: 0.55rem 1rem;" @onclick="ApplyFilters">🔍 Lọc</button>
             <button class="btn btn-secondary" style="padding: 0.55rem 1rem;" @onclick="ClearFilters">↩️ Bỏ lọc</button>
+            <button class="btn btn-primary" style="padding: 0.55rem 1rem; margin-left: 0.5rem;" @onclick="TogglePoiSummary">📊 Thống kê Quán</button>
             <span style="color: var(--text-secondary); font-size: 0.85rem; margin-left: auto;">
                 Hiển thị: <strong style="color: var(--primary-color);">@filteredHistory.Count</strong> / @allHistory.Count bản ghi
             </span>
         </div>
+
+        @if (isShowingPoiSummary)
+        {
+            <div class="poi-card" style="margin-top: 1rem; margin-bottom: 1rem; padding: 1.5rem; background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+                <h3 style="margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">📊 Xem lượt sử dụng của một quán</h3>
+                <div style="display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap;">
+                    <select @bind="summarySelectedPoi" class="filter-select" style="min-width: 300px; padding: 0.6rem 1rem;">
+                        <option value="0">-- Mời bạn chọn một quán --</option>
+                        <option value="-1">Tất cả các quán</option>
+                        @foreach (var kv in poiDict)
+                        {
+                            <option value="@kv.Key">@kv.Value</option>
+                        }
+                    </select>
+
+                    @if (summarySelectedPoi != 0)
+                    {
+                        var poiUsageCount = summarySelectedPoi == -1 ? allHistory.Count : allHistory.Count(h => h.PoiId == summarySelectedPoi);
+                        <div style="padding: 0.6rem 1.5rem; border-radius: 8px; background: rgba(13, 110, 253, 0.1); border: 1px solid rgba(13, 110, 253, 0.3); display: flex; align-items: center;">
+                            <span style="color: var(--text-secondary); margin-right: 0.5rem;">Tổng số lượt sử dụng:</span>
+                            <span style="font-size: 1.5rem; font-weight: bold; color: var(--primary-color);">@poiUsageCount <span style="font-size: 1rem; font-weight: normal; color: var(--text-secondary);">lượt</span></span>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
 
         <!-- History Table -->
         <div class="poi-card" style="overflow-x: auto;">
@@ -147,9 +174,16 @@
 
     private string filterSource = "all";
     private int filterPoi = 0;
+    private bool isShowingPoiSummary = false;
+    private int summarySelectedPoi = 0;
     private int currentPage = 1;
     private int pageSize = 15;
     private int totalPages => (int)Math.Ceiling((double)filteredHistory.Count / pageSize);
+
+    private void TogglePoiSummary()
+    {
+        isShowingPoiSummary = !isShowingPoiSummary;
+    }
 
     protected override async Task OnInitializedAsync()
     {

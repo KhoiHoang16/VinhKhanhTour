@@ -18,7 +18,7 @@
             <div>
                 <h3 style="margin: 0; color: var(--text-primary); font-family: 'Space Grotesk', sans-serif; font-size: 1.15rem;">Listen App - Chạm để nghe</h3>
                 <p style="margin: 0.25rem 0 0; color: var(--text-secondary); font-size: 0.9rem;">
-                    Hệ thống sẽ tạo ra các mã QR <strong>Base64</strong> trỏ thẳng về trang Web App của từng quán ăn. Du khách quét bằng camera điện thoại để nghe Audio lập tức mà không cần cài App cục bộ!
+                    Hệ thống sử dụng <strong>1 mã QR duy nhất</strong> cho toàn bộ phố ẩm thực. Du khách quét mã QR sẽ thấy danh sách tất cả quán ăn và chạm vào quán muốn nghe Audio thuyết minh!
                 </p>
             </div>
         </div>
@@ -30,56 +30,102 @@
             <div class="loading-spinner">
                 <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
             </div>
-            <p class="loading-pulse">Đang nạp dữ liệu QR Code...</p>
+            <p class="loading-pulse">Đang tạo mã QR Code...</p>
         </div>
     }
     else
     {
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.25rem;">
-            @foreach (var poi in pois)
-            {
-                var listenUrl = $"{baseUrl}/listen/{poi.Id}";
-                var base64Qr = GenerateQrBase64(listenUrl);
+        <!-- Single QR Code Card -->
+        <div style="display: flex; justify-content: center;">
+            <div class="qr-card" style="max-width: 420px; width: 100%; text-align: center; padding: 2rem;">
+                <div style="margin-bottom: 1rem;">
+                    <span style="font-size: 2.5rem;">🍜</span>
+                </div>
+                <h3 style="margin: 0 0 0.25rem; color: var(--text-primary); font-size: 1.3rem; font-weight: 800; font-family: 'Space Grotesk', sans-serif;">
+                    Phố Ẩm Thực Vĩnh Khánh
+                </h3>
+                <p style="color: var(--text-secondary); font-size: 0.88rem; margin: 0 0 1.25rem; line-height: 1.5;">
+                    Quét mã QR bên dưới để xem danh sách <strong>@poiCount quán ăn</strong> và nghe Audio thuyết minh từng quán.
+                </p>
 
-                <div class="qr-card" @key="poi.Id">
-                    <h4 style="margin: 0 0 0.25rem; color: var(--text-primary); font-size: 1rem; font-weight: 700;">@poi.Name</h4>
-                    <p style="color: var(--text-secondary); font-size: 0.82rem; margin: 0 0 1rem;">
-                        @(string.IsNullOrWhiteSpace(poi.Description) ? "Quét mã để nghe giới thiệu." : (poi.Description.Length > 50 ? poi.Description.Substring(0, 50) + "..." : poi.Description))
-                    </p>
+                <!-- QR Code Image -->
+                <div style="background: white; padding: 16px; border-radius: 12px; display: inline-block; margin-bottom: 1rem; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
+                    <img src="data:image/png;base64,@qrBase64" alt="QR Phố Ẩm Thực Vĩnh Khánh" style="width: 220px; height: 220px;" />
+                </div>
 
-                    <!-- QR Code Ảnh Base64 -->
-                    <div class="qr-image" style="background: white; padding: 10px; border-radius: 8px; display: inline-block;">
-                        <img src="data:image/png;base64,@base64Qr" alt="QR @poi.Name" style="width: 150px; height: 150px;" />
+                <!-- URL Display -->
+                <div style="font-size: 0.78rem; color: var(--text-secondary); word-break: break-all; background: rgba(0,0,0,0.2); padding: 0.6rem 1rem; border-radius: 0.5rem; margin-bottom: 1rem;">
+                    @listenListUrl
+                </div>
+
+                <!-- Stats -->
+                <div style="display: flex; justify-content: center; gap: 1rem; margin-bottom: 1.25rem; flex-wrap: wrap;">
+                    <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); padding: 0.5rem 1rem; border-radius: 10px;">
+                        <div style="font-size: 1.4rem; font-weight: 800; color: #10b981; font-family: 'Space Grotesk', sans-serif;">@poiCount</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary);">Quán ăn</div>
                     </div>
-
-                    <div style="margin-top: 0.5rem;">
-                        <span class="badge badge-primary" style="font-size: 0.75rem;">ID: @poi.Id</span>
-                        @if (!string.IsNullOrWhiteSpace(poi.AudioUrlVi))
-                        {
-                            <span class="badge badge-success" style="font-size: 0.75rem;">🎵 Có Audio (MP3)</span>
-                        }
-                        else
-                        {
-                            <span class="badge badge-warning" style="font-size: 0.75rem;">🤖 Trí tuệ nhân tạo đọc</span>
-                        }
+                    <div style="background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.2); padding: 0.5rem 1rem; border-radius: 10px;">
+                        <div style="font-size: 1.4rem; font-weight: 800; color: #8b5cf6; font-family: 'Space Grotesk', sans-serif;">@audioCount</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary);">Có Audio MP3</div>
                     </div>
-
-                    <div style="margin-top: 0.75rem; font-size: 0.75rem; color: var(--text-secondary); word-break: break-all; background: rgba(0,0,0,0.2); padding: 0.5rem; border-radius: 0.4rem;">
-                        @listenUrl
-                    </div>
-
-                    <div style="margin-top: 0.75rem; display: flex; gap: 0.5rem; justify-content: center;">
-                        <button class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;" @onclick="@(() => DownloadBase64Image(base64Qr, $"QR_VinhKhanh_{poi.Id}.png"))">
-                            ⬇️ Tải ảnh QR
-                        </button>
+                    <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.2); padding: 0.5rem 1rem; border-radius: 10px;">
+                        <div style="font-size: 1.4rem; font-weight: 800; color: #3b82f6; font-family: 'Space Grotesk', sans-serif;">@ttsCount</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary);">AI đọc (TTS)</div>
                     </div>
                 </div>
-            }
+
+                <!-- Download Button -->
+                <div style="display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap;">
+                    <button class="btn btn-primary" style="padding: 0.5rem 1.2rem; font-size: 0.9rem;" @onclick="@(() => DownloadBase64Image(qrBase64, "QR_VinhKhanh_PhoAmThuc.png"))">
+                        ⬇️ Tải ảnh QR
+                    </button>
+                    <button class="btn" style="padding: 0.5rem 1.2rem; font-size: 0.9rem; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: var(--text-primary);" @onclick="OpenPreview">
+                        👁️ Xem trước trang
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Included POI List -->
+        <div style="margin-top: 2rem;">
+            <h3 style="color: var(--text-primary); font-size: 1.05rem; font-weight: 700; margin-bottom: 1rem; font-family: 'Space Grotesk', sans-serif;">
+                📋 Danh sách @poiCount quán ăn trong QR Code
+            </h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 0.75rem;">
+                @foreach (var poi in pois)
+                {
+                    <div class="poi-card" style="padding: 0.75rem 1rem; display: flex; align-items: center; gap: 0.75rem; margin: 0;">
+                        <div style="width: 40px; height: 40px; border-radius: 8px; overflow: hidden; flex-shrink: 0;">
+                            <img src="@($"/images/{poi.DisplayImage}")" alt="@poi.Name"
+                                 onerror="this.onerror=null; this.src='/images/vinh_khanh_food_street_banner.jpg';"
+                                 style="width: 100%; height: 100%; object-fit: cover;" />
+                        </div>
+                        <div style="flex: 1; min-width: 0;">
+                            <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                @poi.Name
+                            </div>
+                            <div style="font-size: 0.75rem; color: var(--text-secondary);">
+                                @GetCategoryLabel(poi.DynamicPrimaryCategory)
+                                •
+                                @if (!string.IsNullOrWhiteSpace(poi.AudioUrlVi))
+                                {
+                                    <span style="color: #10b981;">🎵 MP3</span>
+                                }
+                                else
+                                {
+                                    <span style="color: #8b5cf6;">🤖 AI</span>
+                                }
+                            </div>
+                        </div>
+                        <span class="badge badge-primary" style="font-size: 0.7rem; flex-shrink: 0;">ID: @poi.Id</span>
+                    </div>
+                }
+            </div>
         </div>
     }
 </div>
 
-<!-- Thêm Script xử lý tải file Base64 -->
+<!-- Script xử lý tải file Base64 -->
 <script>
     window.downloadFileFromBase64 = function(base64Str, fileName) {
         var a = document.createElement("a");
@@ -95,11 +141,23 @@
     private bool isLoading = true;
     private List<Poi> pois = new();
     private string baseUrl = "";
+    private string listenListUrl = "";
+    private string qrBase64 = "";
+    private int poiCount = 0;
+    private int audioCount = 0;
+    private int ttsCount = 0;
 
     protected override async Task OnInitializedAsync()
     {
         baseUrl = NavManager.BaseUri.TrimEnd('/');
+        listenListUrl = $"{baseUrl}/listen";
+
         pois = await PoiService.GetPoisAsync();
+        poiCount = pois.Count;
+        audioCount = pois.Count(p => !string.IsNullOrWhiteSpace(p.AudioUrlVi));
+        ttsCount = poiCount - audioCount;
+
+        qrBase64 = GenerateQrBase64(listenListUrl);
         isLoading = false;
     }
 
@@ -126,4 +184,18 @@
     {
         await JSRuntime.InvokeVoidAsync("downloadFileFromBase64", base64Str, filename);
     }
+
+    private void OpenPreview()
+    {
+        NavManager.NavigateTo("/listen", true);
+    }
+
+    private string GetCategoryLabel(string cat) => cat switch
+    {
+        "BBQ" => "🍖 Đồ nướng",
+        "Noodle" => "🍜 Món nước",
+        "Sushi" => "🍣 Sushi",
+        "Dessert" => "🍧 Tráng miệng",
+        _ => "🐚 Ốc & Hải sản"
+    };
 }

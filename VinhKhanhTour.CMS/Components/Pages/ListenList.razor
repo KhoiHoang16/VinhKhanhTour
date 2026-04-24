@@ -1,0 +1,440 @@
+@page "/listen"
+@attribute [AllowAnonymous]
+@layout VinhKhanhTour.CMS.Components.Layout.EmptyLayout
+@using VinhKhanhTour.Shared.Models
+@using VinhKhanhTour.CMS.Data
+@using Microsoft.EntityFrameworkCore
+@inject IDbContextFactory<CmsDbContext> DbFactory
+@inject NavigationManager NavManager
+
+<PageTitle>Quán Ăn Vĩnh Khánh - VinhKhanh Tour Audio</PageTitle>
+
+<div class="listen-list-container">
+    <!-- Header -->
+    <div class="list-header">
+        <div class="header-bg"></div>
+        <div class="header-content">
+            <div class="header-logo">🍜</div>
+            <h1>Phố Ẩm Thực Vĩnh Khánh</h1>
+            <p class="header-subtitle">Chạm vào quán để nghe giới thiệu bằng Audio</p>
+            <div class="header-stats">
+                <span class="stat-chip">📍 @pois.Count quán ăn</span>
+                <span class="stat-chip">🎧 Audio thuyết minh</span>
+            </div>
+        </div>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="loading-section">
+            <div class="spinner"></div>
+            <p>Đang tải danh sách quán ăn...</p>
+        </div>
+    }
+    else
+    {
+        <!-- Category Filter -->
+        <div class="category-filter">
+            <button class="filter-chip @(activeFilter == "all" ? "active" : "")" @onclick='() => SetFilter("all")'>
+                🍽️ Tất cả
+            </button>
+            <button class="filter-chip @(activeFilter == "Seafood" ? "active" : "")" @onclick='() => SetFilter("Seafood")'>
+                🐚 Ốc & Hải sản
+            </button>
+            <button class="filter-chip @(activeFilter == "BBQ" ? "active" : "")" @onclick='() => SetFilter("BBQ")'>
+                🍖 Đồ nướng
+            </button>
+            <button class="filter-chip @(activeFilter == "Noodle" ? "active" : "")" @onclick='() => SetFilter("Noodle")'>
+                🍜 Món nước
+            </button>
+            <button class="filter-chip @(activeFilter == "Sushi" ? "active" : "")" @onclick='() => SetFilter("Sushi")'>
+                🍣 Sushi
+            </button>
+            <button class="filter-chip @(activeFilter == "Dessert" ? "active" : "")" @onclick='() => SetFilter("Dessert")'>
+                🍧 Tráng miệng
+            </button>
+        </div>
+
+        <!-- Restaurant List -->
+        <div class="restaurant-list">
+            @foreach (var poi in filteredPois)
+            {
+                var catIcon = GetCategoryIcon(poi.DynamicPrimaryCategory);
+                var catLabel = GetCategoryLabel(poi.DynamicPrimaryCategory);
+
+                <div class="restaurant-card" @key="poi.Id" @onclick="() => NavigateToPoi(poi.Id)">
+                    <div class="card-image-wrapper">
+                        <img src="@($"/images/{poi.DisplayImage}")" alt="@poi.Name"
+                             onerror="this.onerror=null; this.src='/images/vinh_khanh_food_street_banner.jpg';"
+                             class="card-image" loading="lazy" />
+                        <div class="card-image-overlay"></div>
+                        <span class="card-category-badge">@catIcon @catLabel</span>
+                        @if (!string.IsNullOrWhiteSpace(poi.AudioUrlVi))
+                        {
+                            <span class="card-audio-badge">🎵 MP3</span>
+                        }
+                        else
+                        {
+                            <span class="card-audio-badge tts">🤖 AI</span>
+                        }
+                    </div>
+                    <div class="card-body">
+                        <h3 class="card-title">@poi.Name</h3>
+                        <p class="card-desc">
+                            @(string.IsNullOrWhiteSpace(poi.Description)
+                                ? "Chạm để nghe giới thiệu."
+                                : (poi.Description.Length > 80 ? poi.Description.Substring(0, 80) + "..." : poi.Description))
+                        </p>
+                        <div class="card-action">
+                            <span class="listen-btn">🎧 Nghe Audio</span>
+                            <span class="arrow-icon">→</span>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @if (!filteredPois.Any())
+            {
+                <div class="empty-state">
+                    <div class="empty-icon">🔍</div>
+                    <p>Không tìm thấy quán ăn trong danh mục này.</p>
+                </div>
+            }
+        </div>
+    }
+
+    <!-- Footer -->
+    <div class="list-footer">
+        <p>© VinhKhanh Tour • Phố Ẩm Thực Quận 4, TP.HCM</p>
+    </div>
+</div>
+
+<style>
+    /* Reset — override ListenApp's overflow:hidden */
+    body, html {
+        margin: 0; padding: 0;
+        font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        background-color: #0f0f0f;
+        color: #ffffff;
+        overflow-y: auto !important;
+        height: auto !important;
+    }
+
+    .listen-list-container {
+        max-width: 480px;
+        margin: 0 auto;
+        min-height: 100vh;
+        background: #121212;
+        box-shadow: 0 0 30px rgba(0,0,0,0.5);
+        overflow-y: auto;
+    }
+
+    /* Header */
+    .list-header {
+        position: relative;
+        padding: 48px 24px 32px;
+        text-align: center;
+        overflow: hidden;
+    }
+    .header-bg {
+        position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+        background: linear-gradient(135deg, #FF6B00 0%, #E65100 40%, #BF360C 100%);
+        z-index: 0;
+    }
+    .header-bg::after {
+        content: '';
+        position: absolute; bottom: 0; left: 0; right: 0; height: 60px;
+        background: linear-gradient(to top, #121212, transparent);
+    }
+    .header-content {
+        position: relative; z-index: 1;
+    }
+    .header-logo {
+        font-size: 3.5rem;
+        margin-bottom: 8px;
+        animation: float 3s ease-in-out infinite;
+    }
+    @@keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-8px); }
+    }
+    .list-header h1 {
+        font-size: 1.6rem;
+        font-weight: 800;
+        margin: 0 0 6px;
+        color: #fff;
+        text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        letter-spacing: -0.5px;
+    }
+    .header-subtitle {
+        color: rgba(255,255,255,0.85);
+        font-size: 0.92rem;
+        margin: 0 0 16px;
+    }
+    .header-stats {
+        display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;
+    }
+    .stat-chip {
+        background: rgba(255,255,255,0.15);
+        backdrop-filter: blur(8px);
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: #fff;
+        border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    /* Category Filter */
+    .category-filter {
+        display: flex;
+        gap: 8px;
+        padding: 8px 16px 16px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+    .category-filter::-webkit-scrollbar { display: none; }
+    .filter-chip {
+        flex-shrink: 0;
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(255,255,255,0.12);
+        color: rgba(255,255,255,0.7);
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 0.82rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        white-space: nowrap;
+    }
+    .filter-chip:hover {
+        background: rgba(255,140,0,0.15);
+        border-color: rgba(255,140,0,0.4);
+        color: #FF8C00;
+    }
+    .filter-chip.active {
+        background: linear-gradient(135deg, #FF8C00, #E65100);
+        border-color: #FF8C00;
+        color: #fff;
+        box-shadow: 0 2px 12px rgba(255,140,0,0.35);
+    }
+
+    /* Restaurant List */
+    .restaurant-list {
+        padding: 0 16px 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .restaurant-card {
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 16px;
+        overflow: hidden;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        animation: cardFadeIn 0.5s ease forwards;
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    .restaurant-card:nth-child(1) { animation-delay: 0.05s; }
+    .restaurant-card:nth-child(2) { animation-delay: 0.1s; }
+    .restaurant-card:nth-child(3) { animation-delay: 0.15s; }
+    .restaurant-card:nth-child(4) { animation-delay: 0.2s; }
+    .restaurant-card:nth-child(5) { animation-delay: 0.25s; }
+    .restaurant-card:nth-child(6) { animation-delay: 0.3s; }
+    .restaurant-card:nth-child(7) { animation-delay: 0.35s; }
+    .restaurant-card:nth-child(8) { animation-delay: 0.4s; }
+    .restaurant-card:nth-child(9) { animation-delay: 0.45s; }
+    .restaurant-card:nth-child(10) { animation-delay: 0.5s; }
+    .restaurant-card:nth-child(11) { animation-delay: 0.55s; }
+    .restaurant-card:nth-child(12) { animation-delay: 0.6s; }
+
+    @@keyframes cardFadeIn {
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .restaurant-card:hover, .restaurant-card:active {
+        border-color: rgba(255,140,0,0.3);
+        background: rgba(255,140,0,0.06);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    }
+
+    .card-image-wrapper {
+        position: relative;
+        width: 100%;
+        height: 160px;
+        overflow: hidden;
+    }
+    .card-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.4s ease;
+    }
+    .restaurant-card:hover .card-image {
+        transform: scale(1.05);
+    }
+    .card-image-overlay {
+        position: absolute;
+        bottom: 0; left: 0; right: 0;
+        height: 60%;
+        background: linear-gradient(to top, rgba(18,18,18,0.95), transparent);
+    }
+    .card-category-badge {
+        position: absolute;
+        top: 12px; left: 12px;
+        background: rgba(0,0,0,0.65);
+        backdrop-filter: blur(8px);
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 0.72rem;
+        font-weight: 600;
+        color: #fff;
+        border: 1px solid rgba(255,255,255,0.15);
+    }
+    .card-audio-badge {
+        position: absolute;
+        top: 12px; right: 12px;
+        background: rgba(16,185,129,0.85);
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: #fff;
+    }
+    .card-audio-badge.tts {
+        background: rgba(139,92,246,0.85);
+    }
+
+    .card-body {
+        padding: 14px 16px 16px;
+    }
+    .card-title {
+        margin: 0 0 6px;
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: #fff;
+        line-height: 1.3;
+    }
+    .card-desc {
+        margin: 0 0 12px;
+        font-size: 0.82rem;
+        color: rgba(255,255,255,0.55);
+        line-height: 1.5;
+    }
+    .card-action {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .listen-btn {
+        background: linear-gradient(135deg, #FF8C00, #E65100);
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: #fff;
+        box-shadow: 0 2px 10px rgba(255,140,0,0.3);
+        transition: box-shadow 0.2s;
+    }
+    .restaurant-card:hover .listen-btn {
+        box-shadow: 0 4px 16px rgba(255,140,0,0.5);
+    }
+    .arrow-icon {
+        font-size: 1.2rem;
+        color: rgba(255,255,255,0.3);
+        transition: transform 0.2s, color 0.2s;
+    }
+    .restaurant-card:hover .arrow-icon {
+        transform: translateX(4px);
+        color: #FF8C00;
+    }
+
+    /* Loading & Empty */
+    .loading-section {
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        padding: 60px 20px;
+        color: rgba(255,255,255,0.6);
+    }
+    .spinner {
+        width: 40px; height: 40px;
+        border: 4px solid rgba(255,140,0,0.2);
+        border-top-color: #FF8C00;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        margin-bottom: 16px;
+    }
+    @@keyframes spin { to { transform: rotate(360deg); } }
+
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: rgba(255,255,255,0.5);
+    }
+    .empty-icon { font-size: 3rem; margin-bottom: 12px; }
+
+    /* Footer */
+    .list-footer {
+        text-align: center;
+        padding: 24px 16px 32px;
+        color: rgba(255,255,255,0.25);
+        font-size: 0.78rem;
+        border-top: 1px solid rgba(255,255,255,0.06);
+    }
+</style>
+
+@code {
+    private bool isLoading = true;
+    private List<Poi> pois = new();
+    private string activeFilter = "all";
+
+    private IEnumerable<Poi> filteredPois => activeFilter == "all"
+        ? pois
+        : pois.Where(p => p.DynamicPrimaryCategory == activeFilter);
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var dbContext = await DbFactory.CreateDbContextAsync();
+        pois = await dbContext.Pois
+            .IgnoreQueryFilters()
+            .Where(p => !p.IsDeleted && p.ApprovalStatus == ApprovalStatus.Approved)
+            .OrderBy(p => p.Priority)
+            .ThenBy(p => p.Name)
+            .ToListAsync();
+
+        isLoading = false;
+    }
+
+    private void SetFilter(string filter)
+    {
+        activeFilter = filter;
+    }
+
+    private void NavigateToPoi(int id)
+    {
+        NavManager.NavigateTo($"/listen/{id}", false);
+    }
+
+    private string GetCategoryIcon(string cat) => cat switch
+    {
+        "BBQ" => "🍖",
+        "Noodle" => "🍜",
+        "Sushi" => "🍣",
+        "Dessert" => "🍧",
+        _ => "🐚"
+    };
+
+    private string GetCategoryLabel(string cat) => cat switch
+    {
+        "BBQ" => "Đồ nướng",
+        "Noodle" => "Món nước",
+        "Sushi" => "Sushi",
+        "Dessert" => "Tráng miệng",
+        _ => "Ốc & Hải sản"
+    };
+}
